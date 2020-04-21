@@ -72,8 +72,8 @@ ifeq ($(OS),Windows_NT)
 	go build -mod=readonly $(BUILD_FLAGS) -o build/gaiad.exe ./cmd/gaiad
 	go build -mod=readonly $(BUILD_FLAGS) -o build/gaiacli.exe ./cmd/gaiacli
 else
-	go build -mod=readonly $(BUILD_FLAGS) -o build/gaiad ./cmd/gaiad
-	go build -mod=readonly $(BUILD_FLAGS) -o build/gaiacli ./cmd/gaiacli
+	go build $(BUILD_FLAGS) -o build/gaiad ./cmd/gaiad
+	go build $(BUILD_FLAGS) -o build/gaiacli ./cmd/gaiacli
 endif
 
 build-linux: go.sum

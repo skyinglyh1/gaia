@@ -24,6 +24,7 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/cosmos/gaia/app"
+	hscmd "github.com/cosmos/gaia/x/headersync/client/cli"
 )
 
 func main() {
@@ -117,6 +118,8 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		client.LineBreak,
 		authcmd.GetBroadcastCommand(cdc),
 		authcmd.GetEncodeCommand(cdc),
+		client.LineBreak,
+		hscmd.GetTxCmd(cdc),
 		client.LineBreak,
 	)
 
