@@ -160,18 +160,6 @@ func (keeper BaseKeeper) GetKeyHeights(ctx sdk.Context, chainId uint64) (*types.
 }
 
 
-func (keeper BaseKeeper) ProcessHeader(ctx sdk.Context, header *mctype.Header) sdk.Error {
-	if err := keeper.VerifyHeader(ctx, header); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("processHeader, %v", err))
-	}
-	if err := keeper.SetBlockHeader(ctx, header); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("processHeader, %v", err))
-	}
-	if err := keeper.UpdateConsensusPeer(ctx, header); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("processHeader, %v", err))
-	}
-	return nil
-}
 
 func (keeper BaseKeeper) VerifyHeader(ctx sdk.Context, header *mctype.Header) sdk.Error {
 	height := header.Height

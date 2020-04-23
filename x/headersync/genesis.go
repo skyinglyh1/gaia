@@ -1,4 +1,4 @@
-package bank
+package headersync
 
 // GenesisState is the bank state that must be provided at genesis.
 type GenesisState struct {

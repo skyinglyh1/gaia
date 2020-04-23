@@ -19,6 +19,7 @@ type Keeper interface {
 	BaseViewKeeper
 	SyncGenesisHeader(ctx sdk.Context, genesisHeader []byte) sdk.Error
 	SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk.Error
+	ProcessHeader(ctx sdk.Context, header *mctype.Header) sdk.Error
 }
 
 
@@ -92,6 +93,21 @@ func (keeper BaseKeeper) SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk
 	}
 	return nil
 }
+
+
+func (keeper BaseKeeper) ProcessHeader(ctx sdk.Context, header *mctype.Header) sdk.Error {
+	if err := keeper.VerifyHeader(ctx, header); err != nil {
+		return sdk.ErrInternal(fmt.Sprintf("processHeader, %v", err))
+	}
+	if err := keeper.SetBlockHeader(ctx, header); err != nil {
+		return sdk.ErrInternal(fmt.Sprintf("processHeader, %v", err))
+	}
+	if err := keeper.UpdateConsensusPeer(ctx, header); err != nil {
+		return sdk.ErrInternal(fmt.Sprintf("processHeader, %v", err))
+	}
+	return nil
+}
+
 
 
 // BaseViewKeeper implements a read only keeper implementation of ViewKeeper.

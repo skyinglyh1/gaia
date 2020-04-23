@@ -1,4 +1,4 @@
-package bank_test
+package headersync_test
 
 import (
 	"testing"

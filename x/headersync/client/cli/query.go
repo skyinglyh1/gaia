@@ -36,7 +36,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryValidatorOutstandingRewards implements the query validator outstanding rewards command.
 func GetCmdQueryHeader(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "header [chainId, height]",
+		Use:   "header [chainId] [height]",
 		Args:  cobra.ExactArgs(2),
 		Short: "Query header",
 		Long: strings.TrimSpace(

@@ -73,3 +73,4 @@ func GetKeyHeightsKey(chainId uint64) []byte {
 	binary.LittleEndian.PutUint64(b, chainId)
 	return append(append(KeyHeightPrefix, b...), b...)
 }
+
