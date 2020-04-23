@@ -23,7 +23,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 		case QueryHeader:
 			return queryHeader(ctx, req, k)
 		case QueryCurrentHeight:
-			return queryHeight(ctx, req, k)
+			return queryCurrentHeight(ctx, req, k)
 		default:
 			return nil, sdk.ErrUnknownRequest("unknown bank query endpoint")
 		}
@@ -49,14 +49,16 @@ func queryHeader(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.
 
 	return bz, nil
 }
-func queryHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
-	var params types.QueryHeaderHeightParams
+func queryCurrentHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+	var params types.QueryCurrentHeightParams
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
-	header := k.GetCurrentHeight(ctx, params.ChainId)
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, header)
+	height := k.GetCurrentHeight(ctx, params.ChainId)
+	fmt.Printf("got height = %d\n", height)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, height)
+	fmt.Printf("internal.keeper.querier.go.bz = %v\n", bz)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

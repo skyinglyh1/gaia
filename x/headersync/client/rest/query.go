@@ -11,8 +11,8 @@ import (
 	"strconv"
 )
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute string) {
-	r.HandleFunc("/headersync/header/{chainid}/{height}", QueryHeaderRequestHandlerFn(cliCtx, queryRoute)).Methods("GET")
-	r.HandleFunc("/headersync/currentheight/{chainid}", QueryCurrentHeaderHeightRequestHandlerFn(cliCtx, queryRoute)).Methods("GET")
+	r.HandleFunc("/headersync/header/{chainId}/{height}", QueryHeaderRequestHandlerFn(cliCtx, queryRoute)).Methods("GET")
+	r.HandleFunc("/headersync/currentheight/{chainId}", QueryCurrentHeaderHeightRequestHandlerFn(cliCtx, queryRoute)).Methods("GET")
 }
 
 func QueryHeaderRequestHandlerFn(cliCtx context.CLIContext,queryRoute string) http.HandlerFunc {

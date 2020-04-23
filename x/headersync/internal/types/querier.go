@@ -10,11 +10,11 @@ type QueryHeaderParams struct {
 func NewQueryHeaderParams(chainId uint64, height uint32) QueryHeaderParams{
 	return QueryHeaderParams{ChainId: chainId, Height:height}
 }
-type QueryHeaderHeightParams struct {
+type QueryCurrentHeightParams struct {
 	ChainId uint64
 }
 
 // NewQueryBalanceParams creates a new instance of QueryBalanceParams.
-func NewQueryHeaderHeightParams(chainId uint64) QueryHeaderParams{
-	return QueryHeaderParams{ChainId: chainId}
+func NewQueryCurrentHeightParams(chainId uint64) QueryCurrentHeightParams{
+	return QueryCurrentHeightParams{ChainId: chainId}
 }

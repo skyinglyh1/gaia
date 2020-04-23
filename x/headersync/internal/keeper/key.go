@@ -59,7 +59,7 @@ func GetBlockHashKey(chainId uint64, height uint32) []byte {
 func GetBlockCurHeightKey(chainId uint64) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, chainId)
-	return append(BlockCurrentHeightKey, b)
+	return append(BlockCurrentHeightKey, b...)
 }
 
 func GetConsensusPeerKey(chainId uint64, height uint32) []byte {

@@ -40,7 +40,7 @@ var (
 	NewMsgSyncGenesisParam = types.NewMsgSyncGenesisParam
 	NewMsgSyncHeadersParam = types.NewMsgSyncHeadersParam
 	NewQueryHeaderParams = types.NewQueryHeaderParams
-	NewQueryHeaderHeightParams = types.NewQueryHeaderHeightParams
+	NewQueryCurrentHeightParams = types.NewQueryCurrentHeightParams
 
 	// variable aliases
 	ModuleCdc                = types.ModuleCdc
@@ -62,7 +62,7 @@ type (
 	MsgSyncHeadersParam      = types.MsgSyncHeadersParam
 	MsgSyncGenesisParam = types.MsgSyncGenesisParam
 	QueryHeaderParams = types.QueryHeaderParams
-	QueryHeaderHeightParams = types.QueryHeaderHeightParams
+	QueryCurrentHeightParams = types.QueryCurrentHeightParams
 
 
 )

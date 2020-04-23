@@ -22,7 +22,8 @@ func QueryCurrentHeaderHeight(cliCtx context.CLIContext, queryRoute string, chai
 
 	res, _, err := cliCtx.QueryWithData(
 		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryCurrentHeight),
-		cliCtx.Codec.MustMarshalJSON(types.NewQueryHeaderHeightParams(chainId)),
+		cliCtx.Codec.MustMarshalJSON(types.NewQueryCurrentHeightParams(chainId)),
 	)
+
 	return res, err
 }

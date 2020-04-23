@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/gaia/x/headersync/client/common"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
 	mctype "github.com/ontio/multi-chain/core/types"
+	"encoding/hex"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -28,6 +29,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	hsQueryCmd.AddCommand(
 		GetCmdQueryHeader(queryRoute, cdc),
+		GetCmdQueryCurrentHeight(queryRoute, cdc),
 	)
 
 	return hsQueryCmd
@@ -71,7 +73,9 @@ $ %s query distr validator-outstanding-rewards cosmosvaloper1lwjmdnks33xwnmfayc6
 			}
 			var header mctype.Header
 			cdc.MustUnmarshalJSON(res, &header)
-			return cliCtx.PrintOutput(MCHeader{header})
+			fmt.Printf("header of height:%d is:\n %s\n", header.Height, MCHeader{header}.String())
+			return nil
+			//return cliCtx.PrintOutput(MCHeader{header})
 		},
 	}
 }
@@ -81,6 +85,68 @@ type MCHeader struct {
 }
 
 func (header MCHeader) String() string {
-	return fmt.Sprintf("header of height: %d is :%s\n", header.Height, header)
+	blockHash := header.Hash()
+	return fmt.Sprintf(`
+	Version: 		 :%d
+	ChainID          :%d
+	PrevBlockHash    :%s
+	TransactionsRoot :%s
+	CrossStateRoot   :%s
+	BlockRoot        :%s
+	Timestamp        :%d
+	Height           :%d
+	ConsensusData    :%d
+	ConsensusPayload :%s
+	NextBookkeeper   :%s
+
+	Bookkeepers []keypair.PublicKey
+	SigData     [][]byte
+
+	hash 			:%s
+	
+`, header.Version, header.ChainID, header.PrevBlockHash.ToHexString(), header.TransactionsRoot.ToHexString(),header.CrossStateRoot.ToHexString(),
+	header.BlockRoot.ToHexString(), header.Timestamp, header.Height, header.ConsensusData, hex.EncodeToString(header.ConsensusPayload), header.NextBookkeeper.ToBase58(), blockHash.ToHexString())
 }
 
+
+// GetCmdQueryValidatorOutstandingRewards implements the query validator outstanding rewards command.
+func GetCmdQueryCurrentHeight(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "height [chainId]",
+		Args:  cobra.ExactArgs(1),
+		Short: "Query current synced header height based on chainid",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query distribution outstanding (un-withdrawn) rewards
+for a validator and all their delegations.
+
+Example:
+$ %s query distr validator-outstanding-rewards cosmosvaloper1lwjmdnks33xwnmfayc64ycprww49n33mtm92ne
+`,
+				version.ClientName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+
+			chainIdStr := args[0]
+
+			chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
+			if err != nil {
+				return err
+			}
+
+
+			res, err := common.QueryCurrentHeaderHeight(cliCtx, queryRoute, chainId)
+			fmt.Printf("cli.query.res = %v\n", res)
+			if err != nil {
+				return err
+			}
+			var height uint32
+			cdc.MustUnmarshalJSON(res, &height)
+			fmt.Printf("current synced header height of chainid:%d is: %d\n", chainId, height)
+			return nil
+			//return cliCtx.PrintOutput(MCHeader{header})
+		},
+	}
+}
