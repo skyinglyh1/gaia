@@ -64,6 +64,8 @@ func (keeper BaseKeeper) SyncGenesisHeader(ctx sdk.Context, genesisHeaderBytes [
 	if err := keeper.UpdateConsensusPeer(ctx, genesisHeader); err != nil {
 		return err
 	}
+
+
 	return nil
 }
 
@@ -115,7 +117,7 @@ type BaseViewKeeper interface {
 
 	GetHeaderByHeight(ctx sdk.Context, chainId uint64, height uint32) (*mctype.Header, sdk.Error)
 	GetHeaderByHash(ctx sdk.Context, chainId uint64, hash mcc.Uint256) (*mctype.Header, sdk.Error)
-
+	GetCurrentHeight(ctx sdk.Context, chainId uint64) uint32
 	GetConsensusPeers(ctx sdk.Context, chainId uint64, height uint32) (*types.ConsensusPeers, sdk.Error)
 	GetKeyHeights(ctx sdk.Context, chainId uint64) (*types.KeyHeights, sdk.Error)
 }

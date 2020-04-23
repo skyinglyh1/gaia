@@ -10,6 +10,7 @@ import (
 	"sort"
 	"encoding/hex"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
+	"strconv"
 )
 
 
@@ -23,10 +24,30 @@ func (keeper BaseKeeper) SetBlockHeader(ctx sdk.Context, blockHeader *mctype.Hea
 	}
 	store.Set(GetBlockHeaderKey(blockHeader.ChainID, blockHash.ToArray()), sink.Bytes())
 	store.Set(GetBlockHashKey(blockHeader.ChainID, blockHeader.Height), types.ModuleCdc.MustMarshalJSON(blockHash))
-	store.Set(GetBlockCurHeightKey(), types.ModuleCdc.MustMarshalJSON(blockHeader.Height))
+	store.Set(GetBlockCurHeightKey(blockHeader.ChainID), types.ModuleCdc.MustMarshalJSON(blockHeader.Height))
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeSyncHeader,
+			sdk.NewAttribute(types.AttributeKeyChainId, strconv.FormatUint(blockHeader.ChainID, 10)),
+			sdk.NewAttribute(types.AttributeKeyHeight, strconv.FormatUint(uint64(blockHeader.Height), 10)),
+			sdk.NewAttribute(types.AttributeKeyBlockHash, hex.EncodeToString(blockHash[:])),
+			sdk.NewAttribute(types.AttributeKeyNativeChainHeight, strconv.FormatUint(uint64(ctx.BlockHeight()), 10)),
+
+		),
+	})
 	return nil
 }
+func (keeper BaseKeeper) GetCurrentHeight(ctx sdk.Context, chainId uint64) uint32{
+	store := ctx.KVStore(keeper.storeKey)
+	heightBs := store.Get(GetBlockCurHeightKey(chainId))
+	if heightBs == nil {
+		return 0
+	}
+	var height uint32
+	types.ModuleCdc.MustUnmarshalJSON(heightBs, height)
+	return height
 
+}
 
 func (keeper BaseKeeper) GetHeaderByHeight(ctx sdk.Context, chainId uint64, height uint32) (*mctype.Header, sdk.Error) {
 	store := ctx.KVStore(keeper.storeKey)

@@ -2,10 +2,14 @@ package types
 
 // bank module event types
 const (
-	EventTypeTransfer = "transfer"
-
-	AttributeKeyRecipient = "recipient"
-	AttributeKeySender    = "sender"
 
 	AttributeValueCategory = ModuleName
+
+
+	EventTypeSyncHeader = "sync_header"
+	AttributeKeyChainId = "chain_id"
+	AttributeKeyHeight = "height"
+	AttributeKeyBlockHash = "block_hash"
+	AttributeKeyNativeChainHeight = "native_chain_height"
+
 )

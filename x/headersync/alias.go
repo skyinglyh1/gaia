@@ -17,13 +17,14 @@ const (
 	RouterKey                = types.RouterKey
 	QuerierRoute             = types.QuerierRoute
 	DefaultParamspace        = types.DefaultParamspace
-	DefaultSendEnabled       = types.DefaultSendEnabled
 
-	EventTypeTransfer      = types.EventTypeTransfer
-	AttributeKeyRecipient  = types.AttributeKeyRecipient
-	AttributeKeySender     = types.AttributeKeySender
 	AttributeValueCategory = types.AttributeValueCategory
 	StoreKey                     = types.StoreKey
+	EventTypeSyncHeader = types.EventTypeSyncHeader
+	AttributeKeyChainId = types.AttributeKeyChainId
+	AttributeKeyHeight = types.AttributeKeyHeight
+	AttributeKeyBlockHash = types.AttributeKeyBlockHash
+	AttributeKeyNativeChainHeight = types.AttributeKeyNativeChainHeight
 )
 
 var (
@@ -36,9 +37,23 @@ var (
 	NewBaseKeeper          = keeper.NewBaseKeeper
 	ParamKeyTable          = types.ParamKeyTable
 
+	NewMsgSyncGenesisParam = types.NewMsgSyncGenesisParam
+	NewMsgSyncHeadersParam = types.NewMsgSyncHeadersParam
+	NewQueryHeaderParams = types.NewQueryHeaderParams
+	NewQueryHeaderHeightParams = types.NewQueryHeaderHeightParams
+
 	// variable aliases
 	ModuleCdc                = types.ModuleCdc
 	ParamStoreKeySendEnabled = types.ParamStoreKeySendEnabled
+	BlockHeaderPrefix = keeper.BlockHeaderPrefix
+	BlockCurrentHeightKey = keeper.BlockCurrentHeightKey
+	ConsensusPeerPrefix = keeper.ConsensusPeerPrefix
+	KeyHeightPrefix = keeper.KeyHeightPrefix
+
+
+
+
+
 )
 
 type (
@@ -46,5 +61,8 @@ type (
 	Keeper       = keeper.Keeper
 	MsgSyncHeadersParam      = types.MsgSyncHeadersParam
 	MsgSyncGenesisParam = types.MsgSyncGenesisParam
+	QueryHeaderParams = types.QueryHeaderParams
+	QueryHeaderHeightParams = types.QueryHeaderHeightParams
+
 
 )

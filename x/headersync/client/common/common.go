@@ -17,3 +17,12 @@ func QueryHeader(cliCtx context.CLIContext, queryRoute string, chainId uint64, h
 	)
 	return res, err
 }
+
+func QueryCurrentHeaderHeight(cliCtx context.CLIContext, queryRoute string, chainId uint64) ([]byte, error) {
+
+	res, _, err := cliCtx.QueryWithData(
+		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryCurrentHeight),
+		cliCtx.Codec.MustMarshalJSON(types.NewQueryHeaderHeightParams(chainId)),
+	)
+	return res, err
+}
