@@ -3,17 +3,16 @@ package keeper
 import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"fmt"
 )
 
 const (
 	// query balance path
-	QueryHeader = "header"
+	QueryHeader        = "header"
 	QueryCurrentHeight = "current_height"
-
 )
 
 // NewQuerier returns a new sdk.Keeper instance.

@@ -1,12 +1,12 @@
 package types
 
 import (
+	"crypto/elliptic"
 	"github.com/cosmos/cosmos-sdk/codec"
 	mctype "github.com/ontio/multi-chain/core/types"
-	ontkeypair "github.com/ontio/ontology-crypto/keypair"
 	ontec "github.com/ontio/ontology-crypto/ec"
+	ontkeypair "github.com/ontio/ontology-crypto/keypair"
 	"github.com/ontio/ontology-crypto/signature"
-	"crypto/elliptic"
 )
 
 // Register concrete types on codec codec

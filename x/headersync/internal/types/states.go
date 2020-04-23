@@ -9,18 +9,15 @@ type Peer struct {
 	PeerPubkey string
 }
 
-
 type KeyHeights struct {
 	HeightList []uint32
 }
-
 
 type ConsensusPeers struct {
 	ChainID uint64
 	Height  uint32
 	PeerMap map[string]*Peer
 }
-
 
 type Header struct {
 	Version          uint32
@@ -41,5 +38,3 @@ type Header struct {
 
 	hash *common.Uint256
 }
-
-

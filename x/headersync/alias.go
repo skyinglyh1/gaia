@@ -18,12 +18,12 @@ const (
 	QuerierRoute             = types.QuerierRoute
 	DefaultParamspace        = types.DefaultParamspace
 
-	AttributeValueCategory = types.AttributeValueCategory
-	StoreKey                     = types.StoreKey
-	EventTypeSyncHeader = types.EventTypeSyncHeader
-	AttributeKeyChainId = types.AttributeKeyChainId
-	AttributeKeyHeight = types.AttributeKeyHeight
-	AttributeKeyBlockHash = types.AttributeKeyBlockHash
+	AttributeValueCategory        = types.AttributeValueCategory
+	StoreKey                      = types.StoreKey
+	EventTypeSyncHeader           = types.EventTypeSyncHeader
+	AttributeKeyChainId           = types.AttributeKeyChainId
+	AttributeKeyHeight            = types.AttributeKeyHeight
+	AttributeKeyBlockHash         = types.AttributeKeyBlockHash
 	AttributeKeyNativeChainHeight = types.AttributeKeyNativeChainHeight
 )
 
@@ -37,32 +37,29 @@ var (
 	NewBaseKeeper          = keeper.NewBaseKeeper
 	ParamKeyTable          = types.ParamKeyTable
 
-	NewMsgSyncGenesisParam = types.NewMsgSyncGenesisParam
-	NewMsgSyncHeadersParam = types.NewMsgSyncHeadersParam
-	NewQueryHeaderParams = types.NewQueryHeaderParams
+	NewMsgSyncGenesisParam      = types.NewMsgSyncGenesisParam
+	NewMsgSyncHeadersParam      = types.NewMsgSyncHeadersParam
+	NewQueryHeaderParams        = types.NewQueryHeaderParams
 	NewQueryCurrentHeightParams = types.NewQueryCurrentHeightParams
 
 	// variable aliases
 	ModuleCdc                = types.ModuleCdc
+	NewQuerier               = keeper.NewQuerier
 	ParamStoreKeySendEnabled = types.ParamStoreKeySendEnabled
-	BlockHeaderPrefix = keeper.BlockHeaderPrefix
-	BlockCurrentHeightKey = keeper.BlockCurrentHeightKey
-	ConsensusPeerPrefix = keeper.ConsensusPeerPrefix
-	KeyHeightPrefix = keeper.KeyHeightPrefix
-
-
-
-
-
+	BlockHeaderPrefix        = keeper.BlockHeaderPrefix
+	BlockCurrentHeightKey    = keeper.BlockCurrentHeightKey
+	ConsensusPeerPrefix      = keeper.ConsensusPeerPrefix
+	KeyHeightPrefix          = keeper.KeyHeightPrefix
 )
 
 type (
-	BaseKeeper   = keeper.BaseKeeper // ibc module depends on this
-	Keeper       = keeper.Keeper
+	BaseKeeper               = keeper.BaseKeeper // ibc module depends on this
+	Keeper                   = keeper.Keeper
 	MsgSyncHeadersParam      = types.MsgSyncHeadersParam
-	MsgSyncGenesisParam = types.MsgSyncGenesisParam
-	QueryHeaderParams = types.QueryHeaderParams
+	MsgSyncGenesisParam      = types.MsgSyncGenesisParam
+	QueryHeaderParams        = types.QueryHeaderParams
 	QueryCurrentHeightParams = types.QueryCurrentHeightParams
 
-
+	ConsensusPeers = types.ConsensusPeers
+	KeyHeights     = types.KeyHeights
 )

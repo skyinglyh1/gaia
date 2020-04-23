@@ -10,12 +10,13 @@ import (
 	"github.com/cosmos/gaia/x/headersync/client/common"
 	"strconv"
 )
+
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute string) {
 	r.HandleFunc("/headersync/header/{chainId}/{height}", QueryHeaderRequestHandlerFn(cliCtx, queryRoute)).Methods("GET")
 	r.HandleFunc("/headersync/currentheight/{chainId}", QueryCurrentHeaderHeightRequestHandlerFn(cliCtx, queryRoute)).Methods("GET")
 }
 
-func QueryHeaderRequestHandlerFn(cliCtx context.CLIContext,queryRoute string) http.HandlerFunc {
+func QueryHeaderRequestHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -46,8 +47,20 @@ func QueryHeaderRequestHandlerFn(cliCtx context.CLIContext,queryRoute string) ht
 	}
 }
 
+func checkResponseQueryHeaderResponse(
+	w http.ResponseWriter, cliCtx context.CLIContext, queryRoute string, chainId uint64, height uint32,
+) (res []byte, ok bool) {
 
-func QueryCurrentHeaderHeightRequestHandlerFn(cliCtx context.CLIContext,queryRoute string) http.HandlerFunc {
+	res, err := common.QueryHeader(cliCtx, queryRoute, chainId, height)
+	if err != nil {
+		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		return nil, false
+	}
+
+	return res, true
+}
+
+func QueryCurrentHeaderHeightRequestHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -73,18 +86,6 @@ func QueryCurrentHeaderHeightRequestHandlerFn(cliCtx context.CLIContext,queryRou
 	}
 }
 
-func checkResponseQueryHeaderResponse(
-	w http.ResponseWriter, cliCtx context.CLIContext, queryRoute string, chainId uint64, height uint32,
-) (res []byte, ok bool) {
-
-	res, err := common.QueryHeader(cliCtx, queryRoute, chainId, height)
-	if err != nil {
-		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return nil, false
-	}
-
-	return res, true
-}
 func checkResponseQueryCurrentHeaderHeightResponse(
 	w http.ResponseWriter, cliCtx context.CLIContext, queryRoute string, chainId uint64) (res []byte, ok bool) {
 

@@ -7,6 +7,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"encoding/hex"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,7 +15,6 @@ import (
 	"github.com/cosmos/gaia/x/headersync/client/common"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
 	mctype "github.com/ontio/multi-chain/core/types"
-	"encoding/hex"
 )
 
 // GetQueryCmd returns the cli query commands for this module
@@ -53,7 +53,6 @@ $ %s query distr validator-outstanding-rewards cosmosvaloper1lwjmdnks33xwnmfayc6
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
 
 			chainIdStr := args[0]
 			heightStr := args[1]
@@ -104,10 +103,9 @@ func (header MCHeader) String() string {
 
 	hash 			:%s
 	
-`, header.Version, header.ChainID, header.PrevBlockHash.ToHexString(), header.TransactionsRoot.ToHexString(),header.CrossStateRoot.ToHexString(),
-	header.BlockRoot.ToHexString(), header.Timestamp, header.Height, header.ConsensusData, hex.EncodeToString(header.ConsensusPayload), header.NextBookkeeper.ToBase58(), blockHash.ToHexString())
+`, header.Version, header.ChainID, header.PrevBlockHash.ToHexString(), header.TransactionsRoot.ToHexString(), header.CrossStateRoot.ToHexString(),
+		header.BlockRoot.ToHexString(), header.Timestamp, header.Height, header.ConsensusData, hex.EncodeToString(header.ConsensusPayload), header.NextBookkeeper.ToBase58(), blockHash.ToHexString())
 }
-
 
 // GetCmdQueryValidatorOutstandingRewards implements the query validator outstanding rewards command.
 func GetCmdQueryCurrentHeight(queryRoute string, cdc *codec.Codec) *cobra.Command {
@@ -128,14 +126,12 @@ $ %s query distr validator-outstanding-rewards cosmosvaloper1lwjmdnks33xwnmfayc6
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-
 			chainIdStr := args[0]
 
 			chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
 			if err != nil {
 				return err
 			}
-
 
 			res, err := common.QueryCurrentHeaderHeight(cliCtx, queryRoute, chainId)
 			fmt.Printf("cli.query.res = %v\n", res)

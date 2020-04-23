@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/gaia/x/headersync/internal/types"
 	"github.com/cosmos/gaia/x/headersync/internal/keeper"
+	"github.com/cosmos/gaia/x/headersync/internal/types"
 )
 
 // QueryDelegatorTotalRewards queries delegator total rewards.

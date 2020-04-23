@@ -9,7 +9,7 @@ const RouterKey = ModuleName
 
 // MsgSend - high level transaction of the coin module
 type MsgSyncGenesisParam struct {
-	Syncer sdk.AccAddress
+	Syncer        sdk.AccAddress
 	GenesisHeader []byte
 }
 
@@ -41,15 +41,15 @@ func (msg MsgSyncGenesisParam) ValidateBasic() sdk.Error {
 func (msg MsgSyncGenesisParam) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Syncer}
 }
+
 // GetSignBytes Implements Msg.
 func (msg MsgSyncGenesisParam) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
-
 // MsgMultiSend - high level transaction of the coin module
 type MsgSyncHeadersParam struct {
-	Syncer sdk.AccAddress
+	Syncer  sdk.AccAddress
 	Headers [][]byte
 }
 

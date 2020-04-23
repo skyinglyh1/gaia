@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/gaia/x/headersync/client/cli"
 	"github.com/cosmos/gaia/x/headersync/client/rest"
-	"github.com/cosmos/gaia/x/headersync/internal/keeper"
 )
 
 var (
@@ -61,11 +60,9 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
-//___________________________
-// app module
 type AppModule struct {
 	AppModuleBasic
-	keeper        Keeper
+	keeper Keeper
 }
 
 // NewAppModule creates a new AppModule object
@@ -93,7 +90,7 @@ func (AppModule) QuerierRoute() string { return RouterKey }
 
 // module querier
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return keeper.NewQuerier(am.keeper)
+	return NewQuerier(am.keeper)
 }
 
 // module init-genesis

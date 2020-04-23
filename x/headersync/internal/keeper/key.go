@@ -32,16 +32,12 @@ const (
 //
 // - 0x08<valAddr_Bytes><height>: ValidatorSlashEvent
 var (
-
-	BlockHeaderPrefix = []byte{0x01}
-	BlockHashPrefix = []byte{0x02}
+	BlockHeaderPrefix     = []byte{0x01}
+	BlockHashPrefix       = []byte{0x02}
 	BlockCurrentHeightKey = []byte("currentHeight")
-	ConsensusPeerPrefix = []byte{0x03}
-	KeyHeightPrefix = []byte{0x04}
-
+	ConsensusPeerPrefix   = []byte{0x03}
+	KeyHeightPrefix       = []byte{0x04}
 )
-
-
 
 func GetBlockHeaderKey(chainId uint64, blockHash []byte) []byte {
 	b := make([]byte, 8)
@@ -75,4 +71,3 @@ func GetKeyHeightsKey(chainId uint64) []byte {
 	binary.LittleEndian.PutUint64(b, chainId)
 	return append(append(KeyHeightPrefix, b...), b...)
 }
-

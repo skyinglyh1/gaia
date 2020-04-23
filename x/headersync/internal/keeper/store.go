@@ -1,18 +1,18 @@
 package keeper
+
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	mctype "github.com/ontio/multi-chain/core/types"
-	mcc "github.com/ontio/multi-chain/common"
-	mcsig "github.com/ontio/multi-chain/core/signature"
-	"fmt"
-	"github.com/ontio/multi-chain/consensus/vbft/config"
-	"encoding/json"
-	"sort"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
+	mcc "github.com/ontio/multi-chain/common"
+	"github.com/ontio/multi-chain/consensus/vbft/config"
+	mcsig "github.com/ontio/multi-chain/core/signature"
+	mctype "github.com/ontio/multi-chain/core/types"
+	"sort"
 	"strconv"
 )
-
 
 func (keeper BaseKeeper) SetBlockHeader(ctx sdk.Context, blockHeader *mctype.Header) sdk.Error {
 
@@ -32,12 +32,11 @@ func (keeper BaseKeeper) SetBlockHeader(ctx sdk.Context, blockHeader *mctype.Hea
 			sdk.NewAttribute(types.AttributeKeyHeight, strconv.FormatUint(uint64(blockHeader.Height), 10)),
 			sdk.NewAttribute(types.AttributeKeyBlockHash, hex.EncodeToString(blockHash[:])),
 			sdk.NewAttribute(types.AttributeKeyNativeChainHeight, strconv.FormatUint(uint64(ctx.BlockHeight()), 10)),
-
 		),
 	})
 	return nil
 }
-func (keeper BaseKeeper) GetCurrentHeight(ctx sdk.Context, chainId uint64) uint32{
+func (keeper BaseKeeper) GetCurrentHeight(ctx sdk.Context, chainId uint64) uint32 {
 	store := ctx.KVStore(keeper.storeKey)
 	heightBs := store.Get(GetBlockCurHeightKey(chainId))
 	if heightBs == nil {
@@ -84,9 +83,7 @@ func (keeper BaseKeeper) GetHeaderByHash(ctx sdk.Context, chainId uint64, hash m
 
 }
 
-
 func (keeper BaseKeeper) UpdateConsensusPeer(ctx sdk.Context, blockHeader *mctype.Header) sdk.Error {
-
 
 	blkInfo := &vconfig.VbftBlockInfo{}
 	if err := json.Unmarshal(blockHeader.ConsensusPayload, blkInfo); err != nil {
@@ -109,7 +106,6 @@ func (keeper BaseKeeper) UpdateConsensusPeer(ctx sdk.Context, blockHeader *mctyp
 	return nil
 }
 
-
 func (keeper BaseKeeper) SetConsensusPeers(ctx sdk.Context, consensusPeers *types.ConsensusPeers) sdk.Error {
 	store := ctx.KVStore(keeper.storeKey)
 
@@ -122,7 +118,6 @@ func (keeper BaseKeeper) SetConsensusPeers(ctx sdk.Context, consensusPeers *type
 		return sdk.ErrInternal(fmt.Sprintf("types.ModuleCdc.MarshalBinaryBare(ConsensusPeers) error:%v", err))
 	}
 	store.Set(GetConsensusPeerKey(consensusPeers.ChainID, consensusPeers.Height), bz)
-
 
 	// update key heights
 	keyHeights, err := keeper.GetKeyHeights(ctx, consensusPeers.ChainID)
@@ -180,8 +175,6 @@ func (keeper BaseKeeper) GetKeyHeights(ctx sdk.Context, chainId uint64) (*types.
 	return keyHeights, nil
 }
 
-
-
 func (keeper BaseKeeper) VerifyHeader(ctx sdk.Context, header *mctype.Header) sdk.Error {
 	height := header.Height
 	keyHeight, err := keeper.findKeyHeight(ctx, height, header.ChainID)
@@ -223,5 +216,3 @@ func (keeper BaseKeeper) findKeyHeight(ctx sdk.Context, height uint32, chainID u
 	}
 	return 0, sdk.ErrInternal(fmt.Sprintf("findKeyHeight, can not find key height with height %d", height))
 }
-
-
