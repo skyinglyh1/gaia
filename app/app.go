@@ -29,16 +29,16 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	hs "github.com/cosmos/gaia/x/headersync"
+	lp "github.com/cosmos/gaia/x/lockproxy"
 )
 
 const appName = "GaiaApp"
 
 var (
 	// default home directories for gaiacli
-	DefaultCLIHome = os.ExpandEnv( "/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiacli")
+	DefaultCLIHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiacli")
 	// default home directories for gaiad
 	DefaultNodeHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiad")
-
 
 	//DefaultCLIHome = os.ExpandEnv("$HOME/.gaiacli")
 	//DefaultNodeHome = os.ExpandEnv("$HOME/.gaiad")
@@ -60,6 +60,7 @@ var (
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		hs.AppModuleBasic{},
+		lp.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -70,6 +71,7 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
+		lp.ModuleName:             {supply.Burner, supply.Minter},
 	}
 )
 
@@ -107,8 +109,8 @@ type GaiaApp struct {
 	govKeeper      gov.Keeper
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
-	syncKeeper 	hs.Keeper
-
+	syncKeeper     hs.Keeper
+	lpKeepr        lp.Keeper
 	// the module manager
 	mm *module.Manager
 }
@@ -127,7 +129,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey,
-		hs.StoreKey,
+		hs.StoreKey, lp.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -150,6 +152,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 	headersyncSubspace := app.paramsKeeper.Subspace(hs.DefaultParamspace)
+	lockproxySubspace := app.paramsKeeper.Subspace(lp.DefaultParamspace)
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
@@ -183,8 +186,8 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-
 	app.syncKeeper = hs.NewBaseKeeper(app.cdc, keys[hs.StoreKey], headersyncSubspace)
+	app.lpKeepr = lp.NewKeeper(app.cdc, keys[lp.StoreKey], lockproxySubspace, app.supplyKeeper, app.syncKeeper)
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
@@ -200,6 +203,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 		hs.NewAppModule(app.syncKeeper),
+		lp.NewAppModule(app.lpKeepr),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

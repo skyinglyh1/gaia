@@ -11,11 +11,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
 
-	abci "github.com/tendermint/tendermint/abci/types"
 	"encoding/hex"
-	mctype "github.com/ontio/multi-chain/core/types"
-	mcc "github.com/ontio/multi-chain/common"
 	"fmt"
+	mcc "github.com/ontio/multi-chain/common"
+	mctype "github.com/ontio/multi-chain/core/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 func TestGaiadExport(t *testing.T) {
@@ -50,7 +50,6 @@ func TestBlackListedAddrs(t *testing.T) {
 	genesisHeader2 := new(mctype.Header)
 	app.cdc.MustUnmarshalBinaryLengthPrefixed(cosmosGenesisHeaderBs, genesisHeader2)
 	fmt.Printf("genesisHeader2 is %v\n", *genesisHeader2)
-
 
 	blockHash := genesisHeader2.Hash()
 	headerbs := app.cdc.MustMarshalBinaryLengthPrefixed(genesisHeader2)
