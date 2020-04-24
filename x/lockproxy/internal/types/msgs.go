@@ -73,11 +73,11 @@ type MsgBindAssetParam struct {
 	SourceAssetDenom   string
 	TargetChainId      uint64
 	TargetAssetHash    []byte
-	Limit              *sdk.Int
+	Limit              sdk.Int
 	IsTargetChainAsset bool
 }
 
-func NewMsgBindAssetParam(signer sdk.AccAddress, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit *sdk.Int, isTargetChainAsset bool) MsgBindAssetParam {
+func NewMsgBindAssetParam(signer sdk.AccAddress, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) MsgBindAssetParam {
 	return MsgBindAssetParam{signer, sourceAssetDenom, targetChainId, targetAssetHash, limit, isTargetChainAsset}
 }
 

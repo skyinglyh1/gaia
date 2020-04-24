@@ -59,9 +59,9 @@ func DefaultCoins() CoinsParam {
 // validate params
 func ValidateOperator(operator Operator) error {
 
-	if operator.Operator.Empty() {
-		return fmt.Errorf("lockproxy parameter Operator can't be an empty string")
-	}
+	//if operator.Operator.Empty() {
+	//	return fmt.Errorf("lockproxy parameter Operator can't be an empty string")
+	//}
 	return nil
 }
 

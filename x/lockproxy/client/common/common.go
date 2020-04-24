@@ -48,7 +48,7 @@ func QueryCrossedLimit(cliCtx context.CLIContext, queryRoute string, sourceAsset
 func QueryOperator(cliCtx context.CLIContext, queryRoute string) ([]byte, error) {
 
 	res, _, err := cliCtx.QueryWithData(
-		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryCrossedLimit),
+		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryOperator),
 		cliCtx.Codec.MustMarshalJSON(types.NewQueryOperatorParam()),
 	)
 	return res, err

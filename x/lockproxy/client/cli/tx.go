@@ -125,7 +125,7 @@ func SendBindAssetHashTxCmd(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("read istargetChainAsset parameter from args[4] failed")
 			}
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgBindAssetParam(cliCtx.GetFromAddress(), sourceAssetDenom, targetChainId, targetAssetHash, &limit, isTargetChainAsset)
+			msg := types.NewMsgBindAssetParam(cliCtx.GetFromAddress(), sourceAssetDenom, targetChainId, targetAssetHash, limit, isTargetChainAsset)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

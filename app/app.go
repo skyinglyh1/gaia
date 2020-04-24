@@ -2,8 +2,6 @@ package app
 
 import (
 	"io"
-	"os"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
@@ -30,18 +28,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	hs "github.com/cosmos/gaia/x/headersync"
 	lp "github.com/cosmos/gaia/x/lockproxy"
+	"os"
 )
 
 const appName = "GaiaApp"
 
 var (
-	// default home directories for gaiacli
-	DefaultCLIHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiacli")
-	// default home directories for gaiad
-	DefaultNodeHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiad")
+	//// default home directories for gaiacli
+	//DefaultCLIHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiacli")
+	//// default home directories for gaiad
+	//DefaultNodeHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiad")
 
-	//DefaultCLIHome = os.ExpandEnv("$HOME/.gaiacli")
-	//DefaultNodeHome = os.ExpandEnv("$HOME/.gaiad")
+	DefaultCLIHome = os.ExpandEnv("$HOME/.gaiacli")
+	DefaultNodeHome = os.ExpandEnv("$HOME/.gaiad")
 
 	// The module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
@@ -203,7 +202,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
 		hs.NewAppModule(app.syncKeeper),
-		lp.NewAppModule(app.lpKeepr),
+		lp.NewAppModule(app.lpKeepr, app.supplyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

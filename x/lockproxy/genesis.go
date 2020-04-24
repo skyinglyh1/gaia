@@ -2,6 +2,8 @@ package lockproxy
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gaia/x/lockproxy/internal/types"
+	"fmt"
 )
 
 // GenesisState - minter state
@@ -17,8 +19,19 @@ func NewGenesisState(operator Operator) GenesisState {
 }
 
 // InitGenesis new mint genesis
-func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper, data GenesisState) {
 	keeper.SetOperator(ctx, data.Operator)
+
+
+//	keeper.SetModuleAccount(ctx, supplyKeeper)
+
+	// check if the module account exists
+	moduleAcc := keeper.GetModuleAccount(ctx)
+	if moduleAcc == nil {
+		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
+	}
+
+
 }
 
 // ExportGenesis returns a GenesisState for a given context and keeper.

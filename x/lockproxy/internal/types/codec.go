@@ -2,6 +2,7 @@ package types
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // generic sealed codec to be used throughout this module
@@ -12,7 +13,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgBindProxyParam{}, "gaia/MsgBindProxyParam", nil)
 	cdc.RegisterConcrete(MsgBindAssetParam{}, "gaia/MsgBindAssetParam", nil)
 	cdc.RegisterConcrete(MsgLock{}, "gaia/MsgLock", nil)
-
+	cdc.RegisterConcrete(sdk.Int{}, "sdk/Int", nil)
 }
 
 func init() {

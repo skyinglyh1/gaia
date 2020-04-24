@@ -166,9 +166,9 @@ func GetCmdQueryOperator(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-			var assetHash sdk.AccAddress
-			cdc.MustUnmarshalJSON(res, &assetHash)
-			fmt.Printf("operator: %s\n", hex.EncodeToString(assetHash))
+			var operator sdk.AccAddress
+			cdc.MustUnmarshalJSON(res, &operator)
+			fmt.Printf("operator: %s\n", operator.String())
 			//return cliCtx.PrintOutput(hex.EncodeToString(proxyHash))
 			return nil
 		},

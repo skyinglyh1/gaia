@@ -18,6 +18,7 @@ import (
 	ccmc "github.com/ontio/multi-chain/native/service/cross_chain_manager/common"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"strconv"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
 // Keeper of the mint store
@@ -104,45 +105,46 @@ func (k Keeper) GetProxyHash(ctx sdk.Context, toChainId uint64) []byte {
 
 func (k Keeper) GetAssetHash(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) []byte {
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := k.supplyKeeper.GetModuleAddress(sourceAssetDenom)
+	sourceAssetHash := DenomToHash(sourceAssetDenom)
 	return store.Get(GetBindAssetKey(sourceAssetHash.Bytes(), toChainId))
 }
 
 func (k Keeper) GetCrossedAmount(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := k.supplyKeeper.GetModuleAddress(sourceAssetDenom)
+	sourceAssetHash := DenomToHash(sourceAssetDenom)
 	crossedAmountBs := store.Get(GetCrossedAmountKey(sourceAssetHash.Bytes(), toChainId))
 	crossedAmount := sdk.NewInt(0)
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedAmountBs, crossedAmount)
+	if crossedAmountBs != nil {
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedAmountBs, &crossedAmount)
+	}
 	return crossedAmount
 }
 
+
 func (k Keeper) GetCrossedLimit(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := k.supplyKeeper.GetModuleAddress(sourceAssetDenom)
+	sourceAssetHash := DenomToHash(sourceAssetDenom)
 	crossedLimitBs := store.Get(GetCrossedLimitKey(sourceAssetHash.Bytes(), toChainId))
 	crossedLimit := sdk.NewInt(0)
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedLimitBs, crossedLimit)
+	if crossedLimitBs != nil {
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedLimitBs, &crossedLimit)
+	}
 	return crossedLimit
 }
 
-func (k Keeper) BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit *sdk.Int, isTargetChainAsset bool) sdk.Error {
+func (k Keeper) BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error {
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := k.supplyKeeper.GetModuleAddress(sourceAssetDenom)
+	sourceAssetHash := DenomToHash(sourceAssetDenom)
 	// store the target asset hash
 	store.Set(GetBindAssetKey(sourceAssetHash.Bytes(), targetChainId), targetAssetHash)
 	// make sure the new limit is greater than the stored limit
-	crossedLimitBs := store.Get(GetCrossedLimitKey(sourceAssetHash.Bytes(), targetChainId))
-	storedCrossedLimit := sdk.NewInt(0)
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedLimitBs, storedCrossedLimit)
+	storedCrossedLimit := k.GetCrossedLimit(ctx, sourceAssetDenom, targetChainId)
 	if limit.BigInt().Cmp(storedCrossedLimit.BigInt()) != 1 {
 		return sdk.ErrInternal(fmt.Sprintf("new Limit:%s should be greater than stored Limit:%s", limit.String(), storedCrossedLimit.String()))
 	}
 	if isTargetChainAsset {
 		increment := limit.Sub(storedCrossedLimit)
-		crossedAmountBs := store.Get(GetCrossedAmountKey(sourceAssetHash.Bytes(), targetChainId))
-		storedCrossedAmount := sdk.NewInt(0)
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedAmountBs, storedCrossedAmount)
+		storedCrossedAmount := k.GetCrossedAmount(ctx, sourceAssetDenom, targetChainId)
 
 		newCrossedAmount := storedCrossedAmount.Add(increment)
 		if newCrossedAmount.BigInt().Cmp(storedCrossedAmount.BigInt()) != 1 {
@@ -171,12 +173,21 @@ func (k Keeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.C
 	//if !coins.IsZero() {
 	//	return sdk.ErrInternal(fmt.Sprintf("only support create coins with initial zero supply"))
 	//}
+	zeroSupplyCoins := make([]sdk.Coin, 0)
+	for _, coin := range coins {
+		zeroSupplyCoins = append(zeroSupplyCoins, sdk.NewCoin(coin.Denom, sdk.NewInt(0)))
+	}
+	k.supplyKeeper.SetSupply(ctx, supply.NewSupply(sdk.NewCoins(zeroSupplyCoins...)))
+
 	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("supplyKeeper mint coins failed "))
 	}
+	logger := k.Logger(ctx)
+	logger.Info(fmt.Sprintf("minted %s from %s module account", coins.String(), types.ModuleName))
+
+
 	return nil
 }
-
 func (k Keeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddressBs []byte, value sdk.Int) sdk.Error {
 	// burn coin of sourceAssetDenom
 	amt := sdk.NewCoins(sdk.NewCoin(sourceAssetDenom, value))
@@ -189,17 +200,12 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sourceAssetDen
 
 	// make sure new crossed amount is strictly greater than old crossed amount and no less than the limit
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := k.supplyKeeper.GetModuleAddress(sourceAssetDenom)
-	crossedAmountBs := store.Get(GetCrossedAmountKey(sourceAssetHash.Bytes(), toChainId))
-	storedCrossedAmount := sdk.NewInt(0)
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedAmountBs, storedCrossedAmount)
+	sourceAssetHash := DenomToHash(sourceAssetDenom)
+	storedCrossedAmount := k.GetCrossedAmount(ctx, sourceAssetDenom, toChainId)
+	storedCrossedLimit := k.GetCrossedLimit(ctx, sourceAssetDenom, toChainId)
+	newCrossedAmount := storedCrossedAmount.Add(value)
 
-	crossedLimitBs := store.Get(GetCrossedLimitKey(sourceAssetHash.Bytes(), toChainId))
-	storedCrossedLimit := sdk.NewInt(0)
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedLimitBs, storedCrossedLimit)
-	newCrossedAmount := storedCrossedLimit.Add(value)
-
-	if !newCrossedAmount.GT(storedCrossedLimit) {
+	if newCrossedAmount.GTE(storedCrossedLimit) {
 		return sdk.ErrInternal(fmt.Sprintf("new crossed amount:%s should be greater than crossed limit:%s ", newCrossedAmount.String(), storedCrossedLimit.String()))
 	}
 
@@ -398,7 +404,7 @@ func (k Keeper) unlock(ctx sdk.Context, fromChainId uint64, fromContractAddress 
 		return sdk.ErrInternal(fmt.Sprintf("stored proxyHash is not equal to fromContractAddress, expect:%s, got:%s", hex.EncodeToString(proxyHash), hex.EncodeToString(fromContractAddress)))
 	}
 	// to asset hash should be the hex format string of source asset denom name, NOT Module account address
-	toAssetDenom := hex.EncodeToString(args.ToAssetHash)
+	toAssetDenom := HashToDenom(args.ToAssetHash)
 
 	// mint coin of sourceAssetDenom
 	amt := sdk.NewCoins(sdk.NewCoin(toAssetDenom, sdk.NewIntFromBigInt(args.Amount)))
@@ -415,9 +421,11 @@ func (k Keeper) unlock(ctx sdk.Context, fromChainId uint64, fromContractAddress 
 	crossedAmount := k.GetCrossedAmount(ctx, toAssetDenom, fromChainId)
 
 	newCrossedAmount := crossedAmount.Sub(sdk.NewIntFromBigInt(args.Amount))
-	if newCrossedAmount.GT(crossedAmount) {
+	if newCrossedAmount.GTE(crossedAmount) {
 		return sdk.ErrInternal(fmt.Sprintf("new crossed amount:%s should be less than old crossed amount:%s", newCrossedAmount.String(), crossedAmount.String()))
 	}
+	store := ctx.KVStore(k.storeKey)
+	store.Set(GetCrossedAmountKey(DenomToHash(toAssetDenom), fromChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnlock,

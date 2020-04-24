@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // coming from "github.com/ethereum/go-ethereum/common/math"
@@ -49,4 +50,13 @@ func ToArrayReverse(arr []byte) []byte {
 		x = append(x, arr[i])
 	}
 	return x
+}
+
+
+func DenomToHash(denom string) sdk.AccAddress {
+	return sdk.AccAddress([]byte(denom))
+}
+
+func HashToDenom(hash []byte) string {
+	return string(hash)
 }
