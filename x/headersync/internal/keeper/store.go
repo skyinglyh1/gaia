@@ -43,7 +43,7 @@ func (keeper BaseKeeper) GetCurrentHeight(ctx sdk.Context, chainId uint64) uint3
 		return 0
 	}
 	var height uint32
-	types.ModuleCdc.MustUnmarshalJSON(heightBs, height)
+	types.ModuleCdc.MustUnmarshalJSON(heightBs, &height)
 	return height
 
 }
