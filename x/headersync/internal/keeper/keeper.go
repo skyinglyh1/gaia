@@ -75,8 +75,8 @@ func (keeper BaseKeeper) SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk
 			return sdk.ErrInternal(fmt.Sprintf("BlockHeader deserialization err:%v", err))
 		}
 		h, err := keeper.GetHeaderByHeight(ctx, header.ChainID, header.Height)
-		if err == nil {
-			continue
+		if err != nil {
+			return sdk.ErrInternal(fmt.Sprintf("SyncBlockHeader chainId=%d, height=%d, err:%v", header.ChainID, header.Height, err))
 		}
 
 		if h == nil {
@@ -84,10 +84,6 @@ func (keeper BaseKeeper) SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk
 				return sdk.ErrInternal(fmt.Sprintf("SyncBlockHeader error:%s", err))
 			}
 		}
-
-		//if err := keeper.VerifyHeader(ctx, header); err != nil {
-		//
-		//}
 	}
 	return nil
 }
