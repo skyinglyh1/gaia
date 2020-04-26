@@ -3,7 +3,7 @@ module github.com/cosmos/gaia
 go 1.12
 
 replace github.com/ontio/multi-chain => ./../../ontio/multi-chain
-
+replace github.com/cosmos/cosmos-sdk v0.37.4 => ./../../cosmos/cosmos-sdk
 require (
 	github.com/cosmos/cosmos-sdk v0.37.4
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d // indirect

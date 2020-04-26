@@ -258,7 +258,7 @@ func NewMsgCreateCoins(creator sdk.AccAddress, coins sdk.Coins) MsgCreateCoins {
 
 //nolint
 func (msg MsgCreateCoins) Route() string { return RouterKey }
-func (msg MsgCreateCoins) Type() string  { return TypeMsgLock }
+func (msg MsgCreateCoins) Type() string  { return TypeMsgCreateCoins }
 
 // Implements Msg.
 func (msg MsgCreateCoins) ValidateBasic() sdk.Error {

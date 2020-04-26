@@ -16,7 +16,7 @@ var (
 	KeyGoalBonded            = []byte("GoalBonded")
 	KeyBlocksPerYear         = []byte("BlocksPerYear")
 	KeyCoins                 = []byte("lockproxycoins")
-	CurrentChainCrossChainId = uint64(10)
+	CurrentChainCrossChainId = uint64(6)
 )
 
 type Operator struct {

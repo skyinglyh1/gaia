@@ -35,12 +35,15 @@ const appName = "GaiaApp"
 
 var (
 	//// default home directories for gaiacli
-	//DefaultCLIHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiacli")
+	//DefaultCLIHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia-build/.gaiacli")
 	//// default home directories for gaiad
-	//DefaultNodeHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia/build/.gaiad")
+	//DefaultNodeHome = os.ExpandEnv("/home/skyinglyh/Go_Workspace/src/github.com/cosmos/gaia-build/.gaiad")
 
-	DefaultCLIHome = os.ExpandEnv("$HOME/.gaiacli")
-	DefaultNodeHome = os.ExpandEnv("$HOME/.gaiad")
+	//DefaultCLIHome = os.ExpandEnv("$HOME/.gaiacli")
+	//DefaultNodeHome = os.ExpandEnv("$HOME/.gaiad")
+
+	DefaultCLIHome = os.ExpandEnv("./.gaiacli")
+	DefaultNodeHome = os.ExpandEnv("./.gaiad")
 
 	// The module BasicManager is in charge of setting up basic,
 	// non-dependant module elements, such as codec registration
