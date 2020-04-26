@@ -3,7 +3,10 @@ module github.com/cosmos/gaia
 go 1.12
 
 replace github.com/ontio/multi-chain => ./../../ontio/multi-chain
+
 replace github.com/cosmos/cosmos-sdk v0.37.4 => ./../../cosmos/cosmos-sdk
+
+
 require (
 	github.com/cosmos/cosmos-sdk v0.37.4
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d // indirect
@@ -31,5 +34,6 @@ require (
 	github.com/tendermint/tendermint v0.32.7
 	github.com/tendermint/tm-db v0.2.0
 	golang.org/x/text v0.3.2 // indirect
+	golang.org/x/tools v0.0.0-20190524140312-2c0ae7006135
 	gopkg.in/yaml.v2 v2.2.4 // indirect
 )

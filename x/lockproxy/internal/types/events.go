@@ -26,6 +26,7 @@ const (
 	AttributeKeyMerkleValueMakeTxParamTxHash            = "merkle_value.make_tx_param.txhash"
 	AttributeKeyMerkleValueMakeTxParamToContractAddress = "merkle_value.make_tx_param.to_contract_address"
 	AttributeKeyFromChainId                             = "from_chain_id"
+	AtttributeKeyStatus = "status"
 
 	EventTypeUnlock              = "unlock"
 	AttributeKeyFromContractHash = "from_contract_hash"
