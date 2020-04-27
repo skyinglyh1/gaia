@@ -139,7 +139,7 @@ func SendBindAssetHashTxCmd(cdc *codec.Codec) *cobra.Command {
 
 func SendLockTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "lock [block_header_hex_string]",
+		Use:   "lock [source_asset_denom] [to_chain_id] [to_address] [amount]",
 		Short: "Sync one block header",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -154,7 +154,7 @@ func SendLockTxCmd(cdc *codec.Codec) *cobra.Command {
 			}
 
 			toAddressStr := args[2]
-			toAddress, err := sdk.AccAddressFromBech32(toAddressStr)
+			toAddress, err := hex.DecodeString(toAddressStr)
 			if err != nil {
 				return fmt.Errorf("decode hex string 'toAddress' error:%v", err)
 			}

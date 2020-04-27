@@ -126,6 +126,8 @@ func Test_Keeper_CreateCoins(t *testing.T) {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
+	lockProxyModuleAddress := moduleAcc.GetAddress()
+	fmt.Printf("lockProxyModuleAddress  = %s\n", hex.EncodeToString(lockProxyModuleAddress.Bytes()))
 
 
 	creator := acc.GetAddress()

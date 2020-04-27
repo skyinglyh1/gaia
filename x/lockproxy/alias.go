@@ -58,6 +58,8 @@ var (
 	CrossChainIdKey          = keeper.CrossChainIdKey
 	CrossChainTxDetailPrefix = keeper.CrossChainTxDetailPrefix
 	CrossChainDoneTxPrefix   = keeper.CrossChainDoneTxPrefix
+	HashToDenom = keeper.HashToDenom
+	DenomToHash = keeper.DenomToHash
 )
 
 type (

@@ -177,17 +177,20 @@ func (k Keeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.C
 	for _, coin := range coins {
 		zeroSupplyCoins = append(zeroSupplyCoins, sdk.NewCoin(coin.Denom, sdk.NewInt(0)))
 	}
-	k.supplyKeeper.SetSupply(ctx, supply.NewSupply(sdk.NewCoins(zeroSupplyCoins...)))
+	oldSupplyCoins := k.supplyKeeper.GetSupply(ctx).GetTotal()
+	newSupplyCoinsToBeAdd := supply.NewSupply(oldSupplyCoins.Add(sdk.NewCoins(zeroSupplyCoins...)))
+
+	k.supplyKeeper.SetSupply(ctx, newSupplyCoinsToBeAdd)
 
 	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("supplyKeeper mint coins failed "))
 	}
 	logger := k.Logger(ctx)
 	logger.Info(fmt.Sprintf("minted %s from %s module account", coins.String(), types.ModuleName))
-
-
 	return nil
 }
+
+
 func (k Keeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddressBs []byte, value sdk.Int) sdk.Error {
 	// burn coin of sourceAssetDenom
 	amt := sdk.NewCoins(sdk.NewCoin(sourceAssetDenom, value))

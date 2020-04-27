@@ -100,7 +100,7 @@ func GetCmdQueryAssetHash(queryRoute string, cdc *codec.Codec) *cobra.Command {
 func GetCmdQueryCrossedAmount(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "crossedamount [sourceassetdenom] [chainId]",
-		Short: "Query the asset hash in chainId chain corresponding with soureAssetDenom",
+		Short: "Query the asset crossed amount in chainId chain corresponding with soureAssetDenom",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -116,10 +116,10 @@ func GetCmdQueryCrossedAmount(queryRoute string, cdc *codec.Codec) *cobra.Comman
 			if err != nil {
 				return err
 			}
-			var assetHash []byte
-			cdc.MustUnmarshalJSON(res, &assetHash)
+			var crossedAmount sdk.Int
+			cdc.MustUnmarshalJSON(res, &crossedAmount)
 
-			fmt.Printf("crossed_amount: %s\n", hex.EncodeToString(assetHash))
+			fmt.Printf("crossed_amount: %s\n", crossedAmount.String())
 			//return cliCtx.PrintOutput(hex.EncodeToString(proxyHash))
 			return nil
 		},
@@ -128,8 +128,8 @@ func GetCmdQueryCrossedAmount(queryRoute string, cdc *codec.Codec) *cobra.Comman
 
 func GetCmdQueryCrossedLimit(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "crossedamount [sourceassetdenom] [chainId]",
-		Short: "Query the asset hash in chainId chain corresponding with soureAssetDenom",
+		Use:   "crossedlimit [sourceassetdenom] [chainId]",
+		Short: "Query the asset crossed limit in chainId chain corresponding with soureAssetDenom",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -145,9 +145,9 @@ func GetCmdQueryCrossedLimit(queryRoute string, cdc *codec.Codec) *cobra.Command
 			if err != nil {
 				return err
 			}
-			var assetHash []byte
-			cdc.MustUnmarshalJSON(res, &assetHash)
-			fmt.Printf("crossed_limit: %s\n", hex.EncodeToString(assetHash))
+			var crossedLimit sdk.Int
+			cdc.MustUnmarshalJSON(res, &crossedLimit)
+			fmt.Printf("crossed_limit: %s\n", crossedLimit.String())
 			//return cliCtx.PrintOutput(hex.EncodeToString(proxyHash))
 			return nil
 		},
