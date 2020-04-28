@@ -1,6 +1,8 @@
 package cli_test
 
 import (
+	"encoding/hex"
+	"fmt"
 	"testing"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/davecgh/go-spew/spew"
@@ -25,4 +27,14 @@ func Test_UnmarshalOperator(t *testing.T) {
 		t.Errorf("could not unmarshal result to sdk.AccAddress:%v", err)
 	}
 	spew.Printf("opeartor are %s\n", operator.String())
+
+
+}
+func Test_GetHexAddressFromBench32(t *testing.T) {
+	user2 := "cosmos1cwphz9u9qss84vk4g5sktfcxttwvm6qk3upd9z"
+	user2Addr, err := sdk.AccAddressFromBech32(user2)
+	if err != nil {
+		t.Errorf("err = %v", err)
+	}
+	fmt.Printf("user2 Hex Address = %s\n", hex.EncodeToString(user2Addr.Bytes()))
 }

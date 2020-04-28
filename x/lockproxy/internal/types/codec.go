@@ -13,6 +13,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgBindProxyParam{}, "gaia/MsgBindProxyParam", nil)
 	cdc.RegisterConcrete(MsgBindAssetParam{}, "gaia/MsgBindAssetParam", nil)
 	cdc.RegisterConcrete(MsgLock{}, "gaia/MsgLock", nil)
+	cdc.RegisterConcrete(MsgProcessCrossChainTx{}, "gaia/MsgProcessCrossChainTx", nil)
 	cdc.RegisterConcrete(sdk.Int{}, "sdk/Int", nil)
 }
 
