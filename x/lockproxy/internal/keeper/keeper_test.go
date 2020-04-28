@@ -90,7 +90,7 @@ func setupTestInput() testInput {
 	supplyKeeper := supply.NewKeeper(cdc, supplyKeyStore, authKeeper, bankKeeper, maccPerms)
 
 	syncKeeper := headersync.NewBaseKeeper(cdc, syncKeyStore, paramKeeper.Subspace(headersync.DefaultParamspace))
-	lockKeeper := NewKeeper(cdc, lockKeyStore, paramKeeper.Subspace(types.DefaultParamspace), supplyKeeper, syncKeeper)
+	lockKeeper := NewKeeper(cdc, lockKeyStore, paramKeeper.Subspace(types.DefaultParamspace),authKeeper, supplyKeeper, syncKeeper)
 
 
 

@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/gaia/x/lockproxy/internal/types"
 	mcc "github.com/ontio/multi-chain/common"
 	mctype "github.com/ontio/multi-chain/core/types"
@@ -18,7 +19,6 @@ import (
 	ccmc "github.com/ontio/multi-chain/native/service/cross_chain_manager/common"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"strconv"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 )
 
 // Keeper of the mint store
@@ -26,13 +26,15 @@ type Keeper struct {
 	cdc          *codec.Codec
 	storeKey     sdk.StoreKey
 	paramSpace   params.Subspace
+	authKeeper types.AccountKeeper
 	supplyKeeper types.SupplyKeeper
 	hsKeeper     types.SyncKeeper
+
 }
 
 // NewKeeper creates a new mint Keeper instance
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, supplyKeeper types.SupplyKeeper, hsKeeper types.SyncKeeper) Keeper {
+	cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, ak types.AccountKeeper, supplyKeeper types.SupplyKeeper, hsKeeper types.SyncKeeper) Keeper {
 
 	// ensure mint module account is set
 	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -43,6 +45,7 @@ func NewKeeper(
 		cdc:          cdc,
 		storeKey:     key,
 		paramSpace:   paramSpace.WithKeyTable(types.ParamKeyTable()),
+		authKeeper: ak,
 		supplyKeeper: supplyKeeper,
 		hsKeeper:     hsKeeper,
 	}
@@ -415,8 +418,12 @@ func (k Keeper) unlock(ctx sdk.Context, fromChainId uint64, fromContractAddress 
 	//if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, amt); err != nil {
 	//	return sdk.ErrInternal(fmt.Sprintf("mint coins:%s to module account:%s error:%v", amt.String(), types.ModuleName, err))
 	//}
-	var toAddress sdk.AccAddress
+	toAddress := make(sdk.AccAddress, len(args.ToAddress))
 	copy(toAddress, args.ToAddress)
+
+	if err := k.EnsureAccountExist(ctx, toAddress); err != nil {
+		return err
+	}
 	if err := k.supplyKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddress, amt); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("send coins:%s from module account:%s to receiver account:%s error:%v", amt.String(), types.ModuleName, toAddress.String(), err))
 	}

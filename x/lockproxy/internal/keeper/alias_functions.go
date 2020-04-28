@@ -19,5 +19,11 @@ func (k Keeper) SetModuleAccount(ctx sdk.Context, supplyKeeper types.SupplyKeepe
 	}
 	supplyKeeper.SetModuleAccount(ctx, moduleAcc)
 }
-
+func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Error {
+	acct := k.authKeeper.GetAccount(ctx, addr)
+	if acct == nil {
+		return sdk.ErrUnknownAddress(fmt.Sprintf("lockproxy: account %s does not exist", addr.String()))
+	}
+	return nil
+}
 

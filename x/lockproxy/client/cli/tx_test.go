@@ -37,4 +37,9 @@ func Test_GetHexAddressFromBench32(t *testing.T) {
 		t.Errorf("err = %v", err)
 	}
 	fmt.Printf("user2 Hex Address = %s\n", hex.EncodeToString(user2Addr.Bytes()))
+
+	toAddress := make(sdk.AccAddress, len(user2Addr.Bytes()))
+	copy(toAddress, user2Addr.Bytes())
+	fmt.Printf("toAdddress = %s\n", hex.EncodeToString(toAddress))
+
 }

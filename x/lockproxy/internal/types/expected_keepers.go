@@ -2,15 +2,25 @@ package types // noalias
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
-	mctype "github.com/ontio/multi-chain/core/types"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	mctype "github.com/ontio/multi-chain/core/types"
 )
 
 // StakingKeeper defines the expected staking keeper
 type StakingKeeper interface {
 	StakingTokenSupply(ctx sdk.Context) sdk.Int
 	BondedRatio(ctx sdk.Context) sdk.Dec
+}
+type AccountKeeper interface {
+	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
+
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account
+	GetAllAccounts(ctx sdk.Context) []authexported.Account
+	SetAccount(ctx sdk.Context, acc authexported.Account)
+
+	IterateAccounts(ctx sdk.Context, process func(authexported.Account) bool)
 }
 
 // SupplyKeeper defines the expected supply keeper
