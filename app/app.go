@@ -189,7 +189,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	)
 
 	app.syncKeeper = hs.NewBaseKeeper(app.cdc, keys[hs.StoreKey], headersyncSubspace)
-	app.lpKeepr = lp.NewKeeper(app.cdc, keys[lp.StoreKey], lockproxySubspace, app.supplyKeeper, app.syncKeeper)
+	app.lpKeepr = lp.NewKeeper(app.cdc, keys[lp.StoreKey], lockproxySubspace, app.accountKeeper, app.supplyKeeper, app.syncKeeper)
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
