@@ -2,24 +2,24 @@ package test
 
 
 import (
-	"testing"
-	"github.com/tendermint/tendermint/crypto"
 	"encoding/hex"
-	"github.com/cosmos/cosmos-sdk/types"
-	"io/ioutil"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/mintkey"
+	"github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto"
 	rpchttp "github.com/tendermint/tendermint/rpc/client"
+	"io/ioutil"
+	"testing"
 
-	"github.com/cosmos/gaia/app"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gaia/app"
 
+	"errors"
+	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
-	"errors"
-	"github.com/cosmos/gaia/x/headersync"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/gaia/x/lockproxy"
+	"github.com/cosmos/gaia/tmp/headersync"
+	"github.com/cosmos/gaia/tmp/lockproxy"
 )
 
 const (

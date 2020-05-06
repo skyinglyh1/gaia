@@ -34,7 +34,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 	}
 }
 
-
 func handleMsgGenesisHeader(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncGenesisParam) sdk.Result {
 
 	//err := k.SendCoins(ctx, msg.FromAddress, msg.ToAddress, msg.Amount)
@@ -70,7 +69,6 @@ func handleMsgBlockHeaders(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncHe
 
 	return sdk.Result{Events: ctx.EventManager().Events()}
 }
-
 
 func handleMsgCreateCoins(ctx sdk.Context, k keeper.Keeper, msg types.MsgCreateCoins) sdk.Result {
 	if !k.GetOperator(ctx).Operator.Empty() && !k.GetOperator(ctx).Operator.Equals(msg.Creator) {

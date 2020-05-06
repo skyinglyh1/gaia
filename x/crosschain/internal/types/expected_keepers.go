@@ -7,11 +7,6 @@ import (
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 )
 
-// StakingKeeper defines the expected staking keeper
-type StakingKeeper interface {
-	StakingTokenSupply(ctx sdk.Context) sdk.Int
-	BondedRatio(ctx sdk.Context) sdk.Dec
-}
 
 type AccountKeeper interface {
 	NewAccountWithAddress(ctx sdk.Context, addr sdk.AccAddress) authexported.Account

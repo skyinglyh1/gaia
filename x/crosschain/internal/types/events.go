@@ -4,7 +4,6 @@ package types
 const (
 	AttributeValueCategory = ModuleName
 
-
 	EventTypeSyncHeader           = "sync_header"
 	AttributeKeyChainId           = "chain_id"
 	AttributeKeyHeight            = "height"
@@ -41,8 +40,4 @@ const (
 	EventTypeUnlock              = "unlock"
 	AttributeKeyFromContractHash = "from_contract_hash"
 	AttributeKeyToAssetDenom     = "to_asset_denom"
-
-
-
-
 )

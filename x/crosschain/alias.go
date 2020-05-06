@@ -16,48 +16,95 @@ const (
 	StoreKey          = types.StoreKey
 	QuerierRoute      = types.QuerierRoute
 	QueryParameters   = types.QueryParameters
+	RouterKey         = types.RouterKey
 
-	RouterKey = types.RouterKey
+	AttributeValueCategory        = types.AttributeValueCategory
+	EventTypeSyncHeader           = types.EventTypeSyncHeader
+	AttributeKeyChainId           = types.AttributeKeyChainId
+	AttributeKeyHeight            = types.AttributeKeyHeight
+	AttributeKeyBlockHash         = types.AttributeKeyBlockHash
+	AttributeKeyNativeChainHeight = types.AttributeKeyNativeChainHeight
+
+	EventTypeBindProxy           = types.EventTypeBindProxy
+	AttributeKeyToChainId        = types.AttributeKeyToChainId
+	AttributeKeyToChainProxyHash = types.AttributeKeyToChainProxyHash
+
+	EventTypeBindAsset           = types.EventTypeBindAsset
+	AttributeKeySourceAssetDenom = types.AttributeKeySourceAssetDenom
+	AttributeKeyFromAssetHash    = types.AttributeKeyFromAssetHash
+	AttributeKeyToChainAssetHash = types.AttributeKeyToChainAssetHash
+
+	EventTypeLock           = types.EventTypeLock
+	AttributeKeyFromAddress = types.AttributeKeyFromAddress
+	AttributeKeyToAddress   = types.AttributeKeyToAddress
+	AttributeKeyAmount      = types.AttributeKeyAmount
+
+	EventTypeCreateCrossChainTx = types.EventTypeCreateCrossChainTx
+	AttributeCrossChainId       = types.AttributeCrossChainId
+	AttributeKeyTxParamHash     = types.AttributeKeyTxParamHash
+	AttributeKeyMakeTxParam     = types.AttributeKeyMakeTxParam
+
+	EventTypeVerifyToCosmosProof                        = types.EventTypeVerifyToCosmosProof
+	AttributeKeyMerkleValueTxHash                       = types.AttributeKeyMerkleValueTxHash
+	AttributeKeyMerkleValueMakeTxParamTxHash            = types.AttributeKeyMerkleValueMakeTxParamTxHash
+	AttributeKeyMerkleValueMakeTxParamToContractAddress = types.AttributeKeyMerkleValueMakeTxParamToContractAddress
+	AttributeKeyFromChainId                             = types.AttributeKeyFromChainId
+	AtttributeKeyStatus                                 = types.AtttributeKeyStatus
+
+	EventTypeUnlock              = types.EventTypeUnlock
+	AttributeKeyFromContractHash = types.AttributeKeyFromContractHash
+	AttributeKeyToAssetDenom     = types.AttributeKeyToAssetDenom
 )
 
 var (
 	// functions aliases
-	RegisterCodec             = types.RegisterCodec
-	NewKeeper                 = keeper.NewCrossChainKeeper
-	NewQuerier                = keeper.NewQuerier
-
-
-
+	RegisterCodec = types.RegisterCodec
+	NewKeeper     = keeper.NewCrossChainKeeper
+	NewQuerier    = keeper.NewQuerier
 
 	NewMsgSyncGenesisParam      = types.NewMsgSyncGenesisParam
 	NewMsgSyncHeadersParam      = types.NewMsgSyncHeadersParam
-	NewMsgBindProxyParam      = types.NewMsgBindProxyParam
-	NewMsgBindAssetParam      = types.NewMsgBindAssetParam
-	NewMsgLock                = types.NewMsgLock
-	NewMsgProcessCrossChainTx = types.NewMsgProcessCrossChainTx
-	NewMsgCreateCoins         = types.NewMsgCreateCoins
+	NewMsgBindProxyParam        = types.NewMsgBindProxyParam
+	NewMsgBindAssetParam        = types.NewMsgBindAssetParam
+	NewMsgLock                  = types.NewMsgLock
+	NewMsgProcessCrossChainTx   = types.NewMsgProcessCrossChainTx
+	NewMsgCreateCoins           = types.NewMsgCreateCoins
 	NewQueryHeaderParams        = types.NewQueryHeaderParams
 	NewQueryCurrentHeightParams = types.NewQueryCurrentHeightParams
-	NewQueryProxyHashParams    = types.NewQueryProxyHashParams
-	NewQueryAssetHashParams    = types.NewQueryAssetHashParams
-	NewQueryCrossedAmountParam = types.NewQueryCrossedAmountParam
-	NewQueryCrossedLimitParam  = types.NewQueryCrossedLimitParam
+	NewQueryProxyHashParams     = types.NewQueryProxyHashParams
+	NewQueryAssetHashParams     = types.NewQueryAssetHashParams
+	NewQueryCrossedAmountParam  = types.NewQueryCrossedAmountParam
+	NewQueryCrossedLimitParam   = types.NewQueryCrossedLimitParam
+
+	// key function
+	GetBlockHeaderKey    = keeper.GetBlockHeaderKey
+	GetBlockHashKey      = keeper.GetBlockHashKey
+	GetBlockCurHeightKey = keeper.GetBlockCurHeightKey
+	GetConsensusPeerKey  = keeper.GetConsensusPeerKey
+	GetKeyHeightsKey     = keeper.GetKeyHeightsKey
+	GetBindProxyKey      = keeper.GetBindProxyKey
+	GetBindAssetKey      = keeper.GetBindAssetKey
+	GetCrossedLimitKey   = keeper.GetCrossedLimitKey
+	GetCrossedAmountKey  = keeper.GetCrossedAmountKey
+	GetCrossChainTxKey   = keeper.GetCrossChainTxKey
+	GetDoneTxKey         = keeper.GetDoneTxKey
 
 	ParamKeyTable    = types.ParamKeyTable
 	DefaultCoins     = types.DefaultCoins
 	ValidateOperator = types.ValidateOperator
-
+	HashToDenom      = types.HashToDenom
+	DenomToHash      = types.DenomToHash
 	// variable aliases
-	ModuleCdc                = types.ModuleCdc
-	OperatorKey              = types.OperatorKey
+	ModuleCdc   = types.ModuleCdc
+	OperatorKey = types.OperatorKey
 
 	CurrentChainCrossChainId = types.CurrentChainCrossChainId
 
-	ErrInvalidChainId = types.ErrInvalidChainId
-	ErrEmptyTargetHash = types.ErrEmptyTargetHash
-	ErrBelowCrossedLimit = types.ErrBelowCrossedLimit
-	ErrCrossedAmountOverLimit = types.ErrCrossedAmountOverLimit
-	ErrCrossedAmountOverflow = types.ErrCrossedAmountOverflow
+	ErrInvalidChainId            = types.ErrInvalidChainId
+	ErrEmptyTargetHash           = types.ErrEmptyTargetHash
+	ErrBelowCrossedLimit         = types.ErrBelowCrossedLimit
+	ErrCrossedAmountOverLimit    = types.ErrCrossedAmountOverLimit
+	ErrCrossedAmountOverflow     = types.ErrCrossedAmountOverflow
 	ErrSupplyKeeperMintCoinsFail = types.ErrSupplyKeeperMintCoinsFail
 
 	BindProxyPrefix          = keeper.BindProxyPrefix
@@ -67,8 +114,21 @@ var (
 	CrossChainIdKey          = keeper.CrossChainIdKey
 	CrossChainTxDetailPrefix = keeper.CrossChainTxDetailPrefix
 	CrossChainDoneTxPrefix   = keeper.CrossChainDoneTxPrefix
-	HashToDenom = types.HashToDenom
-	DenomToHash = types.DenomToHash
+	BlockHeaderPrefix        = keeper.BlockHeaderPrefix
+	BlockHashPrefix          = keeper.BlockHashPrefix
+	ConsensusPeerPrefix      = keeper.ConsensusPeerPrefix
+	KeyHeightPrefix          = keeper.KeyHeightPrefix
+
+	BlockCurrentHeightKey = keeper.BlockCurrentHeightKey
+	QueryHeader           = keeper.QueryHeader
+	QueryCurrentHeight    = keeper.QueryCurrentHeight
+
+	// query balance path
+	QueryProxyHash     = keeper.QueryProxyHash
+	QueryAssetHash     = keeper.QueryAssetHash
+	QueryCrossedAmount = keeper.QueryCrossedAmount
+	QueryCrossedLimit  = keeper.QueryCrossedLimit
+	QueryOperator      = keeper.QueryOperator
 )
 
 type (

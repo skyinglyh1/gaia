@@ -168,7 +168,7 @@ func (k CrossChainKeeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, c
 	}
 	newCoinsSupply := supply.NewSupply(storedSupplyCoins)
 	k.supplyKeeper.SetSupply(ctx, newCoinsSupply)
-
+	// TODO: should only mint the increment coins to module account
 	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
 		return types.ErrSupplyKeeperMintCoinsFail(types.DefaultCodespace)
 	}

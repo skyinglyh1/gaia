@@ -7,7 +7,7 @@
 *.swn
 .vscode
 .idea
-
+tmp/*
 # Build
 vendor
 build
@@ -46,3 +46,5 @@ dependency-graph.png
 *.out
 *.synctex.gz
 contract_tests/*
+x/tools/*
+x/test/*

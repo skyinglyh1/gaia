@@ -26,8 +26,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	hs "github.com/cosmos/gaia/x/headersync"
-	lp "github.com/cosmos/gaia/x/lockproxy"
+	"github.com/cosmos/gaia/x/crosschain"
+	//hs "github.com/cosmos/gaia/x/headersync"
+	//lp "github.com/cosmos/gaia/x/lockproxy"
+
 	"os"
 )
 
@@ -61,8 +63,7 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
-		hs.AppModuleBasic{},
-		lp.AppModuleBasic{},
+		crosschain.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -73,7 +74,7 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
-		lp.ModuleName:             {supply.Burner, supply.Minter},
+		crosschain.ModuleName:             {supply.Burner, supply.Minter},
 	}
 )
 
@@ -111,8 +112,10 @@ type GaiaApp struct {
 	govKeeper      gov.Keeper
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
-	syncKeeper     hs.Keeper
-	lpKeepr        lp.Keeper
+
+	//syncKeeper     hs.Keeper
+	//lpKeepr        lp.Keeper
+	ccKeeper	 crosschain.Keeper
 	// the module manager
 	mm *module.Manager
 }
@@ -131,7 +134,8 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey,
-		hs.StoreKey, lp.StoreKey,
+		//hs.StoreKey, lp.StoreKey,
+		crosschain.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -153,9 +157,9 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
-	headersyncSubspace := app.paramsKeeper.Subspace(hs.DefaultParamspace)
-	lockproxySubspace := app.paramsKeeper.Subspace(lp.DefaultParamspace)
-
+	//headersyncSubspace := app.paramsKeeper.Subspace(hs.DefaultParamspace)
+	//lockproxySubspace := app.paramsKeeper.Subspace(lp.DefaultParamspace)
+	crosschainSubspace := app.paramsKeeper.Subspace(crosschain.DefaultParamspace)
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
 	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace, app.ModuleAccountAddrs())
@@ -188,8 +192,10 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	app.syncKeeper = hs.NewBaseKeeper(app.cdc, keys[hs.StoreKey], headersyncSubspace)
-	app.lpKeepr = lp.NewKeeper(app.cdc, keys[lp.StoreKey], lockproxySubspace, app.accountKeeper, app.supplyKeeper, app.syncKeeper)
+	//app.syncKeeper = hs.NewBaseKeeper(app.cdc, keys[hs.StoreKey], headersyncSubspace)
+	//app.lpKeepr = lp.NewKeeper(app.cdc, keys[lp.StoreKey], lockproxySubspace, app.accountKeeper, app.supplyKeeper, app.syncKeeper)
+	app.ccKeeper = crosschain.NewKeeper(app.cdc, keys[crosschain.StoreKey], crosschainSubspace, app.accountKeeper, app.supplyKeeper)
+
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
@@ -204,8 +210,9 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
-		hs.NewAppModule(app.syncKeeper),
-		lp.NewAppModule(app.lpKeepr, app.supplyKeeper),
+		//hs.NewAppModule(app.syncKeeper),
+		//lp.NewAppModule(app.lpKeepr, app.supplyKeeper),
+		crosschain.NewAppModule(app.ccKeeper, app.supplyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that

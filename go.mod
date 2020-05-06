@@ -2,20 +2,18 @@ module github.com/cosmos/gaia
 
 go 1.12
 
-replace github.com/ontio/multi-chain => ./../../ontio/multi-chain
-
-replace github.com/cosmos/cosmos-sdk v0.37.4 => ./../../cosmos/cosmos-sdk
-
+replace github.com/ontio/multi-chain v0.0.0-00010101000000-000000000000 => ./../../ontio/multi-chain
 
 require (
+	github.com/Workiva/go-datastructures v1.0.50
 	github.com/cosmos/cosmos-sdk v0.37.4
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang/mock v1.3.1 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/ontio/multi-chain v0.0.0-00010101000000-000000000000
-	github.com/ontio/ontology v1.9.0-beta
-	github.com/ontio/ontology-crypto v1.0.8
+	github.com/ontio/ontology v1.9.0
+	github.com/ontio/ontology-crypto v1.0.9-0.20200427073653-7eba89bbe29b
 	github.com/otiai10/copy v1.0.2
 	github.com/otiai10/curr v0.0.0-20190513014714-f5a3d24e5776 // indirect
 	github.com/pelletier/go-toml v1.4.0 // indirect

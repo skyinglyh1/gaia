@@ -1,9 +1,9 @@
 package crosschain
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gaia/x/crosschain/internal/types"
-	"fmt"
 )
 
 // GenesisState - minter state
@@ -22,15 +22,13 @@ func NewGenesisState(operator Operator) GenesisState {
 func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper, data GenesisState) {
 	keeper.SetOperator(ctx, data.Operator)
 
-
-//	keeper.SetModuleAccount(ctx, supplyKeeper)
+	//	keeper.SetModuleAccount(ctx, supplyKeeper)
 
 	// check if the module account exists
 	moduleAcc := keeper.GetModuleAccount(ctx)
 	if moduleAcc == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
-
 
 }
 

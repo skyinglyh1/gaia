@@ -71,7 +71,7 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // app module
 type AppModule struct {
 	AppModuleBasic
-	keeper Keeper
+	keeper       Keeper
 	supplyKeeper types.SupplyKeeper
 }
 
