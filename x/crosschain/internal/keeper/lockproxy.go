@@ -9,7 +9,6 @@ import (
 	"bytes"
 	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/gaia/x/crosschain/internal/types"
 	mcc "github.com/ontio/multi-chain/common"
 	mctype "github.com/ontio/multi-chain/core/types"
@@ -152,24 +151,21 @@ func (k CrossChainKeeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, c
 	if !coins.IsAllPositive() {
 		return types.ErrCreateNegativeCoins(types.DefaultCodespace, coins)
 	}
-	//zeroSupplyCoins := make([]sdk.Coin, 0)
-	//for _, coin := range coins {
-	//	zeroSupplyCoins = append(zeroSupplyCoins, sdk.NewCoin(coin.Denom, sdk.NewInt(0)))
-	//}
 
+	var increments sdk.Coins
 	storedSupplyCoins := k.supplyKeeper.GetSupply(ctx).GetTotal()
 	for _, coin := range coins {
-		for i, oldCoin := range storedSupplyCoins {
-			if coin.Denom == oldCoin.Denom {
-				storedSupplyCoins[i].Amount = coin.Amount
-				break
-			}
+		oldCoinAmount := storedSupplyCoins.AmountOf(coin.Denom)
+		if  oldCoinAmount == sdk.ZeroInt() {
+			storedSupplyCoins = append(storedSupplyCoins, coin)
+		} else {
+			increment := coin.Sub(sdk.NewCoin(coin.Denom, oldCoinAmount))
+			increments = append(increments, increment)
 		}
 	}
-	newCoinsSupply := supply.NewSupply(storedSupplyCoins)
-	k.supplyKeeper.SetSupply(ctx, newCoinsSupply)
-	// TODO: should only mint the increment coins to module account
-	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, coins); err != nil {
+	//newCoinsSupply := supply.NewSupply(storedSupplyCoins)
+	//k.supplyKeeper.SetSupply(ctx, newCoinsSupply)
+	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, increments); err != nil {
 		return types.ErrSupplyKeeperMintCoinsFail(types.DefaultCodespace)
 	}
 	logger := k.Logger(ctx)

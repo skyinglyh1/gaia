@@ -89,8 +89,21 @@ func setupTestInput() testInput {
 
 	ctx := sdk.NewContext(ms, abci.Header{ChainID: "test-chain-id"}, false, log.NewNopLogger())
 
-	initialTotalSupply := sdk.NewCoins(sdk.NewCoin("nativecoin", sdk.NewInt(123456)))
-	supplyKeeper.SetSupply(ctx, supply.NewSupply(initialTotalSupply))
+	var initialSupply supply.Supply
+
+	supplyStore := ctx.KVStore(supplyKeyStore)
+	b := supplyStore.Get(supply.SupplyKey)
+	if b == nil {
+		fmt.Printf("nil supply")
+	} else {
+		cdc.MustUnmarshalBinaryLengthPrefixed(b, &initialSupply)
+	}
+
+	var coins sdk.Coins
+	if initialSupply.GetTotal().AmountOf("nativecoin").IsZero() {
+		coins := append(coins, sdk.NewCoin("nativecoin", sdk.NewInt(0)))
+		supplyKeeper.SetSupply(ctx, supply.NewSupply(coins))
+	}
 
 	return testInput{cdc: cdc, ctx: ctx, authKeeper: authKeeper, ccKeeper:ccKeeper, supplyKeeper:supplyKeeper, bankKeeper:bankKeeper}
 }
@@ -133,9 +146,6 @@ func Test_Keeper_CreateCoins(t *testing.T) {
 	}
 	assert.Equal(t, addr, creator)
 
-	total0 := input.supplyKeeper.GetSupply(ctx).GetTotal()
-
-
 	err = input.ccKeeper.CreateCoins(ctx, creator, coins)
 	if err != nil {
 		t.Errorf("CreateCoins error:%v", err)
@@ -149,7 +159,7 @@ func Test_Keeper_CreateCoins(t *testing.T) {
 
 	total1 := input.supplyKeeper.GetSupply(ctx).GetTotal()
 
-	assert.Equal(t, total1.IsEqual(total0.Add(coins)), true)
+	assert.Equal(t, total1.IsEqual(coins), true)
 
 	balanceCoins := input.bankKeeper.GetCoins(ctx, input.supplyKeeper.GetModuleAddress(types.ModuleName))
 	assert.Equal(t, balanceCoins.IsEqual(coins), true)
@@ -199,7 +209,7 @@ func Test_Keeper_BindProxyAndAssetHash(t *testing.T) {
 	assert.Equal(t, proxyHash, storedProxyHash)
 
 
-	assetHash := []byte{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01}
+	assetHash, _ := hex.DecodeString("0000000000000000000000000000000000000001")
 	crossedLimit := sdk.NewInt(1000000000)
 	err = input.ccKeeper.BindAssetHash(ctx, "ont", 3,  assetHash, crossedLimit, true)
 	assert.Nil(t, err)

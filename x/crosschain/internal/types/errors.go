@@ -92,11 +92,11 @@ func ErrSupplyKeeperMintCoinsFail(codespace sdk.CodespaceType) sdk.Error {
 }
 
 func ErrSendCoinsToModuleFail(codespace sdk.CodespaceType, amt sdk.Coins, fromAddr sdk.AccAddress, toAcct sdk.AccAddress) sdk.Error {
-	return sdk.NewError(codespace, CodeSendCoinsToModuleFailType, fmt.Sprint("send coins:%s from account:%s to Module account:%s error"), amt.String(), fromAddr.String(), toAcct.String())
+	return sdk.NewError(codespace, CodeSendCoinsToModuleFailType, fmt.Sprintf("send coins:%s from account:%s to Module account:%s error", amt.String(), fromAddr.String(), toAcct.String()))
 }
 
 func ErrSendCoinsFromModuleFail(codespace sdk.CodespaceType, amt sdk.Coins, fromAddr sdk.AccAddress, toAcct sdk.AccAddress) sdk.Error {
-	return sdk.NewError(codespace, CodeSendCoinsFromModuleFailType, fmt.Sprint("send coins:%s from Module account:%s to receiver account:%s error"), amt.String(), fromAddr.String(), toAcct.String())
+	return sdk.NewError(codespace, CodeSendCoinsFromModuleFailType, fmt.Sprintf("send coins:%s from Module account:%s to receiver account:%s error", amt.String(), fromAddr.String(), toAcct.String()))
 }
 
 func ErrCreateCrossChainTx(codespace sdk.CodespaceType, err error) sdk.Error {

@@ -10,7 +10,7 @@ import (
 // Parameter store keys
 var (
 	KeyCoins                 = []byte("lockproxycoins")
-	CurrentChainCrossChainId = uint64(6)
+	CurrentChainCrossChainId = uint64(5)
 )
 
 type Operator struct {

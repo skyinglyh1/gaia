@@ -266,7 +266,7 @@ func (msg MsgLock) String() string {
   SourceAssetDenom: %s
   ToChainId:  %d
   ToAddress:     %s
-  Value: %t
+  Value: %s
 `, msg.FromAddress.String(), msg.SourceAssetDenom, msg.ToChainId, hex.EncodeToString(msg.ToAddressBs), msg.Value.String())
 }
 
