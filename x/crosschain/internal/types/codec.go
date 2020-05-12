@@ -17,6 +17,8 @@ func RegisterCodecForLockProxy(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgLock{}, "crosschain/MsgLock", nil)
 	cdc.RegisterConcrete(MsgProcessCrossChainTx{}, "crosschain/MsgProcessCrossChainTx", nil)
 	cdc.RegisterConcrete(sdk.Int{}, "sdk/Int", nil)
+	cdc.RegisterConcrete(MsgBindNoVMChainAssetHash{}, "crosschain/MsgBindNoVMChainAssetHash", nil)
+	cdc.RegisterConcrete(MsgSetRedeemScript{}, "crosschain/MsgSetRedeemScript", nil)
 }
 
 func RegisterCodecForHeaderSync(cdc *codec.Codec) {

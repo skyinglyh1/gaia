@@ -8,26 +8,26 @@ import (
 )
 
 // coming from "github.com/ethereum/go-ethereum/common/math"
-func Pad32Bytes(bigint *big.Int) ([]byte, error) {
-	ret := make([]byte, 32)
+func Pad32Bytes(bigint *big.Int, intLen int) ([]byte, error) {
+	ret := make([]byte, intLen)
 	if bigint.Cmp(big.NewInt(0)) < 1 {
 		return nil, fmt.Errorf("Pad32Bytes only support positive big.Int, but got:%s", bigint.String())
 	}
 	bigBs := bigint.Bytes()
-	if len(bigBs) > 32 || (len(bigBs) == 32 && bigBs[31]&0x80 == 1) {
+	if len(bigBs) > intLen || (len(bigBs) == intLen && bigBs[intLen-1]&0x80 == 1) {
 		return nil, fmt.Errorf("Pad32Bytes only support maximum 2**255-1 big.Int, but got:%s", bigint.String())
 	}
 	copy(ret[:len(bigBs)], bigBs)
-	copy(ret[len(bigBs):], make([]byte, 32-len(bigBs)))
+	copy(ret[len(bigBs):], make([]byte, intLen-len(bigBs)))
 	return ToArrayReverse(ret), nil
 }
 
-func Unpad32Bytes(paddedBs []byte) (*big.Int, error) {
+func Unpad32Bytes(paddedBs []byte, intLen int) (*big.Int, error) {
 	paddedBs = ToArrayReverse(paddedBs)
-	if len(paddedBs) != 32 {
+	if len(paddedBs) != intLen {
 		return nil, fmt.Errorf("Unpad32Bytes only support 32 bytes value, but got:%s", hex.EncodeToString(paddedBs))
 	}
-	nonZeroPos := 31
+	nonZeroPos := intLen - 1
 	for i := nonZeroPos; i >= 0; i-- {
 		p := paddedBs[i]
 		if p != 0x0 {
@@ -35,12 +35,11 @@ func Unpad32Bytes(paddedBs []byte) (*big.Int, error) {
 			break
 		}
 	}
-	if nonZeroPos == 31 && paddedBs[31]&0x80 == 1 {
+	if nonZeroPos == intLen-1 && paddedBs[intLen-1]&0x80 == 1 {
 		return nil, fmt.Errorf("Unpad32Bytes only support 32 bytes value, but got:%s", hex.EncodeToString(paddedBs))
 	}
 
 	return big.NewInt(0).SetBytes(paddedBs[:nonZeroPos+1]), nil
-
 }
 
 func ToArrayReverse(arr []byte) []byte {
@@ -51,7 +50,6 @@ func ToArrayReverse(arr []byte) []byte {
 	}
 	return x
 }
-
 
 func DenomToHash(denom string) sdk.AccAddress {
 	return sdk.AccAddress([]byte(denom))

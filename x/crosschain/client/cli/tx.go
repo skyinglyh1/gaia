@@ -36,10 +36,12 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		SendBindAssetHashTxCmd(cdc),
 		SendLockTxCmd(cdc),
 		SendProcessCrossChainTxTxCmd(cdc),
+
+		SendSetRedeemScriptTxCmd(cdc),
+		SendBindNoVMTxCmd(cdc),
 	)...)
 	return txCmd
 }
-
 
 func SendSyncGenesisTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
@@ -82,8 +84,6 @@ func SendSyncHeaderTxCmd(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-
-
 func SendCreateCoinsTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "createcoins [coins_str]",
@@ -96,7 +96,7 @@ $ %s tx crosschain createcoins 1000000000ont,1000000000000000000ong
 				version.ClientName,
 			),
 		),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -127,7 +127,7 @@ $ %s tx crosschain bindproxyhash 3 11223344556677889900
 				version.ClientName,
 			),
 		),
-		Args:  cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -166,7 +166,7 @@ $ %s tx crosschain bindassethash ont 3 00000000000000000001 100000 true
 				version.ClientName,
 			),
 		),
-		Args:  cobra.ExactArgs(5),
+		Args: cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -222,7 +222,7 @@ $ %s tx crosschain lock ont 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123
 				version.ClientName,
 			),
 		),
-		Args:  cobra.ExactArgs(4),
+		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -266,7 +266,7 @@ $ %s tx crosschain processcrosschaintx 3 1000 'proof_hex_str_at_height_1000' 'he
 				version.ClientName,
 			),
 		),
-		Args:  cobra.ExactArgs(4),
+		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
@@ -290,6 +290,92 @@ $ %s tx crosschain processcrosschaintx 3 1000 'proof_hex_str_at_height_1000' 'he
 
 			// build and sign the transaction, then broadcast to Tendermint
 			msg := types.NewMsgProcessCrossChainTx(cliCtx.GetFromAddress(), fromChainId, uint32(height), proof, header)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+func SendSetRedeemScriptTxCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "setredeem [redeem_key] [redeem_script]",
+		Short: "set redeem script indexed by redeem key",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`
+Example:
+$ %s tx crosschain createcoins 1000000000ont,1000000000000000000ong 
+`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			redeemKey, err := hex.DecodeString(args[0])
+			if err != nil {
+				return err
+			}
+			redeemScript, err := hex.DecodeString(args[1])
+			if err != nil {
+				return err
+			}
+			// build and sign the transaction, then broadcast to Tendermint
+			msg := types.NewMsgSetRedeemScript(cliCtx.GetFromAddress(), redeemKey, redeemScript)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+
+func SendBindNoVMTxCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bindnovm [source_asset_hash_hex] [target_chainId] [target_asset_hash] [limit]",
+		Short: "bind asset hash by the operator",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`
+Example:
+$ %s tx crosschain bindassethash hex(btc) 3 00000000000000000001 100000
+`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			sourceAssetHash := args[0]
+			if sourceAssetHash[0:2] == "0x" {
+				sourceAssetHash = sourceAssetHash[2:]
+			}
+			source, err := hex.DecodeString(sourceAssetHash)
+			if err != nil {
+				return fmt.Errorf("sourceAsset_hash_hex is not hex format")
+			}
+			targetChainIdStr := args[1]
+			targetChainId, err := strconv.ParseUint(targetChainIdStr, 10, 64)
+			if err != nil {
+				return err
+			}
+
+			targetAssetHashStr := args[2]
+			if targetAssetHashStr[0:2] == "0x" {
+				targetAssetHashStr = targetAssetHashStr[2:]
+			}
+			targetAssetHash, err := hex.DecodeString(targetAssetHashStr)
+			if err != nil {
+				return fmt.Errorf("decode hex string 'targetProxyHash' error:%v", err)
+			}
+
+			limitBigInt, ok := big.NewInt(0).SetString(args[3], 10)
+			if !ok {
+				return fmt.Errorf("read limit as big int from args[3] failed")
+			}
+			limit := sdk.NewIntFromBigInt(limitBigInt)
+
+			// build and sign the transaction, then broadcast to Tendermint
+			msg := types.NewMsgBindNoVMChainAssetHash(cliCtx.GetFromAddress(), source, targetChainId, targetAssetHash, limit)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

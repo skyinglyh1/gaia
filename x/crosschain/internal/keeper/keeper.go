@@ -1,30 +1,33 @@
 package keeper
 
 import (
+	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/cosmos/gaia/x/crosschain/internal/types"
+	"strconv"
 )
 
 type Keeper interface {
 	HeaderSyncKeeper
 	LockProxyKeeper
 	GetModuleAccount(ctx sdk.Context) exported.ModuleAccountI
+	CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) sdk.Error
+	SetRedeemScript(ctx sdk.Context, redeemKey []byte, redeemScript []byte)
+	BindNoVMChainAssetHash(ctx sdk.Context, sourceAssetKey []byte, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) sdk.Error
 }
-
 
 // Keeper of the mint store
 type CrossChainKeeper struct {
 	cdc          *codec.Codec
 	storeKey     sdk.StoreKey
 	paramSpace   params.Subspace
-	authKeeper types.AccountKeeper
+	authKeeper   types.AccountKeeper
 	supplyKeeper types.SupplyKeeper
 }
-
 
 // NewKeeper creates a new mint Keeper instance
 func NewCrossChainKeeper(
@@ -39,7 +42,7 @@ func NewCrossChainKeeper(
 		cdc:          cdc,
 		storeKey:     key,
 		paramSpace:   paramSpace.WithKeyTable(types.ParamKeyTable()),
-		authKeeper: ak,
+		authKeeper:   ak,
 		supplyKeeper: supplyKeeper,
 	}
 }
@@ -53,5 +56,67 @@ func (k CrossChainKeeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddres
 	if acct == nil {
 		return sdk.ErrUnknownAddress(fmt.Sprintf("lockproxy: account %s does not exist", addr.String()))
 	}
+	return nil
+}
+
+func (k CrossChainKeeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) sdk.Error {
+	if k.GetOperator(ctx).Operator.Empty() {
+		k.SetOperator(ctx, types.Operator{creator})
+	}
+	if !coins.IsAllPositive() {
+		return types.ErrCreateNegativeCoins(types.DefaultCodespace, coins)
+	}
+
+	var increments sdk.Coins
+	storedSupplyCoins := k.supplyKeeper.GetSupply(ctx).GetTotal()
+	for _, coin := range coins {
+		oldCoinAmount := storedSupplyCoins.AmountOf(coin.Denom)
+		if oldCoinAmount == sdk.ZeroInt() {
+			storedSupplyCoins = append(storedSupplyCoins, coin)
+		} else {
+			increment := coin.Sub(sdk.NewCoin(coin.Denom, oldCoinAmount))
+			increments = append(increments, increment)
+		}
+	}
+
+	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, increments); err != nil {
+		return types.ErrSupplyKeeperMintCoinsFail(types.DefaultCodespace)
+	}
+	logger := k.Logger(ctx)
+	logger.Info(fmt.Sprintf("minted %s from %s module account", coins.String(), types.ModuleName))
+	return nil
+}
+
+func (k CrossChainKeeper) SetRedeemScript(ctx sdk.Context, redeemKey []byte, redeemScript []byte) {
+	store := ctx.KVStore(k.storeKey)
+	//calculatedRedeemKey := btcutil.Hash160(redeemScriptBytes)
+	store.Set(GetRedeemScriptKey(redeemKey), redeemScript)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeSetRedeemScript,
+			sdk.NewAttribute(types.AttributeKeyRedeemKey, hex.EncodeToString(redeemKey)),
+			sdk.NewAttribute(types.AttributeKeyRedeemScript, hex.EncodeToString(redeemScript)),
+		),
+	})
+}
+
+//BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error
+func (k CrossChainKeeper) BindNoVMChainAssetHash(ctx sdk.Context, sourceAssetKey []byte, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) sdk.Error {
+	if err := k.BindAssetHash(ctx, string(sourceAssetKey), targetChainId, targetAssetHash, limit, true); err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	store.Set(GetKeyToHashKey(sourceAssetKey, targetChainId), targetAssetHash)
+	store.Set(GetContractToScriptKey(targetAssetHash, targetChainId), sourceAssetKey)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeSetNoVmChainAssetHash,
+			sdk.NewAttribute(types.AttributeKeyToChainAssetHash, hex.EncodeToString(targetAssetHash)),
+			sdk.NewAttribute(types.AttributeKeyToChainId, strconv.FormatUint(targetChainId, 10)),
+			sdk.NewAttribute(types.AttributeKeySourceRedeemKey, hex.EncodeToString(sourceAssetKey)),
+		),
+	})
 	return nil
 }

@@ -12,26 +12,24 @@ const (
 )
 
 var (
-	BlockHeaderPrefix     = []byte{0x01}
-	BlockHashPrefix       = []byte{0x02}
-	ConsensusPeerPrefix   = []byte{0x03}
-	KeyHeightPrefix       = []byte{0x04}
+	BlockHeaderPrefix   = []byte{0x01}
+	BlockHashPrefix     = []byte{0x02}
+	ConsensusPeerPrefix = []byte{0x03}
+	KeyHeightPrefix     = []byte{0x04}
 
-
-	BindProxyPrefix     = []byte{0x05}
-	BindAssetPrefix     = []byte{0x06}
-	CrossedLimitPrefix  = []byte{0x07}
-	CrossedAmountPrefix = []byte{0x08}
+	BindProxyPrefix          = []byte{0x05}
+	BindAssetPrefix          = []byte{0x06}
+	CrossedLimitPrefix       = []byte{0x07}
+	CrossedAmountPrefix      = []byte{0x08}
 	CrossChainTxDetailPrefix = []byte{0x09}
 	CrossChainDoneTxPrefix   = []byte{0xa}
+	RedeemKeyScriptPrefix    = []byte{0xb}
+	RedeemToHashPrefix       = []byte{0xc}
+	ContractToRedeemPrefix   = []byte{0xd}
 
 	BlockCurrentHeightKey = []byte("currentHeight")
-	CrossChainIdKey          = []byte("crosschainid")
-
+	CrossChainIdKey       = []byte("crosschainid")
 )
-
-
-
 
 func GetBlockHeaderKey(chainId uint64, blockHash []byte) []byte {
 	b := make([]byte, 8)
@@ -66,7 +64,6 @@ func GetKeyHeightsKey(chainId uint64) []byte {
 	return append(append(KeyHeightPrefix, b...), b...)
 }
 
-
 func GetBindProxyKey(targetChainId uint64) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, targetChainId)
@@ -98,4 +95,20 @@ func GetDoneTxKey(fromChainId uint64, crossChainid []byte) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, fromChainId)
 	return append(append(CrossChainDoneTxPrefix, b...), crossChainid...)
+}
+
+func GetRedeemScriptKey(redeemKey []byte) []byte {
+	return append(RedeemKeyScriptPrefix, redeemKey...)
+}
+
+func GetKeyToHashKey(redeemKey []byte, toChainId uint64) []byte {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, toChainId)
+	return append(append(RedeemToHashPrefix, redeemKey...), b...)
+}
+
+func GetContractToScriptKey(toChainContractHash []byte, toChainId uint64) []byte {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, toChainId)
+	return append(append(ContractToRedeemPrefix, toChainContractHash...), b...)
 }

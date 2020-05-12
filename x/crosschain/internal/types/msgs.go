@@ -20,7 +20,6 @@ const (
 	TypeMsgCreateCoins         = "create_coins"
 )
 
-
 // MsgSend - high level transaction of the coin module
 type MsgSyncGenesisParam struct {
 	Syncer        sdk.AccAddress
@@ -103,10 +102,6 @@ func (msg MsgSyncHeadersParam) GetSignBytes() []byte {
 func (msg MsgSyncHeadersParam) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Syncer}
 }
-
-
-
-
 
 type MsgBindProxyParam struct {
 	Signer        sdk.AccAddress
@@ -378,4 +373,108 @@ func (msg MsgCreateCoins) GetSignBytes() []byte {
 // Implements Msg.
 func (msg MsgCreateCoins) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Creator}
+}
+
+type MsgSetRedeemScript struct {
+	Operator     sdk.AccAddress
+	RedeemKey    []byte
+	RedeemScript []byte
+}
+
+func NewMsgSetRedeemScript(operator sdk.AccAddress, redeemKey, redeemScript []byte) MsgSetRedeemScript {
+	return MsgSetRedeemScript{Operator: operator, RedeemKey: redeemKey, RedeemScript: redeemScript}
+}
+
+//nolint
+func (msg MsgSetRedeemScript) Route() string { return RouterKey }
+func (msg MsgSetRedeemScript) Type() string  { return TypeMsgCreateCoins }
+
+// Implements Msg.
+func (msg MsgSetRedeemScript) ValidateBasic() sdk.Error {
+	if len(msg.RedeemKey) == 0 {
+		return sdk.ErrInternal(fmt.Sprintf("empty redeem key"))
+	}
+	if len(msg.RedeemScript) == 0 {
+		return sdk.ErrInternal(fmt.Sprintf("empty redeem script"))
+	}
+	return nil
+}
+
+func (msg MsgSetRedeemScript) String() string {
+	return fmt.Sprintf(`Create Coins Message:
+  Operator:         %s
+  RedeemKey: 		%x
+  RedeemScript: 	%x
+`, msg.Operator.String(), msg.RedeemKey, msg.RedeemScript)
+}
+
+// Implements Msg.
+func (msg MsgSetRedeemScript) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// Implements Msg.
+func (msg MsgSetRedeemScript) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Operator}
+}
+
+type MsgBindNoVMChainAssetHash struct {
+	Signer          sdk.AccAddress
+	SourceAssetHash []byte
+	TargetChainId   uint64
+	TargetAssetHash []byte
+	Limit           sdk.Int
+}
+
+func NewMsgBindNoVMChainAssetHash(signer sdk.AccAddress, SourceAssetHash []byte, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) MsgBindNoVMChainAssetHash {
+	return MsgBindNoVMChainAssetHash{signer, SourceAssetHash, targetChainId, targetAssetHash, limit}
+}
+
+//nolint
+func (msg MsgBindNoVMChainAssetHash) Route() string { return RouterKey }
+func (msg MsgBindNoVMChainAssetHash) Type() string  { return TypeMsgBindAssetHash }
+
+// Implements Msg.
+func (msg MsgBindNoVMChainAssetHash) ValidateBasic() sdk.Error {
+	if msg.Signer.Empty() {
+		return sdk.ErrInvalidAddress(msg.Signer.String())
+	}
+	if len(msg.SourceAssetHash) == 0 {
+		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
+	}
+	if msg.TargetChainId <= 0 {
+		return ErrInvalidChainId(DefaultCodespace, msg.TargetChainId)
+	}
+	if len(msg.TargetAssetHash) == 0 {
+		// Disable software upgrade proposals as they are currently equivalent
+		// to text proposals. Re-enable once a valid software upgrade proposal
+		// handler is implemented.
+		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.TargetAssetHash))
+	}
+	if msg.Limit.IsNegative() {
+		return sdk.ErrInternal(fmt.Sprintf("bind asset param limit should be positive"))
+	}
+	return nil
+}
+
+func (msg MsgBindNoVMChainAssetHash) String() string {
+	return fmt.Sprintf(`BindNoVMChainAssetHash message:
+  Signer:         %s
+  SourceAssetHash: %x
+  TargetChainId:  %d
+  TargetAssetHash:     %s
+  Limit: %s
+`, msg.Signer.String(), msg.SourceAssetHash, msg.TargetChainId, hex.EncodeToString(msg.TargetAssetHash), msg.Limit.String())
+}
+
+// Implements Msg.
+func (msg MsgBindNoVMChainAssetHash) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// Implements Msg.
+func (msg MsgBindNoVMChainAssetHash) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Signer}
 }

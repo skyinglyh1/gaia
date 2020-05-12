@@ -2,9 +2,9 @@ package keeper
 
 import (
 	"fmt"
-
 	"github.com/tendermint/tendermint/libs/log"
 	ttype "github.com/tendermint/tendermint/types"
+	"math/big"
 
 	"bytes"
 	"encoding/hex"
@@ -19,12 +19,10 @@ import (
 )
 
 type LockProxyKeeper interface {
-
 	SetOperator(ctx sdk.Context, operator types.Operator)
 	BindProxyHash(ctx sdk.Context, targetChainId uint64, targetProxyHash []byte)
 	BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error
 
-	CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) sdk.Error
 	Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddressBs []byte, value sdk.Int) sdk.Error
 	ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height uint32, proofStr string, headerBs []byte) sdk.Error
 	LockProxyViewKeeper
@@ -62,8 +60,6 @@ func (k CrossChainKeeper) SetOperator(ctx sdk.Context, operator types.Operator) 
 	store.Set(types.OperatorKey, b)
 }
 
-
-
 func (k CrossChainKeeper) BindProxyHash(ctx sdk.Context, targetChainId uint64, targetProxyHash []byte) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(GetBindProxyKey(targetChainId), targetProxyHash)
@@ -97,7 +93,6 @@ func (k CrossChainKeeper) GetCrossedAmount(ctx sdk.Context, sourceAssetDenom str
 	}
 	return crossedAmount
 }
-
 
 func (k CrossChainKeeper) GetCrossedLimit(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
@@ -144,41 +139,11 @@ func (k CrossChainKeeper) BindAssetHash(ctx sdk.Context, sourceAssetDenom string
 	return nil
 }
 
-func (k CrossChainKeeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) sdk.Error {
-	if k.GetOperator(ctx).Operator.Empty() {
-		k.SetOperator(ctx, types.Operator{creator})
-	}
-	if !coins.IsAllPositive() {
-		return types.ErrCreateNegativeCoins(types.DefaultCodespace, coins)
-	}
-
-	var increments sdk.Coins
-	storedSupplyCoins := k.supplyKeeper.GetSupply(ctx).GetTotal()
-	for _, coin := range coins {
-		oldCoinAmount := storedSupplyCoins.AmountOf(coin.Denom)
-		if  oldCoinAmount == sdk.ZeroInt() {
-			storedSupplyCoins = append(storedSupplyCoins, coin)
-		} else {
-			increment := coin.Sub(sdk.NewCoin(coin.Denom, oldCoinAmount))
-			increments = append(increments, increment)
-		}
-	}
-	//newCoinsSupply := supply.NewSupply(storedSupplyCoins)
-	//k.supplyKeeper.SetSupply(ctx, newCoinsSupply)
-	if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, increments); err != nil {
-		return types.ErrSupplyKeeperMintCoinsFail(types.DefaultCodespace)
-	}
-	logger := k.Logger(ctx)
-	logger.Info(fmt.Sprintf("minted %s from %s module account", coins.String(), types.ModuleName))
-	return nil
-}
-
-
 func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddressBs []byte, value sdk.Int) sdk.Error {
 	// burn coin of sourceAssetDenom
 	amt := sdk.NewCoins(sdk.NewCoin(sourceAssetDenom, value))
 	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, fromAddress, types.ModuleName, amt); err != nil {
-		return types.ErrSendCoinsToModuleFail(types.DefaultCodespace, amt, fromAddress,  k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetAddress())
+		return types.ErrSendCoinsToModuleFail(types.DefaultCodespace, amt, fromAddress, k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName).GetAddress())
 	}
 	// make sure new crossed amount is strictly greater than old crossed amount and no less than the limit
 	store := ctx.KVStore(k.storeKey)
@@ -192,22 +157,55 @@ func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sour
 	}
 	// increase the new crossed amount by value
 	store.Set(GetCrossedAmountKey(sourceAssetHash.Bytes(), toChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
-	// get target chain proxy hash from storage
-	toChainProxyHash := store.Get(GetBindProxyKey(toChainId))
+
 	// get target asset hash from storage
 	toChainAssetHash := store.Get(GetBindAssetKey(sourceAssetHash.Bytes(), toChainId))
 
 	//  CreateCrossChainTx
-	args := types.TxArgs{
-		ToAssetHash: toChainAssetHash,
-		ToAddress:   toAddressBs,
-		Amount:      value.BigInt(),
-	}
 	sink := mcc.NewZeroCopySink(nil)
-	if err := args.Serialization(sink); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("TxArgs Serialization error:%v", err))
+	fromContractHash := make([]byte, 0)
+	toContractHash := make([]byte, 0)
+	// if chainId is btc
+	if toChainId == 1 {
+		args := types.ToBTCArgs{
+			ToBtcAddress: toAddressBs,
+			Amount:       value.BigInt().Uint64(),
+			RedeemScript: store.Get(GetRedeemScriptKey(sourceAssetHash)),
+		}
+		if err := args.Serialization(sink, 8); err != nil {
+			return sdk.ErrInternal(fmt.Sprintf("ToBTCArgs Serialization error:%v", err))
+		}
+		fromContractHash = sourceAssetHash
+		toContractHash = store.Get(GetKeyToHashKey(sourceAssetHash, toChainId))
+	} else {
+		// if source asset hash if non-vm based chain asset, say like btc
+		val := store.Get(GetKeyToHashKey(sourceAssetHash, toChainId))
+		if len(val) > 0 {
+			args := types.BTCArgs{
+				ToBtcAddress: toAddressBs,
+				Amount:       value.BigInt().Uint64(),
+			}
+			if err := args.Serialization(sink, 8); err != nil {
+				return sdk.ErrInternal(fmt.Sprintf("ToBTCArgs Serialization error:%v", err))
+			}
+			fromContractHash = sourceAssetHash
+			toContractHash = store.Get(GetKeyToHashKey(sourceAssetHash, toChainId))
+		} else {
+			args := types.TxArgs{
+				ToAssetHash: toChainAssetHash,
+				ToAddress:   toAddressBs,
+				Amount:      value.BigInt(),
+			}
+			if err := args.Serialization(sink, 32); err != nil {
+				return sdk.ErrInternal(fmt.Sprintf("TxArgs Serialization error:%v", err))
+			}
+			fromContractHash = k.supplyKeeper.GetModuleAddress(types.ModuleName)
+			// get target chain proxy hash from storage
+			toContractHash = store.Get(GetBindProxyKey(toChainId))
+		}
 	}
-	if err := k.createCrossChainTx(ctx, toChainId, toChainProxyHash, "unlock", sink.Bytes()); err != nil {
+
+	if err := k.createCrossChainTx(ctx, toChainId, toContractHash, fromContractHash, "unlock", sink.Bytes()); err != nil {
 		return types.ErrCreateCrossChainTx(types.DefaultCodespace, err)
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -216,7 +214,7 @@ func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sour
 			sdk.NewAttribute(types.AtttributeKeyStatus, strconv.FormatUint(1, 10)),
 			sdk.NewAttribute(types.AttributeKeySourceAssetDenom, sourceAssetDenom),
 			sdk.NewAttribute(types.AttributeKeyToChainId, strconv.FormatUint(toChainId, 10)),
-			sdk.NewAttribute(types.AttributeKeyToChainProxyHash, hex.EncodeToString(toChainProxyHash)),
+			sdk.NewAttribute(types.AttributeKeyToChainProxyHash, hex.EncodeToString(toContractHash)),
 			sdk.NewAttribute(types.AttributeKeyToChainAssetHash, hex.EncodeToString(toAddressBs)),
 			sdk.NewAttribute(types.AttributeKeyFromAddress, fromAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyToAddress, hex.EncodeToString(toAddressBs)),
@@ -227,7 +225,7 @@ func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sour
 	return nil
 }
 
-func (k CrossChainKeeper) createCrossChainTx(ctx sdk.Context, toChainId uint64, toContractHash []byte, method string, args []byte) sdk.Error {
+func (k CrossChainKeeper) createCrossChainTx(ctx sdk.Context, toChainId uint64, fromContractHash, toContractHash []byte, method string, args []byte) sdk.Error {
 	crossChainId, err := k.getCrossChainId(ctx)
 	if err != nil {
 		return err
@@ -243,7 +241,7 @@ func (k CrossChainKeeper) createCrossChainTx(ctx sdk.Context, toChainId uint64, 
 	txParam := ccmc.MakeTxParam{
 		TxHash:              txHash,
 		CrossChainID:        crossChainIdBs,
-		FromContractAddress: k.supplyKeeper.GetModuleAddress(types.ModuleName),
+		FromContractAddress: fromContractHash,
 		ToChainID:           toChainId,
 		ToContractAddress:   toContractHash,
 		Method:              method,
@@ -322,13 +320,7 @@ func (k CrossChainKeeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint6
 		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx toChainId is not for this chain"))
 	}
 
-	if !bytes.Equal(merkleValue.MakeTxParam.ToContractAddress, k.supplyKeeper.GetModuleAddress(types.ModuleName)) {
-		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx, merkleValue.MakeTxParam.ToContractAddress:%s is not the lockproxy module account address:%s",
-			hex.EncodeToString(merkleValue.MakeTxParam.ToContractAddress),
-			hex.EncodeToString(k.supplyKeeper.GetModuleAddress(types.ModuleName).Bytes())))
-	}
-
-	if err := k.unlock(ctx, fromChainId, merkleValue.MakeTxParam.FromContractAddress, merkleValue.MakeTxParam.Args); err != nil {
+	if err := k.unlock(ctx, fromChainId, merkleValue.MakeTxParam.FromContractAddress, merkleValue.MakeTxParam.ToContractAddress, merkleValue.MakeTxParam.Args); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx, unlock errror:%v", err))
 	}
 
@@ -378,29 +370,52 @@ func (k CrossChainKeeper) putDoneTx(ctx sdk.Context, fromChainId uint64, crossCh
 	store.Set(GetDoneTxKey(fromChainId, crossChainId), crossChainId)
 }
 
-func (k CrossChainKeeper) unlock(ctx sdk.Context, fromChainId uint64, fromContractAddress []byte, argsBs []byte) sdk.Error {
-	args := new(types.TxArgs)
-	if err := args.Deserialization(mcc.NewZeroCopySource(argsBs)); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("unlock, error:%s", err))
+func (k CrossChainKeeper) unlock(ctx sdk.Context, fromChainId uint64, fromContractAddress []byte, toContractHash []byte, argsBs []byte) sdk.Error {
+	store := ctx.KVStore(k.storeKey)
+	toAssetHash := make([]byte, 0)
+	toAddress := make([]byte, 0)
+	amount := new(big.Int)
+	scriptKey := store.Get(GetContractToScriptKey(fromContractAddress, fromChainId))
+	if len(scriptKey) > 0 && bytes.Equal(scriptKey, toContractHash) {
+		var args types.BTCArgs
+		if err := args.Deserialization(mcc.NewZeroCopySource(argsBs), 8); err != nil {
+			return sdk.ErrInternal(fmt.Sprintf("unlock, Deserialize args error:%s", err))
+		}
+		toAssetHash = scriptKey
+		toAddress = args.ToBtcAddress
+		amount = new(big.Int).SetUint64(args.Amount)
+	} else {
+		if !bytes.Equal(toContractHash, k.supplyKeeper.GetModuleAddress(types.ModuleName)) {
+			return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx, merkleValue.MakeTxParam.ToContractAddress:%s is not the lockproxy module account address:%s",
+				hex.EncodeToString(toContractHash),
+				hex.EncodeToString(k.supplyKeeper.GetModuleAddress(types.ModuleName).Bytes())))
+		}
+		args := new(types.TxArgs)
+		if err := args.Deserialization(mcc.NewZeroCopySource(argsBs), 32); err != nil {
+			return sdk.ErrInternal(fmt.Sprintf("unlock, error:%s", err))
+		}
+		proxyHash := k.GetProxyHash(ctx, fromChainId)
+		if len(proxyHash) == 0 {
+			return sdk.ErrInternal(fmt.Sprintf("the proxyHash is empty with chainId = %d", fromChainId))
+		}
+		if !bytes.Equal(proxyHash, fromContractAddress) {
+			return sdk.ErrInternal(fmt.Sprintf("stored proxyHash is not equal to fromContractAddress, expect:%x, got:%x", proxyHash, fromContractAddress))
+		}
+		toAssetHash = args.ToAssetHash
+		toAddress = args.ToAddress
+		amount = args.Amount
 	}
 
-	proxyHash := k.GetProxyHash(ctx, fromChainId)
-	if len(proxyHash) == 0 {
-		return sdk.ErrInternal(fmt.Sprintf("the proxyHash is empty with chainId = %d", fromChainId))
-	}
-	if !bytes.Equal(proxyHash, fromContractAddress) {
-		return sdk.ErrInternal(fmt.Sprintf("stored proxyHash is not equal to fromContractAddress, expect:%x, got:%x", proxyHash, fromContractAddress))
-	}
 	// to asset hash should be the hex format string of source asset denom name, NOT Module account address
-	toAssetDenom := types.HashToDenom(args.ToAssetHash)
+	toAssetDenom := types.HashToDenom(toAssetHash)
 
 	// mint coin of sourceAssetDenom
-	amt := sdk.NewCoins(sdk.NewCoin(toAssetDenom, sdk.NewIntFromBigInt(args.Amount)))
+	amt := sdk.NewCoins(sdk.NewCoin(toAssetDenom, sdk.NewIntFromBigInt(amount)))
 	//if err := k.supplyKeeper.MintCoins(ctx, types.ModuleName, amt); err != nil {
 	//	return sdk.ErrInternal(fmt.Sprintf("mint coins:%s to module account:%s error:%v", amt.String(), types.ModuleName, err))
 	//}
-	toAddress := make(sdk.AccAddress, len(args.ToAddress))
-	copy(toAddress, args.ToAddress)
+	toAcctAddress := make(sdk.AccAddress, len(toAddress))
+	copy(toAcctAddress, toAddress)
 
 	if err := k.EnsureAccountExist(ctx, toAddress); err != nil {
 		return err
@@ -412,11 +427,11 @@ func (k CrossChainKeeper) unlock(ctx sdk.Context, fromChainId uint64, fromContra
 	// update crossedAmount value
 	crossedAmount := k.GetCrossedAmount(ctx, toAssetDenom, fromChainId)
 
-	newCrossedAmount := crossedAmount.Sub(sdk.NewIntFromBigInt(args.Amount))
+	newCrossedAmount := crossedAmount.Sub(sdk.NewIntFromBigInt(amount))
 	if newCrossedAmount.GTE(crossedAmount) {
 		return sdk.ErrInternal(fmt.Sprintf("new crossed amount:%s should be less than old crossed amount:%s", newCrossedAmount.String(), crossedAmount.String()))
 	}
-	store := ctx.KVStore(k.storeKey)
+
 	store.Set(GetCrossedAmountKey(types.DenomToHash(toAssetDenom), fromChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -424,8 +439,8 @@ func (k CrossChainKeeper) unlock(ctx sdk.Context, fromChainId uint64, fromContra
 			sdk.NewAttribute(types.AttributeKeyFromChainId, strconv.FormatUint(fromChainId, 10)),
 			sdk.NewAttribute(types.AttributeKeyFromContractHash, hex.EncodeToString(fromContractAddress)),
 			sdk.NewAttribute(types.AttributeKeyToAssetDenom, toAssetDenom),
-			sdk.NewAttribute(types.AttributeKeyToAddress, toAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyAmount, args.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyToAddress, toAcctAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
 		),
 	})
 	return nil

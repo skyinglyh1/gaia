@@ -17,8 +17,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case types.MsgSyncHeadersParam:
 			return handleMsgBlockHeaders(ctx, k, msg)
 
-		case types.MsgCreateCoins:
-			return handleMsgCreateCoins(ctx, k, msg)
 		case types.MsgBindProxyParam:
 			return handleMsgBindProxyParam(ctx, k, msg)
 		case types.MsgBindAssetParam:
@@ -27,6 +25,14 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgLock(ctx, k, msg)
 		case types.MsgProcessCrossChainTx:
 			return handleMsgProcessCrossChainTx(ctx, k, msg)
+
+		case types.MsgCreateCoins:
+			return handleMsgCreateCoins(ctx, k, msg)
+
+		case types.MsgSetRedeemScript:
+			return handleMsgSetRedeemScript(ctx, k, msg)
+		case types.MsgBindNoVMChainAssetHash:
+			return handleMsgBindNoVMChainAssetHash(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized staking message type: %T", msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -157,5 +163,38 @@ func handleMsgProcessCrossChainTx(ctx sdk.Context, k keeper.Keeper, msg types.Ms
 		),
 	)
 
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgSetRedeemScript(ctx sdk.Context, k keeper.Keeper, msg types.MsgSetRedeemScript) sdk.Result {
+	if k.GetOperator(ctx).Operator.Empty() || !k.GetOperator(ctx).Operator.Equals(msg.Operator) {
+		return sdk.ErrInternal(fmt.Sprintf("only operator can bind proxy hash, expected:%s, got:%s", k.GetOperator(ctx).Operator.String(), msg.Operator.String())).Result()
+	}
+	k.SetRedeemScript(ctx, msg.RedeemKey, msg.RedeemScript)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	)
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgBindNoVMChainAssetHash(ctx sdk.Context, k keeper.Keeper, msg types.MsgBindNoVMChainAssetHash) sdk.Result {
+	if !k.GetOperator(ctx).Operator.Equals(msg.Signer) {
+		return sdk.ErrInternal(fmt.Sprintf("only operator can bind proxy hash, expected:%s, got:%s", k.GetOperator(ctx).Operator.String(), msg.Signer.String())).Result()
+	}
+	err := k.BindNoVMChainAssetHash(ctx, msg.SourceAssetHash, msg.TargetChainId, msg.TargetAssetHash, msg.Limit)
+	if err != nil {
+		return err.Result()
+	}
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	)
 	return sdk.Result{Events: ctx.EventManager().Events()}
 }

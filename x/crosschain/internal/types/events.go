@@ -10,7 +10,6 @@ const (
 	AttributeKeyBlockHash         = "block_hash"
 	AttributeKeyNativeChainHeight = "native_chain_height"
 
-
 	EventTypeBindProxy           = "bind_proxy_hash"
 	AttributeKeyToChainId        = "to_chain_id"
 	AttributeKeyToChainProxyHash = "to_chain_proxy_hash"
@@ -35,9 +34,16 @@ const (
 	AttributeKeyMerkleValueMakeTxParamTxHash            = "merkle_value.make_tx_param.txhash"
 	AttributeKeyMerkleValueMakeTxParamToContractAddress = "merkle_value.make_tx_param.to_contract_address"
 	AttributeKeyFromChainId                             = "from_chain_id"
-	AtttributeKeyStatus = "status"
+	AtttributeKeyStatus                                 = "status"
 
 	EventTypeUnlock              = "unlock"
 	AttributeKeyFromContractHash = "from_contract_hash"
 	AttributeKeyToAssetDenom     = "to_asset_denom"
+
+	EventTypeSetRedeemScript = "set_redeem_script"
+	AttributeKeyRedeemKey    = "redeem_key"
+	AttributeKeyRedeemScript = "redeem_script"
+
+	EventTypeSetNoVmChainAssetHash = "set_no_mv_chain_asset_hash"
+	AttributeKeySourceRedeemKey    = "source_redeem_key"
 )
