@@ -16,8 +16,8 @@ type Keeper interface {
 	LockProxyKeeper
 	GetModuleAccount(ctx sdk.Context) exported.ModuleAccountI
 	CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) sdk.Error
-	SetRedeemScript(ctx sdk.Context, redeemKey []byte, redeemScript []byte)
-	BindNoVMChainAssetHash(ctx sdk.Context, sourceAssetKey []byte, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) sdk.Error
+	SetRedeemScript(ctx sdk.Context, denom string, redeemKey []byte, redeemScript []byte)
+	BindNoVMChainAssetHash(ctx sdk.Context, denom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) sdk.Error
 }
 
 // Keeper of the mint store
@@ -87,10 +87,12 @@ func (k CrossChainKeeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, c
 	return nil
 }
 
-func (k CrossChainKeeper) SetRedeemScript(ctx sdk.Context, redeemKey []byte, redeemScript []byte) {
+func (k CrossChainKeeper) SetRedeemScript(ctx sdk.Context, denom string, redeemKey []byte, redeemScript []byte) {
 	store := ctx.KVStore(k.storeKey)
 	//calculatedRedeemKey := btcutil.Hash160(redeemScriptBytes)
 	store.Set(GetRedeemScriptKey(redeemKey), redeemScript)
+	store.Set(GetDenomToHashKey(denom), redeemKey)
+	store.Set(GetHashKeyToDenom(redeemKey), types.DenomToHash(denom))
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSetRedeemScript,
@@ -101,12 +103,16 @@ func (k CrossChainKeeper) SetRedeemScript(ctx sdk.Context, redeemKey []byte, red
 }
 
 //BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error
-func (k CrossChainKeeper) BindNoVMChainAssetHash(ctx sdk.Context, sourceAssetKey []byte, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) sdk.Error {
+func (k CrossChainKeeper) BindNoVMChainAssetHash(ctx sdk.Context, denom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) sdk.Error {
+	store := ctx.KVStore(k.storeKey)
+	sourceAssetKey := store.Get(GetDenomToHashKey(denom))
+	if sourceAssetKey == nil {
+		return sdk.ErrInternal(fmt.Sprintf("there is no script key corresponded with denom:%s, please SetRedeemScript first", denom))
+	}
 	if err := k.BindAssetHash(ctx, string(sourceAssetKey), targetChainId, targetAssetHash, limit, true); err != nil {
 		return err
 	}
 
-	store := ctx.KVStore(k.storeKey)
 	store.Set(GetKeyToHashKey(sourceAssetKey, targetChainId), targetAssetHash)
 	store.Set(GetContractToScriptKey(targetAssetHash, targetChainId), sourceAssetKey)
 

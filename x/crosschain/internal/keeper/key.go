@@ -26,9 +26,10 @@ var (
 	RedeemKeyScriptPrefix    = []byte{0xb}
 	RedeemToHashPrefix       = []byte{0xc}
 	ContractToRedeemPrefix   = []byte{0xd}
-
-	BlockCurrentHeightKey = []byte("currentHeight")
-	CrossChainIdKey       = []byte("crosschainid")
+	DenomToHashPrefix        = []byte{0xe}
+	HashToDenomPrefix        = []byte{0xf}
+	BlockCurrentHeightKey    = []byte("currentHeight")
+	CrossChainIdKey          = []byte("crosschainid")
 )
 
 func GetBlockHeaderKey(chainId uint64, blockHash []byte) []byte {
@@ -111,4 +112,12 @@ func GetContractToScriptKey(toChainContractHash []byte, toChainId uint64) []byte
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, toChainId)
 	return append(append(ContractToRedeemPrefix, toChainContractHash...), b...)
+}
+
+func GetDenomToHashKey(denom string) []byte {
+	return append(DenomToHashPrefix, []byte(denom)...)
+}
+
+func GetHashKeyToDenom(redeemKey []byte) []byte {
+	return append(HashToDenomPrefix, redeemKey...)
 }

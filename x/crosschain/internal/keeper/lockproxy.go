@@ -381,7 +381,7 @@ func (k CrossChainKeeper) unlock(ctx sdk.Context, fromChainId uint64, fromContra
 		if err := args.Deserialization(mcc.NewZeroCopySource(argsBs), 8); err != nil {
 			return sdk.ErrInternal(fmt.Sprintf("unlock, Deserialize args error:%s", err))
 		}
-		toAssetHash = scriptKey
+		toAssetHash = store.Get(GetHashKeyToDenom(scriptKey))
 		toAddress = args.ToBtcAddress
 		amount = new(big.Int).SetUint64(args.Amount)
 	} else {

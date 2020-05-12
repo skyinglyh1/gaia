@@ -377,12 +377,13 @@ func (msg MsgCreateCoins) GetSigners() []sdk.AccAddress {
 
 type MsgSetRedeemScript struct {
 	Operator     sdk.AccAddress
+	Denom        string
 	RedeemKey    []byte
 	RedeemScript []byte
 }
 
-func NewMsgSetRedeemScript(operator sdk.AccAddress, redeemKey, redeemScript []byte) MsgSetRedeemScript {
-	return MsgSetRedeemScript{Operator: operator, RedeemKey: redeemKey, RedeemScript: redeemScript}
+func NewMsgSetRedeemScript(operator sdk.AccAddress, denom string, redeemKey, redeemScript []byte) MsgSetRedeemScript {
+	return MsgSetRedeemScript{Operator: operator, Denom: denom, RedeemKey: redeemKey, RedeemScript: redeemScript}
 }
 
 //nolint
@@ -421,14 +422,14 @@ func (msg MsgSetRedeemScript) GetSigners() []sdk.AccAddress {
 
 type MsgBindNoVMChainAssetHash struct {
 	Signer          sdk.AccAddress
-	SourceAssetHash []byte
+	Denom           string
 	TargetChainId   uint64
 	TargetAssetHash []byte
 	Limit           sdk.Int
 }
 
-func NewMsgBindNoVMChainAssetHash(signer sdk.AccAddress, SourceAssetHash []byte, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) MsgBindNoVMChainAssetHash {
-	return MsgBindNoVMChainAssetHash{signer, SourceAssetHash, targetChainId, targetAssetHash, limit}
+func NewMsgBindNoVMChainAssetHash(signer sdk.AccAddress, denom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) MsgBindNoVMChainAssetHash {
+	return MsgBindNoVMChainAssetHash{signer, denom, targetChainId, targetAssetHash, limit}
 }
 
 //nolint
@@ -440,7 +441,7 @@ func (msg MsgBindNoVMChainAssetHash) ValidateBasic() sdk.Error {
 	if msg.Signer.Empty() {
 		return sdk.ErrInvalidAddress(msg.Signer.String())
 	}
-	if len(msg.SourceAssetHash) == 0 {
+	if msg.Denom == "" {
 		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
 	}
 	if msg.TargetChainId <= 0 {
@@ -461,11 +462,11 @@ func (msg MsgBindNoVMChainAssetHash) ValidateBasic() sdk.Error {
 func (msg MsgBindNoVMChainAssetHash) String() string {
 	return fmt.Sprintf(`BindNoVMChainAssetHash message:
   Signer:         %s
-  SourceAssetHash: %x
+  Denom: %s
   TargetChainId:  %d
   TargetAssetHash:     %s
   Limit: %s
-`, msg.Signer.String(), msg.SourceAssetHash, msg.TargetChainId, hex.EncodeToString(msg.TargetAssetHash), msg.Limit.String())
+`, msg.Signer.String(), msg.Denom, msg.TargetChainId, hex.EncodeToString(msg.TargetAssetHash), msg.Limit.String())
 }
 
 // Implements Msg.

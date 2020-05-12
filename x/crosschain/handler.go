@@ -170,7 +170,7 @@ func handleMsgSetRedeemScript(ctx sdk.Context, k keeper.Keeper, msg types.MsgSet
 	if k.GetOperator(ctx).Operator.Empty() || !k.GetOperator(ctx).Operator.Equals(msg.Operator) {
 		return sdk.ErrInternal(fmt.Sprintf("only operator can bind proxy hash, expected:%s, got:%s", k.GetOperator(ctx).Operator.String(), msg.Operator.String())).Result()
 	}
-	k.SetRedeemScript(ctx, msg.RedeemKey, msg.RedeemScript)
+	k.SetRedeemScript(ctx, msg.Denom, msg.RedeemKey, msg.RedeemScript)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
@@ -185,7 +185,7 @@ func handleMsgBindNoVMChainAssetHash(ctx sdk.Context, k keeper.Keeper, msg types
 	if !k.GetOperator(ctx).Operator.Equals(msg.Signer) {
 		return sdk.ErrInternal(fmt.Sprintf("only operator can bind proxy hash, expected:%s, got:%s", k.GetOperator(ctx).Operator.String(), msg.Signer.String())).Result()
 	}
-	err := k.BindNoVMChainAssetHash(ctx, msg.SourceAssetHash, msg.TargetChainId, msg.TargetAssetHash, msg.Limit)
+	err := k.BindNoVMChainAssetHash(ctx, msg.Denom, msg.TargetChainId, msg.TargetAssetHash, msg.Limit)
 	if err != nil {
 		return err.Result()
 	}

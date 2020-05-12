@@ -21,10 +21,11 @@ import (
 
 const (
 	//ip = "tcp://172.168.3.93:26657"
-	ip             = "tcp://172.168.3.93:26657"
-	operatorWallet = "./wallets/operator"
-	operatorPwd    = "12345678"
-	ChainID        = "testing"
+	ip              = "tcp://172.168.3.93:26657"
+	validatorWallet = "./wallets/validator"
+	operatorWallet  = "./wallets/operator"
+	operatorPwd     = "12345678"
+	ChainID         = "testing"
 )
 
 var (
@@ -67,7 +68,7 @@ func Test_CreateCoins(t *testing.T) {
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
 	creator := fromAddr
-	coins, err := sdk.ParseCoins("1000000000ont,1000000000000000000ong,1000000000btc")
+	coins, err := sdk.ParseCoins("1000000000ont,1000000000000000000ong,1000000000000btc")
 	if err != nil {
 		t.Errorf("parse coins err:%v", err)
 	}
@@ -143,7 +144,7 @@ func Test_SetRedeemScript(t *testing.T) {
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
-	msg := crosschain.NewMsgSetRedeemScript(fromAddr, RedeemKey, RedeemScript)
+	msg := crosschain.NewMsgSetRedeemScript(fromAddr, "btc", RedeemKey, RedeemScript)
 	if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 		t.Errorf("sendMsg error:%v", err)
 	}
@@ -162,19 +163,19 @@ func Test_BindNoVMChainAssetHash(t *testing.T) {
 
 	redeemKey := RedeemKey
 	limit := sdk.NewInt(1000000000000)
-	btcInOntHash, _ := hex.DecodeString("")
-	btcInEthHash, _ := hex.DecodeString("")
+	//btcInOntHash, _ := hex.DecodeString("")
+	//btcInEthHash, _ := hex.DecodeString("")
 	btcInBtcHash := redeemKey
 	btcAssetHashInNonBtcChain := []struct {
 		ChainId           uint64
 		AssetContractHash []byte
 	}{
-		{3, btcInOntHash},
-		{2, btcInEthHash},
+		//{3, btcInOntHash},
+		//{2, btcInEthHash},
 		{1, btcInBtcHash},
 	}
 	for _, btcAssetHash := range btcAssetHashInNonBtcChain {
-		msg := crosschain.NewMsgBindNoVMChainAssetHash(fromAddr, redeemKey, btcAssetHash.ChainId, btcAssetHash.AssetContractHash, limit)
+		msg := crosschain.NewMsgBindNoVMChainAssetHash(fromAddr, "btc", btcAssetHash.ChainId, btcAssetHash.AssetContractHash, limit)
 		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 			t.Errorf("sendMsg error:%v", err)
 		}
@@ -206,15 +207,15 @@ func Test_Transfer_StakeCoin_From_Operator(t *testing.T) {
 	client := rpchttp.NewHTTP(ip, "/websocket")
 	appCdc := app.MakeCodec()
 
-	fromPriv, fromAddr, err := GetCosmosPrivateKey(operatorWallet, []byte(operatorPwd))
+	fromPriv, fromAddr, err := GetCosmosPrivateKey(validatorWallet, []byte(operatorPwd))
 	if err != nil {
 		t.Errorf("err = %v ", err)
 	}
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 	receivers := []string{
-		"",
-		"",
+		"cosmos1v8rpqa4valmgx5a8gnnstsecv8xg76sgzw4820",
+		"cosmos17ud4tm64emwfrlgq0aafhguxajtc7w4gseapra",
 	}
 	amt, _ := sdk.ParseCoins("1000000stake")
 	for _, receiverAddrStr := range receivers {
