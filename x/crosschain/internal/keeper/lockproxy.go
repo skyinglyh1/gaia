@@ -79,14 +79,14 @@ func (k CrossChainKeeper) GetProxyHash(ctx sdk.Context, toChainId uint64) []byte
 
 func (k CrossChainKeeper) GetAssetHash(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) []byte {
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := types.DenomToHash(sourceAssetDenom)
+	sourceAssetHash := k.DenomToHash(ctx, sourceAssetDenom)
 	return store.Get(GetBindAssetKey(sourceAssetHash.Bytes(), toChainId))
 }
 
 func (k CrossChainKeeper) GetCrossedAmount(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := types.DenomToHash(sourceAssetDenom)
-	crossedAmountBs := store.Get(GetCrossedAmountKey(sourceAssetHash.Bytes(), toChainId))
+	sourceAssetHash := k.DenomToHash(ctx, sourceAssetDenom)
+	crossedAmountBs := store.Get(GetCrossedAmountKey(sourceAssetHash, toChainId))
 	crossedAmount := sdk.NewInt(0)
 	if crossedAmountBs != nil {
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedAmountBs, &crossedAmount)
@@ -94,9 +94,26 @@ func (k CrossChainKeeper) GetCrossedAmount(ctx sdk.Context, sourceAssetDenom str
 	return crossedAmount
 }
 
+func (k CrossChainKeeper) DenomToHash(ctx sdk.Context, denom string) sdk.AccAddress {
+	store := ctx.KVStore(k.storeKey)
+	sourceAssetHash := store.Get(GetDenomToHashKey(denom))
+	if len(sourceAssetHash) > 0 {
+		return sourceAssetHash
+	}
+	return types.DenomToHash(denom)
+}
+func (k CrossChainKeeper) HashToDenom(ctx sdk.Context, hash []byte) []byte {
+	store := ctx.KVStore(k.storeKey)
+	denom := store.Get(GetHashKeyToDenom(hash))
+	if len(denom) > 0 {
+		return denom
+	}
+	return hash
+}
+
 func (k CrossChainKeeper) GetCrossedLimit(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := types.DenomToHash(sourceAssetDenom)
+	sourceAssetHash := k.DenomToHash(ctx, sourceAssetDenom)
 	crossedLimitBs := store.Get(GetCrossedLimitKey(sourceAssetHash.Bytes(), toChainId))
 	crossedLimit := sdk.NewInt(0)
 	if crossedLimitBs != nil {
@@ -106,8 +123,13 @@ func (k CrossChainKeeper) GetCrossedLimit(ctx sdk.Context, sourceAssetDenom stri
 }
 
 func (k CrossChainKeeper) BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error {
-	store := ctx.KVStore(k.storeKey)
 	sourceAssetHash := types.DenomToHash(sourceAssetDenom)
+	return k.bindAssetHash(ctx, sourceAssetDenom, sourceAssetHash, targetChainId, targetAssetHash, limit, isTargetChainAsset)
+
+}
+
+func (k CrossChainKeeper) bindAssetHash(ctx sdk.Context, sourceAssetDenom string, sourceAssetHash sdk.AccAddress, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error {
+	store := ctx.KVStore(k.storeKey)
 	// store the target asset hash
 	store.Set(GetBindAssetKey(sourceAssetHash.Bytes(), targetChainId), targetAssetHash)
 	// make sure the new limit is greater than the stored limit
@@ -147,50 +169,53 @@ func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sour
 	}
 	// make sure new crossed amount is strictly greater than old crossed amount and no less than the limit
 	store := ctx.KVStore(k.storeKey)
-	sourceAssetHash := types.DenomToHash(sourceAssetDenom)
+
 	storedCrossedAmount := k.GetCrossedAmount(ctx, sourceAssetDenom, toChainId)
 	storedCrossedLimit := k.GetCrossedLimit(ctx, sourceAssetDenom, toChainId)
 	newCrossedAmount := storedCrossedAmount.Add(value)
 
-	if newCrossedAmount.GTE(storedCrossedLimit) {
+	if newCrossedAmount.GT(storedCrossedLimit) {
 		return types.ErrCrossedAmountOverLimit(types.DefaultCodespace, newCrossedAmount, storedCrossedLimit)
 	}
-	// increase the new crossed amount by value
-	store.Set(GetCrossedAmountKey(sourceAssetHash.Bytes(), toChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
-
-	// get target asset hash from storage
-	toChainAssetHash := store.Get(GetBindAssetKey(sourceAssetHash.Bytes(), toChainId))
 
 	//  CreateCrossChainTx
 	sink := mcc.NewZeroCopySink(nil)
+	sourceAssetHash := make([]byte, 0)
 	fromContractHash := make([]byte, 0)
 	toContractHash := make([]byte, 0)
+	toChainAssetHash := make([]byte, 0)
 	// if chainId is btc
 	if toChainId == 1 {
+		sourceAssetHash = append(sourceAssetHash, store.Get(GetDenomToHashKey(sourceAssetDenom))...)
 		args := types.ToBTCArgs{
 			ToBtcAddress: toAddressBs,
 			Amount:       value.BigInt().Uint64(),
 			RedeemScript: store.Get(GetRedeemScriptKey(sourceAssetHash)),
 		}
-		if err := args.Serialization(sink, 8); err != nil {
+		if err := args.Serialization(sink); err != nil {
 			return sdk.ErrInternal(fmt.Sprintf("ToBTCArgs Serialization error:%v", err))
 		}
-		fromContractHash = sourceAssetHash
-		toContractHash = store.Get(GetKeyToHashKey(sourceAssetHash, toChainId))
+		fromContractHash = append(fromContractHash, sourceAssetHash...)
+		toContractHash = append(toContractHash, store.Get(GetKeyToHashKey(sourceAssetHash, toChainId))...)
 	} else {
 		// if source asset hash if non-vm based chain asset, say like btc
-		val := store.Get(GetKeyToHashKey(sourceAssetHash, toChainId))
+
+		val := store.Get(GetDenomToHashKey(sourceAssetDenom))
 		if len(val) > 0 {
+			sourceAssetHash = append(sourceAssetHash, val...)
 			args := types.BTCArgs{
 				ToBtcAddress: toAddressBs,
 				Amount:       value.BigInt().Uint64(),
 			}
-			if err := args.Serialization(sink, 8); err != nil {
+			if err := args.Serialization(sink); err != nil {
 				return sdk.ErrInternal(fmt.Sprintf("ToBTCArgs Serialization error:%v", err))
 			}
-			fromContractHash = sourceAssetHash
-			toContractHash = store.Get(GetKeyToHashKey(sourceAssetHash, toChainId))
+			fromContractHash = append(fromContractHash, sourceAssetHash...)
+			toContractHash = append(toContractHash, store.Get(GetKeyToHashKey(sourceAssetHash, toChainId))...)
 		} else {
+			sourceAssetHash = append(sourceAssetHash, types.DenomToHash(sourceAssetDenom)...)
+			// get target asset hash from storage
+			toChainAssetHash = append(toChainAssetHash, store.Get(GetBindAssetKey(sourceAssetHash, toChainId))...)
 			args := types.TxArgs{
 				ToAssetHash: toChainAssetHash,
 				ToAddress:   toAddressBs,
@@ -199,13 +224,15 @@ func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sour
 			if err := args.Serialization(sink, 32); err != nil {
 				return sdk.ErrInternal(fmt.Sprintf("TxArgs Serialization error:%v", err))
 			}
-			fromContractHash = k.supplyKeeper.GetModuleAddress(types.ModuleName)
+			fromContractHash = append(fromContractHash, k.supplyKeeper.GetModuleAddress(types.ModuleName)...)
 			// get target chain proxy hash from storage
-			toContractHash = store.Get(GetBindProxyKey(toChainId))
+			toContractHash = append(toContractHash, store.Get(GetBindProxyKey(toChainId))...)
 		}
 	}
+	// increase the new crossed amount by value
+	store.Set(GetCrossedAmountKey(sourceAssetHash, toChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
 
-	if err := k.createCrossChainTx(ctx, toChainId, toContractHash, fromContractHash, "unlock", sink.Bytes()); err != nil {
+	if err := k.createCrossChainTx(ctx, toChainId, fromContractHash, toContractHash, "unlock", sink.Bytes()); err != nil {
 		return types.ErrCreateCrossChainTx(types.DefaultCodespace, err)
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -215,7 +242,7 @@ func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sour
 			sdk.NewAttribute(types.AttributeKeySourceAssetDenom, sourceAssetDenom),
 			sdk.NewAttribute(types.AttributeKeyToChainId, strconv.FormatUint(toChainId, 10)),
 			sdk.NewAttribute(types.AttributeKeyToChainProxyHash, hex.EncodeToString(toContractHash)),
-			sdk.NewAttribute(types.AttributeKeyToChainAssetHash, hex.EncodeToString(toAddressBs)),
+			sdk.NewAttribute(types.AttributeKeyToChainAssetHash, hex.EncodeToString(toChainAssetHash)),
 			sdk.NewAttribute(types.AttributeKeyFromAddress, fromAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyToAddress, hex.EncodeToString(toAddressBs)),
 			sdk.NewAttribute(types.AttributeKeyAmount, value.String()),
@@ -378,7 +405,7 @@ func (k CrossChainKeeper) unlock(ctx sdk.Context, fromChainId uint64, fromContra
 	scriptKey := store.Get(GetContractToScriptKey(fromContractAddress, fromChainId))
 	if len(scriptKey) > 0 && bytes.Equal(scriptKey, toContractHash) {
 		var args types.BTCArgs
-		if err := args.Deserialization(mcc.NewZeroCopySource(argsBs), 8); err != nil {
+		if err := args.Deserialization(mcc.NewZeroCopySource(argsBs)); err != nil {
 			return sdk.ErrInternal(fmt.Sprintf("unlock, Deserialize args error:%s", err))
 		}
 		toAssetHash = store.Get(GetHashKeyToDenom(scriptKey))
@@ -428,11 +455,11 @@ func (k CrossChainKeeper) unlock(ctx sdk.Context, fromChainId uint64, fromContra
 	crossedAmount := k.GetCrossedAmount(ctx, toAssetDenom, fromChainId)
 
 	newCrossedAmount := crossedAmount.Sub(sdk.NewIntFromBigInt(amount))
-	if newCrossedAmount.GTE(crossedAmount) {
+	if newCrossedAmount.GT(crossedAmount) {
 		return sdk.ErrInternal(fmt.Sprintf("new crossed amount:%s should be less than old crossed amount:%s", newCrossedAmount.String(), crossedAmount.String()))
 	}
 
-	store.Set(GetCrossedAmountKey(types.DenomToHash(toAssetDenom), fromChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
+	store.Set(GetCrossedAmountKey(k.DenomToHash(ctx, toAssetDenom), fromChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnlock,
