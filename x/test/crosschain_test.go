@@ -94,8 +94,8 @@ func Test_BindProxyHash(t *testing.T) {
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
-	ontProxy, _ := hex.DecodeString("")
-	ethProxy, _ := hex.DecodeString("")
+	ontProxy, _ := hex.DecodeString("0321335a0c2ea82f892311630c3d662e0e2e7e93")
+	ethProxy, _ := hex.DecodeString("2EEA349947f93c3B9b74FBcf141e102ADD510eCE")
 	proxyHashInOtherChain := []struct {
 		ChainId   uint64
 		ProxyHash []byte
@@ -123,14 +123,21 @@ func Test_BindAssetHash(t *testing.T) {
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
-	coins, _ := sdk.ParseCoins("1000000000ont,1000000000000000000ong")
-	ontHash, _ := hex.DecodeString("0000000000000000000000000000000000000001")
-	ongHash, _ := hex.DecodeString("0000000000000000000000000000000000000002")
-	assetHashInOnt := [][]byte{
-		ontHash, ongHash,
+	coins, _ := sdk.ParseCoins("1000000000ont")
+	ontHashInOnt, _ := hex.DecodeString("0000000000000000000000000000000000000001")
+	ontHashInEth, _ := hex.DecodeString("0f23Df7F44098b4303A66B578570B61893F6649F")
+	assetHashInOtherChain := []struct {
+		Denom string
+		TargetChainId uint64
+		TargetChainAsset []byte
+		limit sdk.Int
+		IsTartChainAsset bool
+	}{
+		{"ont", 2, ontHashInEth,  sdk.NewInt(-1), true},
+		{"ont", 3, ontHashInOnt,  sdk.NewInt(-1), true},
 	}
-	for i, coin := range coins {
-		msg := crosschain.NewMsgBindAssetParam(fromAddr, coin.Denom, 3, assetHashInOnt[i], coins.AmountOf(coin.Denom), true)
+	for _, assetHashInfo := range assetHashInOtherChain {
+		msg := crosschain.NewMsgBindAssetParam(fromAddr, assetHashInfo.Denom, assetHashInfo.TargetChainId, assetHashInfo.TargetChainAsset, coins.AmountOf(assetHashInfo.Denom), true)
 		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 			t.Errorf("sendMsg error:%v", err)
 		}
@@ -166,15 +173,15 @@ func Test_BindNoVMChainAssetHash(t *testing.T) {
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
 	limit := sdk.NewInt(1000000000001)
-	//btcInOntHash, _ := hex.DecodeString("")
-	btcInEthHash, _ := hex.DecodeString("740C1a496A750a3C3F9A6Ca7e822C6BC776962eA")
+	btcInOntHash, _ := hex.DecodeString("b7f398711664de1dd685d9ba3eee3b6b830a7d83")
+	//btcInEthHash, _ := hex.DecodeString("740C1a496A750a3C3F9A6Ca7e822C6BC776962eA")
 	//btcInBtcHash := RedeemKey
 	btcAssetHashInNonBtcChain := []struct {
 		ChainId           uint64
 		AssetContractHash []byte
 	}{
-		//{3, btcInOntHash},
-		{2, btcInEthHash},
+		{3, btcInOntHash},
+		//{2, btcInEthHash},
 		//{1, btcInBtcHash},
 	}
 	for _, btcAssetHash := range btcAssetHashInNonBtcChain {
@@ -196,7 +203,8 @@ func Test_Lock(t *testing.T) {
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
-	toEthAddr, _ := hex.DecodeString("B7Ee265D94446F465dba65002A9960D4bef9dca7")
+	toEthAddr, _ := hex.DecodeString("5cD3143f91a13Fe971043E1e4605C1c23b46bF44")
+	//toOntAddr, _ := common.AddressFromBase58("AQf4Mzu1YJrhz9f3aRkkwSm9n3qhXGSh4p")
 	toChainIdAddrs := []struct {
 		Denom     string
 		ToChainId uint64
@@ -204,7 +212,10 @@ func Test_Lock(t *testing.T) {
 		Amount    sdk.Int
 	}{
 		//{"btcb", 1, []byte("mpCNjy4QYAmw8eumHJRbVtt6bMDVQvPpFn"), sdk.NewInt(1000000000)},
-		{"btcb", 2, toEthAddr, sdk.NewInt(90000)},
+		//{"btcb", 2, toEthAddr, sdk.NewInt(90000)},
+		//{"btcb", 3, toOntAddr[:], sdk.NewInt(50000)},
+		//{"ont", 3, toOntAddr[:], sdk.NewInt(23)},
+		{"ont", 2, toEthAddr, sdk.NewInt(12)},
 	}
 	for _, toChainIdAddr := range toChainIdAddrs {
 		msg := crosschain.NewMsgLock(fromAddr, toChainIdAddr.Denom, toChainIdAddr.ToChainId, toChainIdAddr.ToAddr, &toChainIdAddr.Amount)
@@ -216,7 +227,7 @@ func Test_Lock(t *testing.T) {
 }
 func Test_CheckTxSuccess(t *testing.T) {
 	client := rpchttp.NewHTTP(ip, "/websocket")
-	txHash := "5315BAAA9B1AE27D29A7B6762DDF254F9FEADDD2340D94A74E792E1CF4992C0A"
+	txHash := "68A7B0FA5514EAD54C5204BA197F0F53A164F7365AB876EEC973876B32401D21"
 	CheckTxSuccessful(client, txHash)
 }
 

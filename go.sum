@@ -279,6 +279,7 @@ github.com/onsi/gomega v1.5.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.7.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1CpauHY=
 github.com/ontio/ontology v1.9.0-beta h1:ThBmeRj2eZPRycS4RpbYu8jy/mLyRGemm31aKuCPO9A=
 github.com/ontio/ontology v1.9.0-beta/go.mod h1:SZxX++4lKT1VY3WFJkHNUbQ96+5ojuXtYEC1dVDQm9E=
+github.com/ontio/ontology v1.9.0 h1:Oa7Y5R4lVxwSbz/8axlX/zY3dqaH2oiVxl0HoaYP5YE=
 github.com/ontio/ontology v1.9.0/go.mod h1:SZxX++4lKT1VY3WFJkHNUbQ96+5ojuXtYEC1dVDQm9E=
 github.com/ontio/ontology-crypto v1.0.7/go.mod h1:ebrQJ4/VS2F6pwHGktHDYtY/7Y2ca/ogfnlYABrQI2c=
 github.com/ontio/ontology-crypto v1.0.8 h1:xft6K8I43vkl60kywT/9GZlUjdacaL7OF6MFFb32kE4=
