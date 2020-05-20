@@ -11,17 +11,14 @@ import (
 )
 
 const (
-
 	QueryHeader        = "header"
 	QueryCurrentHeight = "current_height"
 
-
 	// query balance path
-	QueryProxyHash     = "proxy_hash"
-	QueryAssetHash     = "asset_hash"
-	QueryCrossedAmount = "crossed_amount"
-	QueryCrossedLimit  = "crossed_limit"
-	QueryOperator      = "operator"
+	QueryProxyHash = "proxy_hash"
+	QueryAssetHash = "asset_hash"
+	QueryLockedAmt = "locked_amount"
+	QueryOperator  = "operator"
 )
 
 // NewQuerier returns a minting Querier handler.
@@ -37,10 +34,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryProxyHash(ctx, req, k)
 		case QueryAssetHash:
 			return queryAssetHash(ctx, req, k)
-		case QueryCrossedAmount:
-			return queryCrossedAmount(ctx, req, k)
-		case QueryCrossedLimit:
-			return queryCrossedLimit(ctx, req, k)
+		case QueryLockedAmt:
+			return queryLockedAmount(ctx, req, k)
 		case QueryOperator:
 			return queryOperator(ctx, req, k)
 		default:
@@ -85,7 +80,6 @@ func queryCurrentHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byt
 	return bz, nil
 }
 
-
 func queryProxyHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryProxyHashParam
 
@@ -118,31 +112,15 @@ func queryAssetHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, s
 	return bz, nil
 }
 
-func queryCrossedAmount(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
-	var params types.QueryAssetHashParam
+func queryLockedAmount(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+	var params types.QueryLockedAmtParam
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
-	crossedAmount := k.GetCrossedAmount(ctx, params.SourceAssetDenom, params.ChainId)
+	crossedAmount := k.GetLockedAmt(ctx, params.SourceAssetDenom)
 
 	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, crossedAmount)
-	if err != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
-	}
-
-	return bz, nil
-}
-
-func queryCrossedLimit(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
-	var params types.QueryAssetHashParam
-
-	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
-	}
-	crossedLimit := k.GetCrossedLimit(ctx, params.SourceAssetDenom, params.ChainId)
-
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, crossedLimit)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

@@ -21,7 +21,7 @@ import (
 type LockProxyKeeper interface {
 	SetOperator(ctx sdk.Context, operator types.Operator)
 	BindProxyHash(ctx sdk.Context, targetChainId uint64, targetProxyHash []byte)
-	BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error
+	BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, initialAmt sdk.Int) sdk.Error
 
 	Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddressBs []byte, value sdk.Int) sdk.Error
 	ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height uint32, proofStr string, headerBs []byte) sdk.Error
@@ -31,8 +31,7 @@ type LockProxyViewKeeper interface {
 	GetOperator(ctx sdk.Context) (operator types.Operator)
 	GetProxyHash(ctx sdk.Context, toChainId uint64) []byte
 	GetAssetHash(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) []byte
-	GetCrossedAmount(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) sdk.Int
-	GetCrossedLimit(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) sdk.Int
+	GetLockedAmt(ctx sdk.Context, sourceAssetDenom string) sdk.Int
 }
 
 // Logger returns a module-specific logger.
@@ -111,44 +110,48 @@ func (k CrossChainKeeper) HashToDenom(ctx sdk.Context, hash []byte) []byte {
 	return hash
 }
 
-func (k CrossChainKeeper) GetCrossedLimit(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) sdk.Int {
+func (k CrossChainKeeper) GetLockedAmt(ctx sdk.Context, sourceAssetDenom string) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
 	sourceAssetHash := k.DenomToHash(ctx, sourceAssetDenom)
-	crossedLimitBs := store.Get(GetCrossedLimitKey(sourceAssetHash.Bytes(), toChainId))
-	crossedLimit := sdk.NewInt(0)
-	if crossedLimitBs != nil {
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(crossedLimitBs, &crossedLimit)
+	lockedAmountBs := store.Get(GetLockedAmountKey(sourceAssetHash))
+	lockedAmount := sdk.NewInt(0)
+	if lockedAmountBs != nil {
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(lockedAmountBs, &lockedAmount)
 	}
-	return crossedLimit
+	return lockedAmount
 }
 
-func (k CrossChainKeeper) BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error {
-	sourceAssetHash := types.DenomToHash(sourceAssetDenom)
-	return k.bindAssetHash(ctx, sourceAssetDenom, sourceAssetHash, targetChainId, targetAssetHash, limit, isTargetChainAsset)
+func (k CrossChainKeeper) setLockedAmt(ctx sdk.Context, sourceAssetHash []byte, lockedAmt sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(GetLockedAmountKey(sourceAssetHash), k.cdc.MustMarshalBinaryLengthPrefixed(lockedAmt))
+}
+
+func (k CrossChainKeeper) BindAssetHash(ctx sdk.Context, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, initialAmt sdk.Int) sdk.Error {
+	store := ctx.KVStore(k.storeKey)
+	sourceAssetHash := make([]byte, 0)
+	hashKey := store.Get(GetDenomToHashKey(sourceAssetDenom))
+	if len(hashKey) == 0 {
+		sourceAssetHash = append(sourceAssetHash, types.DenomToHash(sourceAssetDenom)...)
+	} else {
+		sourceAssetHash = append(sourceAssetHash, hashKey...)
+		store.Set(GetKeyToHashKey(sourceAssetHash, targetChainId), targetAssetHash)
+		store.Set(GetContractToScriptKey(targetAssetHash, targetChainId), sourceAssetHash)
+	}
+	return k.bindAssetHash(ctx, sourceAssetDenom, sourceAssetHash, targetChainId, targetAssetHash, initialAmt)
 
 }
 
-func (k CrossChainKeeper) bindAssetHash(ctx sdk.Context, sourceAssetDenom string, sourceAssetHash sdk.AccAddress, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) sdk.Error {
+func (k CrossChainKeeper) bindAssetHash(ctx sdk.Context, sourceAssetDenom string, sourceAssetHash sdk.AccAddress, targetChainId uint64, targetAssetHash []byte, initialAmt sdk.Int) sdk.Error {
 	store := ctx.KVStore(k.storeKey)
 	// store the target asset hash
 	store.Set(GetBindAssetKey(sourceAssetHash.Bytes(), targetChainId), targetAssetHash)
-	// make sure the new limit is greater than the stored limit
-	storedCrossedLimit := k.GetCrossedLimit(ctx, sourceAssetDenom, targetChainId)
-	if limit.BigInt().Cmp(storedCrossedLimit.BigInt()) != 1 {
-		return types.ErrBelowCrossedLimit(types.DefaultCodespace, limit, storedCrossedLimit)
-	}
-	if isTargetChainAsset {
-		increment := limit.Sub(storedCrossedLimit)
-		storedCrossedAmount := k.GetCrossedAmount(ctx, sourceAssetDenom, targetChainId)
 
-		newCrossedAmount := storedCrossedAmount.Add(increment)
-		if newCrossedAmount.BigInt().Cmp(storedCrossedAmount.BigInt()) != 1 {
-			return types.ErrCrossedAmountOverflow(types.DefaultCodespace, newCrossedAmount, storedCrossedLimit)
-		}
-		store.Set(GetCrossedAmountKey(sourceAssetHash.Bytes(), targetChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
+	moduleBalance := k.GetModuleAccount(ctx).GetCoins().AmountOf(sourceAssetDenom)
+	if !moduleBalance.Equal(initialAmt) {
+		return sdk.ErrInternal(fmt.Sprintf("initialAmount:%s is not equal to the module account balance:%s", sdk.NewCoin(sourceAssetDenom, initialAmt).String(), moduleBalance.String()))
 	}
+	k.setLockedAmt(ctx, sourceAssetHash, initialAmt)
 
-	store.Set(GetCrossedLimitKey(sourceAssetHash.Bytes(), targetChainId), k.cdc.MustMarshalBinaryLengthPrefixed(limit))
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeBindAsset,
@@ -156,6 +159,7 @@ func (k CrossChainKeeper) bindAssetHash(ctx sdk.Context, sourceAssetDenom string
 			sdk.NewAttribute(types.AttributeKeyFromAssetHash, hex.EncodeToString(sourceAssetHash)),
 			sdk.NewAttribute(types.AttributeKeyToChainId, strconv.FormatUint(targetChainId, 10)),
 			sdk.NewAttribute(types.AttributeKeyToChainAssetHash, hex.EncodeToString(targetAssetHash)),
+			sdk.NewAttribute(types.AttributeKeyInitialAmt, initialAmt.String()),
 		),
 	})
 	return nil
@@ -169,14 +173,6 @@ func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sour
 	}
 	// make sure new crossed amount is strictly greater than old crossed amount and no less than the limit
 	store := ctx.KVStore(k.storeKey)
-
-	storedCrossedAmount := k.GetCrossedAmount(ctx, sourceAssetDenom, toChainId)
-	storedCrossedLimit := k.GetCrossedLimit(ctx, sourceAssetDenom, toChainId)
-	newCrossedAmount := storedCrossedAmount.Add(value)
-
-	if newCrossedAmount.GT(storedCrossedLimit) {
-		return types.ErrCrossedAmountOverLimit(types.DefaultCodespace, newCrossedAmount, storedCrossedLimit)
-	}
 
 	//  CreateCrossChainTx
 	sink := mcc.NewZeroCopySink(nil)
@@ -229,12 +225,12 @@ func (k CrossChainKeeper) Lock(ctx sdk.Context, fromAddress sdk.AccAddress, sour
 			toContractHash = append(toContractHash, store.Get(GetBindProxyKey(toChainId))...)
 		}
 	}
-	// increase the new crossed amount by value
-	store.Set(GetCrossedAmountKey(sourceAssetHash, toChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
 
 	if err := k.createCrossChainTx(ctx, toChainId, fromContractHash, toContractHash, "unlock", sink.Bytes()); err != nil {
 		return types.ErrCreateCrossChainTx(types.DefaultCodespace, err)
 	}
+
+	k.setLockedAmt(ctx, sourceAssetHash, k.GetLockedAmt(ctx, sourceAssetDenom).Add(amt.AmountOf(sourceAssetDenom)))
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeLock,
@@ -451,15 +447,7 @@ func (k CrossChainKeeper) unlock(ctx sdk.Context, fromChainId uint64, fromContra
 		return types.ErrSendCoinsFromModuleFail(types.DefaultCodespace, amt, k.GetModuleAccount(ctx).GetAddress(), toAddress)
 	}
 
-	// update crossedAmount value
-	crossedAmount := k.GetCrossedAmount(ctx, toAssetDenom, fromChainId)
-
-	newCrossedAmount := crossedAmount.Sub(sdk.NewIntFromBigInt(amount))
-	if newCrossedAmount.GT(crossedAmount) {
-		return sdk.ErrInternal(fmt.Sprintf("new crossed amount:%s should be less than old crossed amount:%s", newCrossedAmount.String(), crossedAmount.String()))
-	}
-
-	store.Set(GetCrossedAmountKey(k.DenomToHash(ctx, toAssetDenom), fromChainId), k.cdc.MustMarshalBinaryLengthPrefixed(newCrossedAmount))
+	k.setLockedAmt(ctx, k.DenomToHash(ctx, toAssetDenom), k.GetLockedAmt(ctx, toAssetDenom).Sub(sdk.NewIntFromBigInt(amount)))
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnlock,

@@ -38,7 +38,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		SendProcessCrossChainTxTxCmd(cdc),
 
 		SendSetRedeemScriptTxCmd(cdc),
-		SendBindNoVMTxCmd(cdc),
 	)...)
 	return txCmd
 }
@@ -156,7 +155,7 @@ $ %s tx crosschain bindproxyhash 3 11223344556677889900
 
 func SendBindAssetHashTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bindassethash [source_asset_denom] [target_chainId] [target_asset_hash] [limit] [is_target_chain_asset]",
+		Use:   "bindassethash [source_asset_denom] [target_chainId] [target_asset_hash] [initialAmount]",
 		Short: "bind asset hash by the operator",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
@@ -191,14 +190,9 @@ $ %s tx crosschain bindassethash ont 3 00000000000000000001 100000 true
 			if !ok {
 				return fmt.Errorf("read limit as big int from args[3] failed")
 			}
-			limit := sdk.NewIntFromBigInt(limitBigInt)
-
-			isTargetChainAsset, err := strconv.ParseBool(args[4])
-			if err != nil {
-				return fmt.Errorf("read istargetChainAsset parameter from args[4] failed")
-			}
+			initialAmt := sdk.NewIntFromBigInt(limitBigInt)
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgBindAssetParam(cliCtx.GetFromAddress(), sourceAssetDenom, targetChainId, targetAssetHash, limit, isTargetChainAsset)
+			msg := types.NewMsgBindAssetParam(cliCtx.GetFromAddress(), sourceAssetDenom, targetChainId, targetAssetHash, initialAmt)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -323,53 +317,6 @@ $ %s tx crosschain createcoins 1000000000ont,1000000000000000000ong
 			}
 			// build and sign the transaction, then broadcast to Tendermint
 			msg := types.NewMsgSetRedeemScript(cliCtx.GetFromAddress(), denom, redeemKey, redeemScript)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-	return cmd
-}
-
-func SendBindNoVMTxCmd(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "bindnovm [source_denom] [target_chainId] [target_asset_hash] [limit]",
-		Short: "bind asset hash by the operator",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`
-Example:
-$ %s tx crosschain bindassethash hex(btc) 3 00000000000000000001 100000
-`,
-				version.ClientName,
-			),
-		),
-		Args: cobra.ExactArgs(4),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			sourceDenom := args[0]
-
-			targetChainIdStr := args[1]
-			targetChainId, err := strconv.ParseUint(targetChainIdStr, 10, 64)
-			if err != nil {
-				return err
-			}
-
-			targetAssetHashStr := args[2]
-			if targetAssetHashStr[0:2] == "0x" {
-				targetAssetHashStr = targetAssetHashStr[2:]
-			}
-			targetAssetHash, err := hex.DecodeString(targetAssetHashStr)
-			if err != nil {
-				return fmt.Errorf("decode hex string 'targetProxyHash' error:%v", err)
-			}
-
-			limitBigInt, ok := big.NewInt(0).SetString(args[3], 10)
-			if !ok {
-				return fmt.Errorf("read limit as big int from args[3] failed")
-			}
-			limit := sdk.NewIntFromBigInt(limitBigInt)
-
-			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgBindNoVMChainAssetHash(cliCtx.GetFromAddress(), sourceDenom, targetChainId, targetAssetHash, limit)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

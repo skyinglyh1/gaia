@@ -18,11 +18,11 @@ const (
 	AttributeKeySourceAssetDenom = "source_asset_denom"
 	AttributeKeyFromAssetHash    = "from_asset_hash"
 	AttributeKeyToChainAssetHash = "to_chain_asset_hash"
-
-	EventTypeLock           = "lock"
-	AttributeKeyFromAddress = "from_address"
-	AttributeKeyToAddress   = "to_address"
-	AttributeKeyAmount      = "amount"
+	AttributeKeyInitialAmt       = "initial_amt"
+	EventTypeLock                = "lock"
+	AttributeKeyFromAddress      = "from_address"
+	AttributeKeyToAddress        = "to_address"
+	AttributeKeyAmount           = "amount"
 
 	EventTypeCreateCrossChainTx = "make_from_cosmos_proof"
 	AttributeCrossChainId       = "cross_chainId"
@@ -43,7 +43,4 @@ const (
 	EventTypeSetRedeemScript = "set_redeem_script"
 	AttributeKeyRedeemKey    = "redeem_key"
 	AttributeKeyRedeemScript = "redeem_script"
-
-	EventTypeSetNoVmChainAssetHash = "set_no_mv_chain_asset_hash"
-	AttributeKeySourceRedeemKey    = "source_redeem_key"
 )

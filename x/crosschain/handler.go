@@ -31,8 +31,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		case types.MsgSetRedeemScript:
 			return handleMsgSetRedeemScript(ctx, k, msg)
-		case types.MsgBindNoVMChainAssetHash:
-			return handleMsgBindNoVMChainAssetHash(ctx, k, msg)
+
 		default:
 			errMsg := fmt.Sprintf("unrecognized staking message type: %T", msg)
 			return sdk.ErrUnknownRequest(errMsg).Result()
@@ -119,7 +118,7 @@ func handleMsgBindAssetParam(ctx sdk.Context, k keeper.Keeper, msg types.MsgBind
 	if !k.GetOperator(ctx).Operator.Equals(msg.Signer) {
 		return sdk.ErrInternal(fmt.Sprintf("only operator can bind proxy hash, expected:%s, got:%s", k.GetOperator(ctx).Operator.String(), msg.Signer.String())).Result()
 	}
-	err := k.BindAssetHash(ctx, msg.SourceAssetDenom, msg.TargetChainId, msg.TargetAssetHash, msg.Limit, msg.IsTargetChainAsset)
+	err := k.BindAssetHash(ctx, msg.SourceAssetDenom, msg.TargetChainId, msg.TargetAssetHash, msg.InitialAmt)
 	if err != nil {
 		return err.Result()
 	}
@@ -171,24 +170,6 @@ func handleMsgSetRedeemScript(ctx sdk.Context, k keeper.Keeper, msg types.MsgSet
 		return sdk.ErrInternal(fmt.Sprintf("only operator can bind proxy hash, expected:%s, got:%s", k.GetOperator(ctx).Operator.String(), msg.Operator.String())).Result()
 	}
 	k.SetRedeemScript(ctx, msg.Denom, msg.RedeemKey, msg.RedeemScript)
-
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	)
-	return sdk.Result{Events: ctx.EventManager().Events()}
-}
-
-func handleMsgBindNoVMChainAssetHash(ctx sdk.Context, k keeper.Keeper, msg types.MsgBindNoVMChainAssetHash) sdk.Result {
-	if !k.GetOperator(ctx).Operator.Equals(msg.Signer) {
-		return sdk.ErrInternal(fmt.Sprintf("only operator can bind proxy hash, expected:%s, got:%s", k.GetOperator(ctx).Operator.String(), msg.Signer.String())).Result()
-	}
-	err := k.BindNoVMChainAssetHash(ctx, msg.Denom, msg.TargetChainId, msg.TargetAssetHash, msg.Limit)
-	if err != nil {
-		return err.Result()
-	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

@@ -58,9 +58,6 @@ const (
 	EventTypeSetRedeemScript = types.EventTypeSetRedeemScript
 	AttributeKeyRedeemKey    = types.AttributeKeyRedeemKey
 	AttributeKeyRedeemScript = types.AttributeKeyRedeemScript
-
-	EventTypeSetNoVmChainAssetHash = types.EventTypeSetNoVmChainAssetHash
-	AttributeKeySourceRedeemKey    = types.AttributeKeySourceRedeemKey
 )
 
 var (
@@ -69,21 +66,19 @@ var (
 	NewKeeper     = keeper.NewCrossChainKeeper
 	NewQuerier    = keeper.NewQuerier
 
-	NewMsgSyncGenesisParam       = types.NewMsgSyncGenesisParam
-	NewMsgSyncHeadersParam       = types.NewMsgSyncHeadersParam
-	NewMsgBindProxyParam         = types.NewMsgBindProxyParam
-	NewMsgBindAssetParam         = types.NewMsgBindAssetParam
-	NewMsgLock                   = types.NewMsgLock
-	NewMsgProcessCrossChainTx    = types.NewMsgProcessCrossChainTx
-	NewMsgCreateCoins            = types.NewMsgCreateCoins
-	NewMsgSetRedeemScript        = types.NewMsgSetRedeemScript
-	NewMsgBindNoVMChainAssetHash = types.NewMsgBindNoVMChainAssetHash
-	NewQueryHeaderParams         = types.NewQueryHeaderParams
-	NewQueryCurrentHeightParams  = types.NewQueryCurrentHeightParams
-	NewQueryProxyHashParams      = types.NewQueryProxyHashParams
-	NewQueryAssetHashParams      = types.NewQueryAssetHashParams
-	NewQueryCrossedAmountParam   = types.NewQueryCrossedAmountParam
-	NewQueryCrossedLimitParam    = types.NewQueryCrossedLimitParam
+	NewMsgSyncGenesisParam      = types.NewMsgSyncGenesisParam
+	NewMsgSyncHeadersParam      = types.NewMsgSyncHeadersParam
+	NewMsgBindProxyParam        = types.NewMsgBindProxyParam
+	NewMsgBindAssetParam        = types.NewMsgBindAssetParam
+	NewMsgLock                  = types.NewMsgLock
+	NewMsgProcessCrossChainTx   = types.NewMsgProcessCrossChainTx
+	NewMsgCreateCoins           = types.NewMsgCreateCoins
+	NewMsgSetRedeemScript       = types.NewMsgSetRedeemScript
+	NewQueryHeaderParams        = types.NewQueryHeaderParams
+	NewQueryCurrentHeightParams = types.NewQueryCurrentHeightParams
+	NewQueryProxyHashParams     = types.NewQueryProxyHashParams
+	NewQueryAssetHashParams     = types.NewQueryAssetHashParams
+	NewQueryLockedAmtParam      = types.NewQueryLockedAmtParam
 
 	// key function
 	GetBlockHeaderKey      = keeper.GetBlockHeaderKey
@@ -142,8 +137,7 @@ var (
 	// query balance path
 	QueryProxyHash     = keeper.QueryProxyHash
 	QueryAssetHash     = keeper.QueryAssetHash
-	QueryCrossedAmount = keeper.QueryCrossedAmount
-	QueryCrossedLimit  = keeper.QueryCrossedLimit
+	QueryCrossedAmount = keeper.QueryLockedAmt
 	QueryOperator      = keeper.QueryOperator
 )
 

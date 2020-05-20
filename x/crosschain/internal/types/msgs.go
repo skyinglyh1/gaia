@@ -155,16 +155,15 @@ func (msg MsgBindProxyParam) GetSigners() []sdk.AccAddress {
 }
 
 type MsgBindAssetParam struct {
-	Signer             sdk.AccAddress
-	SourceAssetDenom   string
-	TargetChainId      uint64
-	TargetAssetHash    []byte
-	Limit              sdk.Int
-	IsTargetChainAsset bool
+	Signer           sdk.AccAddress
+	SourceAssetDenom string
+	TargetChainId    uint64
+	TargetAssetHash  []byte
+	InitialAmt       sdk.Int
 }
 
-func NewMsgBindAssetParam(signer sdk.AccAddress, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int, isTargetChainAsset bool) MsgBindAssetParam {
-	return MsgBindAssetParam{signer, sourceAssetDenom, targetChainId, targetAssetHash, limit, isTargetChainAsset}
+func NewMsgBindAssetParam(signer sdk.AccAddress, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, initialAmt sdk.Int) MsgBindAssetParam {
+	return MsgBindAssetParam{signer, sourceAssetDenom, targetChainId, targetAssetHash, initialAmt}
 }
 
 //nolint
@@ -188,7 +187,7 @@ func (msg MsgBindAssetParam) ValidateBasic() sdk.Error {
 		// handler is implemented.
 		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.TargetAssetHash))
 	}
-	if msg.Limit.IsNegative() {
+	if msg.InitialAmt.IsNegative() {
 		return sdk.ErrInternal(fmt.Sprintf("bind asset param limit should be positive"))
 	}
 	return nil
@@ -201,8 +200,7 @@ func (msg MsgBindAssetParam) String() string {
   TargetChainId:  %d
   TargetAssetHash:     %s
   Limit: %s
-  IsTargetChainAsset: %t
-`, msg.Signer.String(), msg.SourceAssetDenom, msg.TargetChainId, hex.EncodeToString(msg.TargetAssetHash), msg.Limit.String(), msg.IsTargetChainAsset)
+`, msg.Signer.String(), msg.SourceAssetDenom, msg.TargetChainId, hex.EncodeToString(msg.TargetAssetHash), msg.InitialAmt.String())
 }
 
 // Implements Msg.
@@ -418,64 +416,4 @@ func (msg MsgSetRedeemScript) GetSignBytes() []byte {
 // Implements Msg.
 func (msg MsgSetRedeemScript) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Operator}
-}
-
-type MsgBindNoVMChainAssetHash struct {
-	Signer          sdk.AccAddress
-	Denom           string
-	TargetChainId   uint64
-	TargetAssetHash []byte
-	Limit           sdk.Int
-}
-
-func NewMsgBindNoVMChainAssetHash(signer sdk.AccAddress, denom string, targetChainId uint64, targetAssetHash []byte, limit sdk.Int) MsgBindNoVMChainAssetHash {
-	return MsgBindNoVMChainAssetHash{signer, denom, targetChainId, targetAssetHash, limit}
-}
-
-//nolint
-func (msg MsgBindNoVMChainAssetHash) Route() string { return RouterKey }
-func (msg MsgBindNoVMChainAssetHash) Type() string  { return TypeMsgBindAssetHash }
-
-// Implements Msg.
-func (msg MsgBindNoVMChainAssetHash) ValidateBasic() sdk.Error {
-	if msg.Signer.Empty() {
-		return sdk.ErrInvalidAddress(msg.Signer.String())
-	}
-	if msg.Denom == "" {
-		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
-	}
-	if msg.TargetChainId <= 0 {
-		return ErrInvalidChainId(DefaultCodespace, msg.TargetChainId)
-	}
-	if len(msg.TargetAssetHash) == 0 {
-		// Disable software upgrade proposals as they are currently equivalent
-		// to text proposals. Re-enable once a valid software upgrade proposal
-		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.TargetAssetHash))
-	}
-	if msg.Limit.IsNegative() {
-		return sdk.ErrInternal(fmt.Sprintf("bind asset param limit should be positive"))
-	}
-	return nil
-}
-
-func (msg MsgBindNoVMChainAssetHash) String() string {
-	return fmt.Sprintf(`BindNoVMChainAssetHash message:
-  Signer:         %s
-  Denom: %s
-  TargetChainId:  %d
-  TargetAssetHash:     %s
-  Limit: %s
-`, msg.Signer.String(), msg.Denom, msg.TargetChainId, hex.EncodeToString(msg.TargetAssetHash), msg.Limit.String())
-}
-
-// Implements Msg.
-func (msg MsgBindNoVMChainAssetHash) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// Implements Msg.
-func (msg MsgBindNoVMChainAssetHash) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Signer}
 }

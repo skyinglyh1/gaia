@@ -8,8 +8,6 @@ import (
 	"github.com/cosmos/gaia/x/crosschain/internal/types"
 )
 
-
-
 // QueryDelegatorTotalRewards queries delegator total rewards.
 func QueryHeader(cliCtx context.CLIContext, queryRoute string, chainId uint64, height uint32) ([]byte, error) {
 
@@ -30,7 +28,6 @@ func QueryCurrentHeaderHeight(cliCtx context.CLIContext, queryRoute string, chai
 	return res, err
 }
 
-
 // QueryDelegatorTotalRewards queries delegator total rewards.
 func QueryProxyHash(cliCtx context.CLIContext, queryRoute string, chainId uint64) ([]byte, error) {
 
@@ -50,20 +47,11 @@ func QueryAssetHash(cliCtx context.CLIContext, queryRoute string, sourceAssetDen
 	return res, err
 }
 
-func QueryCrossedAmount(cliCtx context.CLIContext, queryRoute string, sourceAssetDenom string, chainId uint64) ([]byte, error) {
+func QueryLockedAmt(cliCtx context.CLIContext, queryRoute string, sourceAssetDenom string) ([]byte, error) {
 
 	res, _, err := cliCtx.QueryWithData(
-		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryCrossedAmount),
-		cliCtx.Codec.MustMarshalJSON(types.NewQueryCrossedAmountParam(sourceAssetDenom, chainId)),
-	)
-	return res, err
-}
-
-func QueryCrossedLimit(cliCtx context.CLIContext, queryRoute string, sourceAssetDenom string, chainId uint64) ([]byte, error) {
-
-	res, _, err := cliCtx.QueryWithData(
-		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryCrossedLimit),
-		cliCtx.Codec.MustMarshalJSON(types.NewQueryCrossedLimitParam(sourceAssetDenom, chainId)),
+		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryLockedAmt),
+		cliCtx.Codec.MustMarshalJSON(types.NewQueryLockedAmtParam(sourceAssetDenom)),
 	)
 	return res, err
 }

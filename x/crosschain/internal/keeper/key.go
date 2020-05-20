@@ -21,6 +21,7 @@ var (
 	BindAssetPrefix          = []byte{0x06}
 	CrossedLimitPrefix       = []byte{0x07}
 	CrossedAmountPrefix      = []byte{0x08}
+	LockedAmountPrefix       = []byte{0x09}
 	CrossChainTxDetailPrefix = []byte{0x09}
 	CrossChainDoneTxPrefix   = []byte{0xa}
 	RedeemKeyScriptPrefix    = []byte{0xb}
@@ -87,6 +88,9 @@ func GetCrossedAmountKey(sourceAssetHash []byte, targetChainId uint64) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, targetChainId)
 	return append(append(CrossedAmountPrefix, sourceAssetHash...), b...)
+}
+func GetLockedAmountKey(sourceAssetHash []byte) []byte {
+	return append(LockedAmountPrefix, sourceAssetHash...)
 }
 
 func GetCrossChainTxKey(crossChainTxSum []byte) []byte {

@@ -35,16 +35,13 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 			GetCmdQueryProxyHash(queryRoute, cdc),
 			GetCmdQueryAssetHash(queryRoute, cdc),
-			GetCmdQueryCrossedAmount(queryRoute, cdc),
-			GetCmdQueryCrossedLimit(queryRoute, cdc),
+			GetCmdQueryLockedAmount(queryRoute, cdc),
 			GetCmdQueryOperator(queryRoute, cdc),
 		)...,
 	)
 
 	return ccQueryCmd
 }
-
-
 
 // GetCmdQueryValidatorOutstandingRewards implements the query validator outstanding rewards command.
 func GetCmdQueryHeader(queryRoute string, cdc *codec.Codec) *cobra.Command {
@@ -157,7 +154,6 @@ $ %s query crosschain height 0
 	}
 }
 
-
 // GetCmdQueryParams implements a command to return the current minting
 // parameters.
 func GetCmdQueryProxyHash(queryRoute string, cdc *codec.Codec) *cobra.Command {
@@ -174,7 +170,7 @@ $ %s query crosschain proxy 3
 				version.ClientName,
 			),
 		),
-		Args:  cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			chainIdStr := args[0]
@@ -235,45 +231,9 @@ $ %s query crosschain asset height 0
 	}
 }
 
-// GetCmdQueryAnnualProvisions implements a command to return the current minting
-func GetCmdQueryCrossedAmount(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryLockedAmount(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "crossedamount [sourceassetdenom] [chainId]",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the asset crossed amount in chainId chain corresponding with soureAssetDenom
-Example:
-$ %s query crosschain crossedamount stake 3
-`,
-				version.ClientName,
-			),
-		),
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			sourceAssetdenom := args[0]
-
-			chainIdStr := args[1]
-
-			chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
-			if err != nil {
-				return err
-			}
-			res, err := common.QueryCrossedAmount(cliCtx, queryRoute, sourceAssetdenom, chainId)
-			if err != nil {
-				return err
-			}
-			var crossedAmount sdk.Int
-			cdc.MustUnmarshalJSON(res, &crossedAmount)
-
-			fmt.Printf("crossed_amount: %s\n", crossedAmount.String())
-			return nil
-		},
-	}
-}
-
-func GetCmdQueryCrossedLimit(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "crossedlimit [sourceassetdenom] [chainId]",
+		Use: "lockedamt [sourceassetdenom]",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query the asset crossed limit in chainId chain corresponding with soureAssetDenom
 Example:
@@ -282,24 +242,18 @@ $ %s query crosschain crossedlimit stake 3
 				version.ClientName,
 			),
 		),
-		Args:  cobra.ExactArgs(2),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			sourceAssetdenom := args[0]
 
-			chainIdStr := args[1]
-
-			chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
-			if err != nil {
-				return err
-			}
-			res, err := common.QueryCrossedLimit(cliCtx, queryRoute, sourceAssetdenom, chainId)
+			res, err := common.QueryLockedAmt(cliCtx, queryRoute, sourceAssetdenom)
 			if err != nil {
 				return err
 			}
 			var crossedLimit sdk.Int
 			cdc.MustUnmarshalJSON(res, &crossedLimit)
-			fmt.Printf("crossed_limit: %s\n", crossedLimit.String())
+			fmt.Printf("locked_amount for%s : %s\n", sourceAssetdenom, crossedLimit.String())
 			//return cliCtx.PrintOutput(hex.EncodeToString(proxyHash))
 			return nil
 		},
@@ -308,7 +262,7 @@ $ %s query crosschain crossedlimit stake 3
 
 func GetCmdQueryOperator(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "operator",
+		Use: "operator",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query the operator AccAddrss who have the right to invoke CreateCoins(),
 BindProxyHash() and BindAssetHash(),
@@ -318,7 +272,7 @@ $ %s query crosschain operator
 				version.ClientName,
 			),
 		),
-		Args:  cobra.NoArgs,
+		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 

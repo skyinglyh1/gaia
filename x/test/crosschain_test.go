@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/gaia/app"
 	"github.com/cosmos/gaia/x/crosschain"
+	"github.com/ontio/ontology/common"
 	"github.com/tendermint/tendermint/crypto"
 	rpchttp "github.com/tendermint/tendermint/rpc/client"
 	"io/ioutil"
@@ -72,7 +73,8 @@ func Test_CreateCoins(t *testing.T) {
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
 	creator := fromAddr
-	coins, err := sdk.ParseCoins("1000000000000btcb")
+	coins, err := sdk.ParseCoins("1000000000ontc")
+	//coins, err := sdk.ParseCoins("1000000000000btcc")
 	if err != nil {
 		t.Errorf("parse coins err:%v", err)
 	}
@@ -81,6 +83,23 @@ func Test_CreateCoins(t *testing.T) {
 		t.Errorf("sendMsg error:%v", err)
 	}
 
+}
+
+func Test_SetRedeemScript(t *testing.T) {
+	client := rpchttp.NewHTTP(ip, "/websocket")
+	appCdc := app.MakeCodec()
+
+	fromPriv, fromAddr, err := GetCosmosPrivateKey(operatorWallet, []byte(operatorPwd))
+	if err != nil {
+		t.Errorf("err = %v ", err)
+	}
+	fmt.Printf("acct = %v\n", fromAddr.String())
+	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
+
+	msg := crosschain.NewMsgSetRedeemScript(fromAddr, "btcc", RedeemKey, RedeemScript)
+	if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
+		t.Errorf("sendMsg error:%v", err)
+	}
 }
 
 func Test_BindProxyHash(t *testing.T) {
@@ -94,14 +113,14 @@ func Test_BindProxyHash(t *testing.T) {
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
-	ontProxy, _ := hex.DecodeString("0321335a0c2ea82f892311630c3d662e0e2e7e93")
-	ethProxy, _ := hex.DecodeString("2EEA349947f93c3B9b74FBcf141e102ADD510eCE")
+	ontProxy, _ := hex.DecodeString("50478b75da76f14bb8358318b62897b97de043dd")
+	//ethProxy, _ := hex.DecodeString("71CF3de5e27EcF7379a8EE74eF32C021dD068d8d")
 	proxyHashInOtherChain := []struct {
 		ChainId   uint64
 		ProxyHash []byte
 	}{
 		{3, ontProxy},
-		{2, ethProxy},
+		//{2, ethProxy},
 	}
 	for _, proxyhash := range proxyHashInOtherChain {
 		msg := crosschain.NewMsgBindProxyParam(fromAddr, proxyhash.ChainId, proxyhash.ProxyHash)
@@ -123,69 +142,28 @@ func Test_BindAssetHash(t *testing.T) {
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
-	coins, _ := sdk.ParseCoins("1000000000ont")
+	coins, _ := sdk.ParseCoins("1000000000ontc")
+	//coins, _ := sdk.ParseCoins("1000000000000btcc")
+
+	//btcHashInBtc := RedeemKey
+	//btcHashInEth, _ := hex.DecodeString("740C1a496A750a3C3F9A6Ca7e822C6BC776962eA")
+	//btcHashInOnt, _ := hex.DecodeString("b7f398711664de1dd685d9ba3eee3b6b830a7d83")
 	ontHashInOnt, _ := hex.DecodeString("0000000000000000000000000000000000000001")
-	ontHashInEth, _ := hex.DecodeString("0f23Df7F44098b4303A66B578570B61893F6649F")
+	ontHashInEth, _ := hex.DecodeString("2516A471195f020f132af65b6502f2Bd355C553c")
 	assetHashInOtherChain := []struct {
-		Denom string
-		TargetChainId uint64
+		Denom            string
+		TargetChainId    uint64
 		TargetChainAsset []byte
-		limit sdk.Int
-		IsTartChainAsset bool
+		limit            sdk.Int
 	}{
-		{"ont", 2, ontHashInEth,  sdk.NewInt(-1), true},
-		{"ont", 3, ontHashInOnt,  sdk.NewInt(-1), true},
+		//{"btcc", 1, btcHashInBtc, sdk.NewInt(-1)},
+		//{"btcc", 2, btcHashInEth, sdk.NewInt(-1)},
+		//{"btcc", 3, btcHashInOnt, sdk.NewInt(-1)},
+		{"ontc", 2, ontHashInEth, sdk.NewInt(-1)},
+		{"ontc", 3, ontHashInOnt, sdk.NewInt(-1)},
 	}
 	for _, assetHashInfo := range assetHashInOtherChain {
-		msg := crosschain.NewMsgBindAssetParam(fromAddr, assetHashInfo.Denom, assetHashInfo.TargetChainId, assetHashInfo.TargetChainAsset, coins.AmountOf(assetHashInfo.Denom), true)
-		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
-			t.Errorf("sendMsg error:%v", err)
-		}
-	}
-}
-
-func Test_SetRedeemScript(t *testing.T) {
-	client := rpchttp.NewHTTP(ip, "/websocket")
-	appCdc := app.MakeCodec()
-
-	fromPriv, fromAddr, err := GetCosmosPrivateKey(operatorWallet, []byte(operatorPwd))
-	if err != nil {
-		t.Errorf("err = %v ", err)
-	}
-	fmt.Printf("acct = %v\n", fromAddr.String())
-	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
-
-	msg := crosschain.NewMsgSetRedeemScript(fromAddr, "btcb", RedeemKey, RedeemScript)
-	if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
-		t.Errorf("sendMsg error:%v", err)
-	}
-}
-
-func Test_BindNoVMChainAssetHash(t *testing.T) {
-	client := rpchttp.NewHTTP(ip, "/websocket")
-	appCdc := app.MakeCodec()
-
-	fromPriv, fromAddr, err := GetCosmosPrivateKey(operatorWallet, []byte(operatorPwd))
-	if err != nil {
-		t.Errorf("err = %v ", err)
-	}
-	fmt.Printf("acct = %v\n", fromAddr.String())
-	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
-
-	limit := sdk.NewInt(1000000000001)
-	btcInOntHash, _ := hex.DecodeString("b7f398711664de1dd685d9ba3eee3b6b830a7d83")
-	//btcInEthHash, _ := hex.DecodeString("740C1a496A750a3C3F9A6Ca7e822C6BC776962eA")
-	//btcInBtcHash := RedeemKey
-	btcAssetHashInNonBtcChain := []struct {
-		ChainId           uint64
-		AssetContractHash []byte
-	}{
-		{3, btcInOntHash},
-		//{2, btcInEthHash},
-		//{1, btcInBtcHash},
-	}
-	for _, btcAssetHash := range btcAssetHashInNonBtcChain {
-		msg := crosschain.NewMsgBindNoVMChainAssetHash(fromAddr, "btcb", btcAssetHash.ChainId, btcAssetHash.AssetContractHash, limit)
+		msg := crosschain.NewMsgBindAssetParam(fromAddr, assetHashInfo.Denom, assetHashInfo.TargetChainId, assetHashInfo.TargetChainAsset, coins.AmountOf(assetHashInfo.Denom))
 		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 			t.Errorf("sendMsg error:%v", err)
 		}
@@ -203,19 +181,19 @@ func Test_Lock(t *testing.T) {
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
-	toEthAddr, _ := hex.DecodeString("5cD3143f91a13Fe971043E1e4605C1c23b46bF44")
-	//toOntAddr, _ := common.AddressFromBase58("AQf4Mzu1YJrhz9f3aRkkwSm9n3qhXGSh4p")
+	//toEthAddr, _ := hex.DecodeString("5cD3143f91a13Fe971043E1e4605C1c23b46bF44")
+	toOntAddr, _ := common.AddressFromBase58("AQf4Mzu1YJrhz9f3aRkkwSm9n3qhXGSh4p")
 	toChainIdAddrs := []struct {
 		Denom     string
 		ToChainId uint64
 		ToAddr    []byte
 		Amount    sdk.Int
 	}{
-		//{"btcb", 1, []byte("mpCNjy4QYAmw8eumHJRbVtt6bMDVQvPpFn"), sdk.NewInt(1000000000)},
-		//{"btcb", 2, toEthAddr, sdk.NewInt(90000)},
-		//{"btcb", 3, toOntAddr[:], sdk.NewInt(50000)},
-		//{"ont", 3, toOntAddr[:], sdk.NewInt(23)},
-		{"ont", 2, toEthAddr, sdk.NewInt(12)},
+		//{"btcc", 1, []byte("mpCNjy4QYAmw8eumHJRbVtt6bMDVQvPpFn"), sdk.NewInt(10000)},
+		//{"btcc", 2, toEthAddr, sdk.NewInt(11000)},
+		//{"btcc", 3, toOntAddr[:], sdk.NewInt(234)},
+		{"ontc", 3, toOntAddr[:], sdk.NewInt(20)},
+		//{"ontc", 2, toEthAddr, sdk.NewInt(10)},
 	}
 	for _, toChainIdAddr := range toChainIdAddrs {
 		msg := crosschain.NewMsgLock(fromAddr, toChainIdAddr.Denom, toChainIdAddr.ToChainId, toChainIdAddr.ToAddr, &toChainIdAddr.Amount)
@@ -227,7 +205,7 @@ func Test_Lock(t *testing.T) {
 }
 func Test_CheckTxSuccess(t *testing.T) {
 	client := rpchttp.NewHTTP(ip, "/websocket")
-	txHash := "68A7B0FA5514EAD54C5204BA197F0F53A164F7365AB876EEC973876B32401D21"
+	txHash := "E41D0D509DD7E2FE928471E60A0731AE55CD90BFAE52412F3D590F25C10D2B8B"
 	CheckTxSuccessful(client, txHash)
 }
 
