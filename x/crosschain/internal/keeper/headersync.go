@@ -15,13 +15,11 @@ import (
 )
 
 type HeaderSyncKeeper interface {
-
 	SyncGenesisHeader(ctx sdk.Context, genesisHeader []byte) sdk.Error
 	SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk.Error
 	ProcessHeader(ctx sdk.Context, header *mctype.Header) sdk.Error
 	HeaderSyncViewKeeper
 }
-
 
 func (keeper CrossChainKeeper) SyncGenesisHeader(ctx sdk.Context, genesisHeaderBytes []byte) sdk.Error {
 	genesisHeader := &mctype.Header{}
@@ -30,7 +28,9 @@ func (keeper CrossChainKeeper) SyncGenesisHeader(ctx sdk.Context, genesisHeaderB
 	if err := genesisHeader.Deserialization(source); err != nil {
 		return types.ErrDeserializeHeader(types.DefaultCodespace, err)
 	}
-
+	if storedHeader, err := keeper.GetHeaderByHeight(ctx, genesisHeader.ChainID, genesisHeader.Height); storedHeader != nil && err == nil {
+		return sdk.ErrInternal("GenesisHeader already synced")
+	}
 	if err := keeper.SetBlockHeader(ctx, genesisHeader); err != nil {
 		return err
 	}
@@ -82,7 +82,6 @@ type HeaderSyncViewKeeper interface {
 	GetConsensusPeers(ctx sdk.Context, chainId uint64, height uint32) (*types.ConsensusPeers, sdk.Error)
 	GetKeyHeights(ctx sdk.Context, chainId uint64) *types.KeyHeights
 }
-
 
 func (keeper CrossChainKeeper) SetBlockHeader(ctx sdk.Context, blockHeader *mctype.Header) sdk.Error {
 

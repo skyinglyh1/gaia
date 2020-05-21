@@ -19,7 +19,8 @@ func NewGenesisState(operator Operator) GenesisState {
 }
 
 // InitGenesis new mint genesis
-func InitGenesis(ctx sdk.Context, keeper Keeper, supplyKeeper types.SupplyKeeper, data GenesisState) {
+func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
+	ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName)).Info("operator:", data)
 	keeper.SetOperator(ctx, data.Operator)
 
 	//	keeper.SetModuleAccount(ctx, supplyKeeper)

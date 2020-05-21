@@ -1,11 +1,11 @@
 package app
 
 import (
-	"io"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
+	"io"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -44,7 +44,7 @@ var (
 	//DefaultCLIHome = os.ExpandEnv("$HOME/.gaiacli")
 	//DefaultNodeHome = os.ExpandEnv("$HOME/.gaiad")
 
-	DefaultCLIHome = os.ExpandEnv("./.gaiacli")
+	DefaultCLIHome  = os.ExpandEnv("./.gaiacli")
 	DefaultNodeHome = os.ExpandEnv("./.gaiad")
 
 	// The module BasicManager is in charge of setting up basic,
@@ -74,7 +74,7 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
-		crosschain.ModuleName:             {supply.Burner, supply.Minter},
+		crosschain.ModuleName:     {supply.Burner, supply.Minter},
 	}
 )
 
@@ -115,7 +115,7 @@ type GaiaApp struct {
 
 	//syncKeeper     hs.Keeper
 	//lpKeepr        lp.Keeper
-	ccKeeper	 crosschain.Keeper
+	ccKeeper crosschain.Keeper
 	// the module manager
 	mm *module.Manager
 }
@@ -228,6 +228,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
 		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
+		crosschain.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
