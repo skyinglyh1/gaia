@@ -20,10 +20,10 @@ func NewGenesisState(operator Operator) GenesisState {
 
 // InitGenesis new mint genesis
 func InitGenesis(ctx sdk.Context, keeper Keeper, data GenesisState) {
-	ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName)).Info("operator:", data)
-	keeper.SetOperator(ctx, data.Operator)
-
-	//	keeper.SetModuleAccount(ctx, supplyKeeper)
+	if data.Operator.Operator != nil {
+		ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName)).Info("operator:", data.Operator.Operator.String())
+		keeper.SetOperator(ctx, data.Operator)
+	}
 
 	// check if the module account exists
 	moduleAcc := keeper.GetModuleAccount(ctx)
