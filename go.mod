@@ -6,6 +6,7 @@ replace github.com/ontio/multi-chain v0.0.0-00010101000000-000000000000 => ./../
 
 require (
 	github.com/Workiva/go-datastructures v1.0.50
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/cosmos/cosmos-sdk v0.37.4
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d // indirect
 	github.com/davecgh/go-spew v1.1.1

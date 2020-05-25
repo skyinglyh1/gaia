@@ -48,3 +48,5 @@ dependency-graph.png
 contract_tests/*
 x/tools/*
 x/test/*
+x/crosschain/*
+x/crosschain/*

@@ -61,10 +61,8 @@ func Test_SendTxHeaderSync(t *testing.T) {
 }
 
 func Test_CreateCoins(t *testing.T) {
-	//client := rpchttp.NewHTTP("tcp://0.0.0.0:26657", "/websocket")
 	client := rpchttp.NewHTTP(ip, "/websocket")
 	appCdc := app.MakeCodec()
-
 	fromPriv, fromAddr, err := GetCosmosPrivateKey(operatorWallet, []byte(operatorPwd))
 	if err != nil {
 		t.Errorf("err = %v ", err)
@@ -73,7 +71,7 @@ func Test_CreateCoins(t *testing.T) {
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
 	creator := fromAddr
-	coins, err := sdk.ParseCoins("1000000000ontc")
+	coins, err := sdk.ParseCoins("1000000000ont,100ong")
 	//coins, err := sdk.ParseCoins("1000000000000btcc")
 	if err != nil {
 		t.Errorf("parse coins err:%v", err)
@@ -82,7 +80,6 @@ func Test_CreateCoins(t *testing.T) {
 	if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 		t.Errorf("sendMsg error:%v", err)
 	}
-
 }
 
 func Test_SetRedeemScript(t *testing.T) {

@@ -1,6 +1,11 @@
 package app
 
 import (
+	"github.com/cosmos/gaia/x/btcx"
+	"github.com/cosmos/gaia/x/ccm"
+	"github.com/cosmos/gaia/x/ft"
+	"github.com/cosmos/gaia/x/headersync"
+	"github.com/cosmos/gaia/x/lockproxy"
 	abci "github.com/tendermint/tendermint/abci/types"
 	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
@@ -74,7 +79,8 @@ var (
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
-		crosschain.ModuleName:     {supply.Burner, supply.Minter},
+		btcx.ModuleName:           {supply.Burner, supply.Minter},
+		ft.ModuleName:             {supply.Burner, supply.Minter},
 	}
 )
 
@@ -113,9 +119,14 @@ type GaiaApp struct {
 	crisisKeeper   crisis.Keeper
 	paramsKeeper   params.Keeper
 
-	//syncKeeper     hs.Keeper
-	//lpKeepr        lp.Keeper
-	ccKeeper crosschain.Keeper
+	//ccKeeper crosschain.Keeper
+
+	ccmKeeper        ccm.Keeper
+	headersyncKeeper headersync.Keeper
+	lockproxyKeeper  lockproxy.Keeper
+	btcxKeeper       btcx.Keeper
+	ftKeeper         ft.Keeper
+
 	// the module manager
 	mm *module.Manager
 }
@@ -134,8 +145,9 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey,
-		//hs.StoreKey, lp.StoreKey,
-		crosschain.StoreKey,
+		//crosschain.StoreKey,
+		headersync.StoreKey, ccm.StoreKey,
+		btcx.StoreKey, ft.StoreKey, lockproxy.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -157,9 +169,14 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	slashingSubspace := app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	govSubspace := app.paramsKeeper.Subspace(gov.DefaultParamspace)
 	crisisSubspace := app.paramsKeeper.Subspace(crisis.DefaultParamspace)
-	//headersyncSubspace := app.paramsKeeper.Subspace(hs.DefaultParamspace)
-	//lockproxySubspace := app.paramsKeeper.Subspace(lp.DefaultParamspace)
-	crosschainSubspace := app.paramsKeeper.Subspace(crosschain.DefaultParamspace)
+
+	//crosschainSubspace := app.paramsKeeper.Subspace(crosschain.DefaultParamspace)
+	headerSyncSubspace := app.paramsKeeper.Subspace(headersync.DefaultParamspace)
+	ccmSubspace := app.paramsKeeper.Subspace(ccm.DefaultParamspace)
+	btcxSubspace := app.paramsKeeper.Subspace(btcx.DefaultParamspace)
+	ftSubspace := app.paramsKeeper.Subspace(ft.DefaultParamspace)
+	lockproxySubspace := app.paramsKeeper.Subspace(lockproxy.DefaultParamspace)
+
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
 	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace, app.ModuleAccountAddrs())
@@ -192,9 +209,17 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 
-	//app.syncKeeper = hs.NewBaseKeeper(app.cdc, keys[hs.StoreKey], headersyncSubspace)
-	//app.lpKeepr = lp.NewKeeper(app.cdc, keys[lp.StoreKey], lockproxySubspace, app.accountKeeper, app.supplyKeeper, app.syncKeeper)
-	app.ccKeeper = crosschain.NewKeeper(app.cdc, keys[crosschain.StoreKey], crosschainSubspace, app.accountKeeper, app.supplyKeeper)
+	//app.ccKeeper = crosschain.NewKeeper(app.cdc, keys[crosschain.StoreKey], crosschainSubspace, app.accountKeeper, app.supplyKeeper)
+	app.headersyncKeeper = headersync.NewKeeper(app.cdc, keys[headersync.StoreKey], headerSyncSubspace)
+	app.ccmKeeper = ccm.NewKeeper(app.cdc, keys[ccm.StoreKey], ccmSubspace, app.headersyncKeeper, nil)
+	app.btcxKeeper = btcx.NewKeeper(app.cdc, keys[btcx.StoreKey], btcxSubspace, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.ccmKeeper)
+	app.ftKeeper = ft.NewKeeper(app.cdc, keys[ft.StoreKey], ftSubspace, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.ccmKeeper)
+	app.lockproxyKeeper = lockproxy.NewKeeper(app.cdc, keys[lockproxy.StoreKey], lockproxySubspace, app.accountKeeper, app.supplyKeeper, app.ccmKeeper)
+	app.ccmKeeper.MountUnlockKeeperMap(map[string]ccm.UnlockKeeper{
+		btcx.StoreKey:      app.btcxKeeper,
+		ft.StoreKey:        app.ftKeeper,
+		lockproxy.StoreKey: app.lockproxyKeeper,
+	})
 
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
@@ -210,9 +235,14 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		mint.NewAppModule(app.mintKeeper),
 		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
-		//hs.NewAppModule(app.syncKeeper),
-		//lp.NewAppModule(app.lpKeepr, app.supplyKeeper),
-		crosschain.NewAppModule(app.ccKeeper, app.supplyKeeper),
+
+		//crosschain.NewAppModule(app.ccKeeper, app.supplyKeeper),
+
+		headersync.NewAppModule(app.headersyncKeeper),
+		ccm.NewAppModule(app.ccmKeeper),
+		btcx.NewAppModule(app.btcxKeeper),
+		ft.NewAppModule(app.ftKeeper),
+		lockproxy.NewAppModule(app.lockproxyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
