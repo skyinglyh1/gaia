@@ -89,8 +89,6 @@ var (
 	ModuleCdc   = types.ModuleCdc
 	OperatorKey = types.OperatorKey
 
-	CurrentChainCrossChainId = types.CurrentChainCrossChainId
-
 	ErrInvalidChainId            = types.ErrInvalidChainId
 	ErrEmptyTargetHash           = types.ErrEmptyTargetHash
 	ErrBelowCrossedLimit         = types.ErrBelowCrossedLimit
