@@ -81,7 +81,6 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeLock,
-			sdk.NewAttribute(types.AtttributeKeyStatus, strconv.FormatUint(1, 10)),
 			sdk.NewAttribute(types.AttributeKeySourceAssetDenom, sourceAssetDenom),
 			sdk.NewAttribute(types.AttributeKeyToChainId, strconv.FormatUint(toChainId, 10)),
 			sdk.NewAttribute(types.AttributeKeyToChainAssetHash, hex.EncodeToString(toAssetHash)),

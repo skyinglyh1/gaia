@@ -5,6 +5,7 @@ const (
 	AttributeValueCategory = ModuleName
 
 	EventTypeCreateCrossChainTx = "make_from_cosmos_proof"
+	AttributeKeyStatus          = "status"
 	AttributeCrossChainId       = "cross_chainId"
 	AttributeKeyTxParamHash     = "make_tx_param_hash"
 	AttributeKeyMakeTxParam     = "make_tx_param"

@@ -29,11 +29,11 @@ func QueryProxyHash(cliCtx context.CLIContext, queryRoute string, lockProxyHash 
 	return res, err
 }
 
-func QueryAssetHash(cliCtx context.CLIContext, queryRoute string, lockProxyHash []byte, sourceAssetDenom string, chainId uint64) ([]byte, error) {
+func QueryAssetHash(cliCtx context.CLIContext, queryRoute string, sourceAssetDenom string, chainId uint64) ([]byte, error) {
 
 	res, _, err := cliCtx.QueryWithData(
 		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryAssetHash),
-		cliCtx.Codec.MustMarshalJSON(types.NewQueryAssetHashParams(lockProxyHash, sourceAssetDenom, chainId)),
+		cliCtx.Codec.MustMarshalJSON(types.NewQueryAssetHashParams(sourceAssetDenom, chainId)),
 	)
 	return res, err
 }

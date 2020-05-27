@@ -48,7 +48,6 @@ const (
 	AttributeKeyMerkleValueMakeTxParamTxHash            = types.AttributeKeyMerkleValueMakeTxParamTxHash
 	AttributeKeyMerkleValueMakeTxParamToContractAddress = types.AttributeKeyMerkleValueMakeTxParamToContractAddress
 	AttributeKeyFromChainId                             = types.AttributeKeyFromChainId
-	AtttributeKeyStatus                                 = types.AtttributeKeyStatus
 
 	EventTypeUnlock              = types.EventTypeUnlock
 	AttributeKeyFromContractHash = types.AttributeKeyFromContractHash

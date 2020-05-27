@@ -121,9 +121,9 @@ $ %s query crosschain proxy 3
 // inflation value.
 func GetCmdQueryAssetHash(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "asset [lockProxyHash] [sourceassetdenom] [chainId]",
+		Use:   "asset [sourceassetdenom] [chainId]",
 		Short: "Query the asset hash in chainId chain corresponding with soureAssetDenom",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(2),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query the currently synced height of chainId blockchain
 
@@ -135,19 +135,16 @@ $ %s query crosschain asset height 0
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
-			lockProxyHash, err := hex.DecodeString(args[0])
-			if err != nil {
-				return err
-			}
-			sourceAssetdenom := args[1]
 
-			chainIdStr := args[2]
+			sourceAssetdenom := args[0]
+
+			chainIdStr := args[1]
 
 			chainId, err := strconv.ParseUint(chainIdStr, 10, 64)
 			if err != nil {
 				return err
 			}
-			res, err := common.QueryAssetHash(cliCtx, queryRoute, lockProxyHash, sourceAssetdenom, chainId)
+			res, err := common.QueryAssetHash(cliCtx, queryRoute, sourceAssetdenom, chainId)
 			if err != nil {
 				return err
 			}

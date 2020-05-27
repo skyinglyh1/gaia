@@ -20,7 +20,6 @@ const (
 	AttributeKeyAmount           = "amount"
 
 	AttributeKeyFromChainId = "from_chain_id"
-	AtttributeKeyStatus     = "status"
 
 	EventTypeUnlock              = "unlock"
 	AttributeKeyFromContractHash = "from_contract_hash"

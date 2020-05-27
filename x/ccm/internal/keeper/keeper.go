@@ -12,6 +12,7 @@ import (
 	"github.com/ontio/multi-chain/merkle"
 	ccmc "github.com/ontio/multi-chain/native/service/cross_chain_manager/common"
 	"github.com/tendermint/tendermint/crypto/tmhash"
+	"github.com/tendermint/tendermint/libs/log"
 	ttype "github.com/tendermint/tendermint/types"
 	"strconv"
 )
@@ -43,8 +44,31 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, h
 		ulKeeperMap: ulKeeperMap,
 	}
 }
-func (k Keeper) MountUnlockKeeperMap(ulKeeperMap map[string]types.UnlockKeeper) {
-	k.ulKeeperMap = ulKeeperMap
+func (k Keeper) Logger(ctx sdk.Context) log.Logger {
+	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k *Keeper) MountUnlockKeeperMap(ulKeeperMap map[string]types.UnlockKeeper) {
+	k.ulKeeperMap = make(map[string]types.UnlockKeeper)
+	for key, value := range ulKeeperMap {
+		k.ulKeeperMap[key] = value
+	}
+	//k.ulKeeperMap = ulKeeperMap
+}
+
+func (k Keeper) IfContainToContract(ctx sdk.Context, keystore string, toContractAddr []byte, fromChainId uint64) *types.QueryContainToContractRes {
+	k.Logger(ctx).Info(fmt.Sprintf("k.unkeeperMap is %+v ", k.ulKeeperMap))
+	unlockKeeper, ok := k.ulKeeperMap[keystore]
+	if !ok {
+		return &types.QueryContainToContractRes{KeyStore: keystore, Info: "map doesnot contain current keystore"}
+	}
+	var res types.QueryContainToContractRes
+	res.KeyStore = keystore
+	res.Exist = unlockKeeper.ContainToContractAddr(ctx, toContractAddr, fromChainId)
+	k.Logger(ctx).Info(fmt.Sprintf("key is %+v ", keystore))
+	k.Logger(ctx).Info(fmt.Sprintf("IfContains %+v ", unlockKeeper.ContainToContractAddr(ctx, toContractAddr, fromChainId)))
+
+	return &res
 }
 
 func (k Keeper) SetDenomCreator(ctx sdk.Context, denom string, creator sdk.AccAddress) {
@@ -89,6 +113,7 @@ func (k Keeper) CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContra
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateCrossChainTx,
+			sdk.NewAttribute(types.AttributeKeyStatus, "1"),
 			sdk.NewAttribute(types.AttributeCrossChainId, crossChainId.String()),
 			sdk.NewAttribute(types.AttributeKeyTxParamHash, hex.EncodeToString(txParamHash)),
 			sdk.NewAttribute(types.AttributeKeyMakeTxParam, hex.EncodeToString(sink.Bytes())),
@@ -127,17 +152,22 @@ func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height 
 		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx toChainId is not for this chain"))
 	}
 	// check if tocontractAddress is lockproxy module account, if yes, invoke lockproxy.unlock(), otherwise, invoke btcx.unlock
+	k.Logger(ctx).Info(fmt.Sprintf("k.unkeeperMap is %+v ", k.ulKeeperMap))
+
 	// TODO: invoke target module method
-	for _, unlockKeeper := range k.ulKeeperMap {
+	for key, unlockKeeper := range k.ulKeeperMap {
+		k.Logger(ctx).Info(fmt.Sprintf("key is %+v ", key))
+		k.Logger(ctx).Info(fmt.Sprintf("IfContains %+v ", unlockKeeper.ContainToContractAddr(ctx, merkleValue.MakeTxParam.ToContractAddress, fromChainId)))
+
 		if unlockKeeper.ContainToContractAddr(ctx, merkleValue.MakeTxParam.ToContractAddress, fromChainId) {
 			if err := unlockKeeper.Unlock(ctx, fromChainId, merkleValue.MakeTxParam.FromContractAddress, merkleValue.MakeTxParam.ToContractAddress, merkleValue.MakeTxParam.Args); err != nil {
 				return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx, unlock errror:%v", err))
 			}
-			break
+			return nil
 		}
 	}
 
-	return nil
+	return sdk.ErrInternal("Cannot find any unlock keeper to perform 'unlock' method!")
 }
 
 func (k Keeper) VerifyToCosmosTx(ctx sdk.Context, proof []byte, fromChainId uint64, header *mctype.Header) (*ccmc.ToMerkleValue, sdk.Error) {

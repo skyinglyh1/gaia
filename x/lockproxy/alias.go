@@ -36,7 +36,6 @@ const (
 	AttributeKeyAmount      = types.AttributeKeyAmount
 
 	AttributeKeyFromChainId = types.AttributeKeyFromChainId
-	AtttributeKeyStatus     = types.AtttributeKeyStatus
 
 	EventTypeUnlock              = types.EventTypeUnlock
 	AttributeKeyFromContractHash = types.AttributeKeyFromContractHash

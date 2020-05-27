@@ -55,6 +55,10 @@ func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Err
 	return nil
 }
 
+func (k Keeper) ContainToContractAddr(ctx sdk.Context, toContractAddr []byte, fromChainId uint64) bool {
+	return ctx.KVStore(k.storeKey).Get((GetBindAssetHashKey(toContractAddr, fromChainId))) != nil
+}
+
 func (k Keeper) CreateLockProxy(ctx sdk.Context, creator sdk.AccAddress) sdk.Error {
 	if k.EnsureLockProxyExist(ctx, creator) {
 		return sdk.ErrInternal(fmt.Sprintf("CreateLockProxy Error: creator:%s already created lockproxy contract with hash:%x", creator.String(), creator.Bytes()))
@@ -126,7 +130,7 @@ func (k Keeper) BindAssetHash(ctx sdk.Context, operator sdk.AccAddress, sourceAs
 
 	store := ctx.KVStore(k.storeKey)
 	// store the to asset hash based on the lockproxy contract (operator) and sourceAssetHash + toChainId
-	store.Set(GetBindAssetHashKey(operator, []byte(sourceAssetDenom), toChainId), toAssetHash)
+	store.Set(GetBindAssetHashKey([]byte(sourceAssetDenom), toChainId), toAssetHash)
 	// store the initial crossed amount
 	store.Set(GetCrossedAmountKey([]byte(sourceAssetDenom)), k.cdc.MustMarshalBinaryLengthPrefixed(initialAmt))
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -148,9 +152,9 @@ func (k Keeper) ExistDenom(ctx sdk.Context, denom string) bool {
 	return storedSupplyCoins.AmountOf(denom) != sdk.ZeroInt()
 }
 
-func (k Keeper) GetAssetHash(ctx sdk.Context, lockProxyHash []byte, sourceAssetDenom string, toChainId uint64) []byte {
+func (k Keeper) GetAssetHash(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) []byte {
 	store := ctx.KVStore(k.storeKey)
-	return store.Get(GetBindAssetHashKey(lockProxyHash, []byte(sourceAssetDenom), toChainId))
+	return store.Get(GetBindAssetHashKey([]byte(sourceAssetDenom), toChainId))
 }
 
 func (k Keeper) GetLockedAmount(ctx sdk.Context, sourceAssetDenom string) sdk.Int {
@@ -176,7 +180,7 @@ func (k Keeper) Lock(ctx sdk.Context, lockProxyHash []byte, fromAddress sdk.AccA
 	store := ctx.KVStore(k.storeKey)
 
 	sourceAssetHash := []byte(sourceAssetDenom)
-	toChainAssetHash := store.Get(GetBindAssetHashKey(lockProxyHash, sourceAssetHash, toChainId))
+	toChainAssetHash := store.Get(GetBindAssetHashKey(sourceAssetHash, toChainId))
 
 	// get target asset hash from storage
 	sink := mcc.NewZeroCopySink(nil)
@@ -201,7 +205,6 @@ func (k Keeper) Lock(ctx sdk.Context, lockProxyHash []byte, fromAddress sdk.AccA
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeLock,
-			sdk.NewAttribute(types.AtttributeKeyStatus, strconv.FormatUint(1, 10)),
 			sdk.NewAttribute(types.AttributeKeyLockProxy, hex.EncodeToString(fromContractHash)),
 			sdk.NewAttribute(types.AttributeKeyToChainProxyHash, hex.EncodeToString(toChainProxyHash)),
 			sdk.NewAttribute(types.AttributeKeySourceAssetDenom, sourceAssetDenom),
@@ -236,7 +239,7 @@ func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk
 
 	// to asset hash should be the hex format string of source asset denom name, NOT Module account address
 	toAssetDenom := string(toAssetHash)
-	if !bytes.Equal(k.GetAssetHash(ctx, toContractAddr, toAssetDenom, fromChainId), toAssetHash) {
+	if !bytes.Equal(k.GetAssetHash(ctx, toAssetDenom, fromChainId), toAssetHash) {
 		return sdk.ErrInternal(fmt.Sprintf("toAssetHash:%x of denom:%s doesnot belong to the proxy hash:%x", toAssetHash, toAssetDenom, proxyHash))
 	}
 

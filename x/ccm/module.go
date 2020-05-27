@@ -58,7 +58,7 @@ func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 // get the root query command of this module
 func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return nil
+	return cli.GetQueryCmd(StoreKey, cdc)
 }
 
 //___________________________
@@ -97,7 +97,7 @@ func (AppModule) QuerierRoute() string {
 
 // module querier
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return nil
+	return NewQuerier(am.keeper)
 }
 
 // module init-genesis
