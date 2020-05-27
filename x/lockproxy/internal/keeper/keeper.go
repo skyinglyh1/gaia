@@ -31,7 +31,7 @@ func NewKeeper(
 
 	// ensure mint module account is set
 	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
-		panic("the crosschain module account has not been set")
+		panic(fmt.Sprintf("the %s module account has not been set", types.ModuleName))
 	}
 
 	return Keeper{

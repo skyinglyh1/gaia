@@ -65,22 +65,20 @@ var (
 	NewKeeper     = keeper.NewKeeper
 	NewQuerier    = keeper.NewQuerier
 
-	NewMsgLock = types.NewMsgLock
+	NewMsgLock                         = types.NewMsgLock
+	NewMsgCreateDenom                  = types.NewMsgCreateDenom
+	NewMsgCreateAndDelegateCoinToProxy = types.NewMsgCreateAndDelegateCoinToProxy
+	NewMsgBindAssetHash                = types.NewMsgBindAssetHash
 
 	// key function
-	GetBlockHashKey        = keeper.GetBlockHashKey
-	GetBlockCurHeightKey   = keeper.GetBlockCurHeightKey
-	GetConsensusPeerKey    = keeper.GetConsensusPeerKey
-	GetKeyHeightsKey       = keeper.GetKeyHeightsKey
-	GetBindProxyKey        = keeper.GetBindProxyKey
-	GetBindAssetKey        = keeper.GetBindAssetKey
-	GetCrossedLimitKey     = keeper.GetCrossedLimitKey
-	GetCrossedAmountKey    = keeper.GetCrossedAmountKey
-	GetCrossChainTxKey     = keeper.GetCrossChainTxKey
-	GetDoneTxKey           = keeper.GetDoneTxKey
-	GetRedeemScriptKey     = keeper.GetRedeemScriptKey
-	GetKeyToHashKey        = keeper.GetKeyToHashKey
-	GetContractToScriptKey = keeper.GetContractToScriptKey
+	GetBlockHashKey      = keeper.GetBlockHashKey
+	GetBlockCurHeightKey = keeper.GetBlockCurHeightKey
+	GetConsensusPeerKey  = keeper.GetConsensusPeerKey
+	GetKeyHeightsKey     = keeper.GetKeyHeightsKey
+	GetBindProxyKey      = keeper.GetBindProxyKey
+	GetBindAssetKey      = keeper.GetBindAssetKey
+	GetCrossedLimitKey   = keeper.GetCrossedLimitKey
+	GetCrossedAmountKey  = keeper.GetCrossedAmountKey
 
 	ParamKeyTable    = types.ParamKeyTable
 	DefaultCoins     = types.DefaultCoins

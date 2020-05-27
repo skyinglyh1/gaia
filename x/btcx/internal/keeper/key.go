@@ -17,8 +17,8 @@ var (
 	DenomToScriptHashPrefix        = []byte{0x03}
 	ScriptHashToRedeemScriptPrefix = []byte{0x04}
 
-	ToAssetHashToDenomPrefix = []byte{0x05}
-	DenomToHashPrefix        = []byte{0x06}
+	ScriptHashToDenomPrefix = []byte{0x05}
+	DenomToHashPrefix       = []byte{0x06}
 )
 
 func GetDenomToOperatorKey(denom string) []byte {
@@ -31,8 +31,8 @@ func GetScriptHashAndChainIdToAssetHashKey(scriptHash []byte, chainId uint64) []
 	return append(append(ChainIdToAssetHashPrefix, scriptHash...), b...)
 }
 
-func GetToAssetHashToDenomKey(toAssetHash []byte) []byte {
-	return append(ToAssetHashToDenomPrefix, toAssetHash...)
+func GetScriptHashToDenomKey(scriptHash []byte) []byte {
+	return append(ScriptHashToDenomPrefix, scriptHash...)
 }
 
 func GetScriptHashToRedeemScript(scriptHashKeyBs []byte) []byte {

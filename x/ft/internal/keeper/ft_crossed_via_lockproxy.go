@@ -9,8 +9,8 @@ import (
 
 func (k Keeper) CreateAndDelegateCoinToProxy(ctx sdk.Context, creator sdk.AccAddress, coin sdk.Coin) sdk.Error {
 
-	if k.ExistDenom(ctx, coin.Denom) {
-		return sdk.ErrInternal(fmt.Sprintf("CreateCoins Error: denom:%s already exist", coin.Denom))
+	if reason, exist := k.ExistDenom(ctx, coin.Denom); exist {
+		return sdk.ErrInternal(fmt.Sprintf("CreateAndDelegateCoinToProxy Error: denom:%s already exist, due to reason:%s", coin.Denom, reason))
 	}
 	//k.SetOperator(ctx, denom, creator)
 	k.ccmKeeper.SetDenomCreator(ctx, coin.Denom, creator)

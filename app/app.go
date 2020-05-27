@@ -31,7 +31,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/cosmos/gaia/x/crosschain"
 	//hs "github.com/cosmos/gaia/x/headersync"
 	//lp "github.com/cosmos/gaia/x/lockproxy"
 
@@ -68,7 +67,9 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
-		crosschain.AppModuleBasic{},
+		//crosschain.AppModuleBasic{},
+		headersync.AppModuleBasic{}, ccm.AppModuleBasic{},
+		lockproxy.AppModuleBasic{}, btcx.AppModuleBasic{}, ft.AppModuleBasic{},
 	)
 
 	// module account permissions
@@ -81,6 +82,7 @@ var (
 		gov.ModuleName:            {supply.Burner},
 		btcx.ModuleName:           {supply.Burner, supply.Minter},
 		ft.ModuleName:             {supply.Burner, supply.Minter},
+		lockproxy.ModuleName:      {supply.Minter},
 	}
 )
 
@@ -212,9 +214,10 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	//app.ccKeeper = crosschain.NewKeeper(app.cdc, keys[crosschain.StoreKey], crosschainSubspace, app.accountKeeper, app.supplyKeeper)
 	app.headersyncKeeper = headersync.NewKeeper(app.cdc, keys[headersync.StoreKey], headerSyncSubspace)
 	app.ccmKeeper = ccm.NewKeeper(app.cdc, keys[ccm.StoreKey], ccmSubspace, app.headersyncKeeper, nil)
+	app.lockproxyKeeper = lockproxy.NewKeeper(app.cdc, keys[lockproxy.StoreKey], lockproxySubspace, app.accountKeeper, app.supplyKeeper, app.ccmKeeper)
 	app.btcxKeeper = btcx.NewKeeper(app.cdc, keys[btcx.StoreKey], btcxSubspace, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.ccmKeeper)
 	app.ftKeeper = ft.NewKeeper(app.cdc, keys[ft.StoreKey], ftSubspace, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.ccmKeeper)
-	app.lockproxyKeeper = lockproxy.NewKeeper(app.cdc, keys[lockproxy.StoreKey], lockproxySubspace, app.accountKeeper, app.supplyKeeper, app.ccmKeeper)
+
 	app.ccmKeeper.MountUnlockKeeperMap(map[string]ccm.UnlockKeeper{
 		btcx.StoreKey:      app.btcxKeeper,
 		ft.StoreKey:        app.ftKeeper,
@@ -239,10 +242,10 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		//crosschain.NewAppModule(app.ccKeeper, app.supplyKeeper),
 
 		headersync.NewAppModule(app.headersyncKeeper),
+		lockproxy.NewAppModule(app.lockproxyKeeper),
 		ccm.NewAppModule(app.ccmKeeper),
 		btcx.NewAppModule(app.btcxKeeper),
 		ft.NewAppModule(app.ftKeeper),
-		lockproxy.NewAppModule(app.lockproxyKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -258,7 +261,8 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
 		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
-		crosschain.ModuleName,
+		//crosschain.ModuleName,
+		headersync.ModuleName, lockproxy.ModuleName, btcx.ModuleName, ft.ModuleName, ccm.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

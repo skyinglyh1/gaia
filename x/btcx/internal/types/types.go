@@ -16,9 +16,9 @@ func (msg DenomInfo) String() string {
 	return fmt.Sprintf(`DenomInfo:
   Creator:        	 %s
   TotalSupply:		 %s
-  RedeemScipt: 		 %x
   RedeemScriptHash:  %x
-`, msg.Creator.String(), msg.TotalSupply.String(), msg.RedeemScipt, msg.RedeemScriptHash)
+  RedeemScipt: 		 %x
+`, msg.Creator.String(), msg.TotalSupply.String(), msg.RedeemScriptHash, msg.RedeemScipt)
 }
 
 type DenomInfoWithId struct {

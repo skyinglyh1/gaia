@@ -102,6 +102,7 @@ func (am AppModule) NewQuerierHandler() sdk.Querier {
 
 // module init-genesis
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+	InitGenesis(ctx, am.keeper)
 	return []abci.ValidatorUpdate{}
 }
 

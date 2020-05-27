@@ -75,10 +75,10 @@ func (msg MsgCreateDenom) Type() string  { return TypeMsgCreateDenom }
 
 // Implements Msg.
 func (msg MsgCreateDenom) ValidateBasic() sdk.Error {
-	if !msg.Creator.Empty() {
+	if msg.Creator.Empty() {
 		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Creator is empty"))
 	}
-	if _, err := sdk.ParseCoin(msg.Denom + "100"); err != nil {
+	if _, err := sdk.ParseCoin("100" + msg.Denom); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Denom:%s is invalid", msg.Denom))
 	}
 	return nil
@@ -109,8 +109,8 @@ type MsgBindAssetHash struct {
 	ToAssetHash      []byte
 }
 
-func NewMsgBindAssetHash(creator sdk.AccAddress, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte) MsgBindAssetHash {
-	return MsgBindAssetHash{creator, sourceAssetDenom, targetChainId, targetAssetHash}
+func NewMsgBindAssetHash(creator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte) MsgBindAssetHash {
+	return MsgBindAssetHash{creator, sourceAssetDenom, toChainId, toAssetHash}
 }
 
 //nolint
@@ -215,12 +215,4 @@ func (msg MsgLock) GetSignBytes() []byte {
 // Implements Msg.
 func (msg MsgLock) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.FromAddress}
-}
-
-type MsgProcessCrossChainTx struct {
-	Submitter   sdk.AccAddress
-	FromChainId uint64
-	Height      uint32
-	Proof       string
-	Header      []byte
 }

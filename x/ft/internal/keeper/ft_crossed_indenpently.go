@@ -11,11 +11,12 @@ import (
 )
 
 func (k Keeper) CreateDenom(ctx sdk.Context, creator sdk.AccAddress, denom string) sdk.Error {
-	if k.ExistDenom(ctx, denom) {
-		return sdk.ErrInternal(fmt.Sprintf("CreateCoins Error: denom:%s already exist", denom))
+	if reason, exist := k.ExistDenom(ctx, denom); exist {
+		return sdk.ErrInternal(fmt.Sprintf("CreateDenom Error: denom:%s already exist, due to reason:%s", denom, reason))
 	}
 	//k.SetOperator(ctx, denom, creator)
 	k.ccmKeeper.SetDenomCreator(ctx, denom, creator)
+	ctx.KVStore(k.storeKey).Set(GetIndependentCrossDenomKey(denom), []byte(denom))
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateCoin,
@@ -34,7 +35,10 @@ func (k Keeper) BindAssetHash(ctx sdk.Context, creator sdk.AccAddress, sourceAss
 	}
 
 	store := ctx.KVStore(k.storeKey)
+	if !bytes.Equal([]byte(sourceAssetDenom), store.Get(GetIndependentCrossDenomKey(sourceAssetDenom))) {
+		return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, denom:%s is not designed to be able to be bondAssetHash through this interface", sourceAssetDenom))
 
+	}
 	store.Set(GetBindAssetHashKey([]byte(sourceAssetDenom), toChainId), toAssetHash)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -151,8 +155,14 @@ func (k Keeper) ValidCreator(ctx sdk.Context, denom string, creator sdk.AccAddre
 	//return bytes.Equal(store.Get(GetDenomToOperatorKey(denom)), creator.Bytes())
 	return bytes.Equal(k.ccmKeeper.GetDenomCreator(ctx, denom), creator.Bytes())
 }
-
-func (k Keeper) ExistDenom(ctx sdk.Context, denom string) bool {
-	//return k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(denom) != sdk.ZeroInt() || len(k.GetOperator(ctx, denom)) != 0
-	return len(k.ccmKeeper.GetDenomCreator(ctx, denom)) != 0 || k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(denom) != sdk.ZeroInt()
+func (k Keeper) ExistDenom(ctx sdk.Context, denom string) (string, bool) {
+	storedSupplyCoins := k.supplyKeeper.GetSupply(ctx).GetTotal()
+	//return storedSupplyCoins.AmountOf(denom) != sdk.ZeroInt() || len(k.GetOperator(ctx, denom)) != 0
+	if len(k.ccmKeeper.GetDenomCreator(ctx, denom)) != 0 {
+		return fmt.Sprintf("k.ccmKeeper.GetDenomCreator(ctx,%s) is %x", denom, k.ccmKeeper.GetDenomCreator(ctx, denom)), true
+	}
+	if storedSupplyCoins.AmountOf(denom).String() != sdk.ZeroInt().String() {
+		return fmt.Sprintf("supply.AmountOf(%s) is %s", denom, storedSupplyCoins.AmountOf(denom).String()), true
+	}
+	return "", false
 }

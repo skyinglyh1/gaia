@@ -17,20 +17,21 @@ var (
 	ConsensusPeerPrefix = []byte{0x03}
 	KeyHeightPrefix     = []byte{0x04}
 
-	BindProxyPrefix          = []byte{0x05}
-	BindAssetPrefix          = []byte{0x06}
-	CrossedLimitPrefix       = []byte{0x07}
-	CrossedAmountPrefix      = []byte{0x08}
-	LockedAmountPrefix       = []byte{0x09}
-	CrossChainTxDetailPrefix = []byte{0x09}
-	CrossChainDoneTxPrefix   = []byte{0xa}
-	RedeemKeyScriptPrefix    = []byte{0xb}
-	RedeemToHashPrefix       = []byte{0xc}
-	ContractToRedeemPrefix   = []byte{0xd}
-	DenomToHashPrefix        = []byte{0xe}
-	HashToDenomPrefix        = []byte{0xf}
-	BlockCurrentHeightKey    = []byte("currentHeight")
-	CrossChainIdKey          = []byte("crosschainid")
+	BindProxyPrefix             = []byte{0x05}
+	BindAssetPrefix             = []byte{0x06}
+	CrossedLimitPrefix          = []byte{0x07}
+	CrossedAmountPrefix         = []byte{0x08}
+	LockedAmountPrefix          = []byte{0x09}
+	CrossChainTxDetailPrefix    = []byte{0x09}
+	CrossChainDoneTxPrefix      = []byte{0xa}
+	RedeemKeyScriptPrefix       = []byte{0xb}
+	RedeemToHashPrefix          = []byte{0xc}
+	ContractToRedeemPrefix      = []byte{0xd}
+	DenomToHashPrefix           = []byte{0xe}
+	HashToDenomPrefix           = []byte{0xf}
+	IndependentCrossDenomPrefix = []byte{0x10}
+	BlockCurrentHeightKey       = []byte("currentHeight")
+	CrossChainIdKey             = []byte("crosschainid")
 )
 
 func GetBindAssetHashKey(sourceDenomHash []byte, chainId uint64) []byte {
@@ -89,39 +90,7 @@ func GetCrossedAmountKey(sourceAssetHash []byte, targetChainId uint64) []byte {
 	binary.LittleEndian.PutUint64(b, targetChainId)
 	return append(append(CrossedAmountPrefix, sourceAssetHash...), b...)
 }
-func GetLockedAmountKey(sourceAssetHash []byte) []byte {
-	return append(LockedAmountPrefix, sourceAssetHash...)
-}
 
-func GetCrossChainTxKey(crossChainTxSum []byte) []byte {
-	return append(CrossChainTxDetailPrefix, crossChainTxSum...)
-}
-func GetDoneTxKey(fromChainId uint64, crossChainid []byte) []byte {
-	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, fromChainId)
-	return append(append(CrossChainDoneTxPrefix, b...), crossChainid...)
-}
-
-func GetRedeemScriptKey(redeemKey []byte) []byte {
-	return append(RedeemKeyScriptPrefix, redeemKey...)
-}
-
-func GetKeyToHashKey(redeemKey []byte, toChainId uint64) []byte {
-	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, toChainId)
-	return append(append(RedeemToHashPrefix, redeemKey...), b...)
-}
-
-func GetContractToScriptKey(toChainContractHash []byte, toChainId uint64) []byte {
-	b := make([]byte, 8)
-	binary.LittleEndian.PutUint64(b, toChainId)
-	return append(append(ContractToRedeemPrefix, toChainContractHash...), b...)
-}
-
-func GetDenomToHashKey(denom string) []byte {
-	return append(DenomToHashPrefix, []byte(denom)...)
-}
-
-func GetHashKeyToDenom(redeemKey []byte) []byte {
-	return append(HashToDenomPrefix, redeemKey...)
+func GetIndependentCrossDenomKey(denom string) []byte {
+	return append(IndependentCrossDenomPrefix, []byte(denom)...)
 }

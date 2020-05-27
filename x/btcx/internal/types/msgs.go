@@ -34,7 +34,7 @@ func (msg MsgCreateCoin) ValidateBasic() sdk.Error {
 	if msg.Creator.Empty() {
 		return sdk.ErrInternal(fmt.Sprintf("MsgCreateCoin.Creator is empty"))
 	}
-	if _, err := sdk.ParseCoins(msg.Denom + "10"); err != nil {
+	if _, err := sdk.ParseCoins("10" + msg.Denom); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("MsgCreateCoin.Denom is illegal, err:%v", err))
 	}
 	if _, err := hex.DecodeString(msg.RedeemScript); err != nil {
