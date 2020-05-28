@@ -216,3 +216,44 @@ func (msg MsgLock) GetSignBytes() []byte {
 func (msg MsgLock) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.FromAddress}
 }
+
+type MsgCreateCoins struct {
+	Creator sdk.AccAddress
+	Coins   string
+}
+
+func NewMsgCreateCoins(creator sdk.AccAddress, coins string) MsgCreateCoins {
+	return MsgCreateCoins{Creator: creator, Coins: coins}
+}
+
+func (msg MsgCreateCoins) Route() string { return RouterKey }
+func (msg MsgCreateCoins) Type() string  { return TypeMsgCreateDenom }
+
+// Implements Msg.
+func (msg MsgCreateCoins) ValidateBasic() sdk.Error {
+	if msg.Creator.Empty() {
+		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Creator is empty"))
+	}
+	if _, err := sdk.ParseCoins(msg.Coins); err != nil {
+		return sdk.ErrInternal(fmt.Sprintf("MsgCreateCoins.Coins:%s is invalid", msg.Coins))
+	}
+	return nil
+}
+
+func (msg MsgCreateCoins) String() string {
+	return fmt.Sprintf(`Create Coins Message:
+  Creator:         %s
+  Denom: 		   %s
+`, msg.Creator.String(), msg.Coins)
+}
+
+// Implements Msg.
+func (msg MsgCreateCoins) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// Implements Msg.
+func (msg MsgCreateCoins) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Creator}
+}

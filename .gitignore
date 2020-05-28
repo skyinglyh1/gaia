@@ -47,6 +47,5 @@ dependency-graph.png
 *.synctex.gz
 contract_tests/*
 x/tools/*
-x/test/*
 x/crosschain/*
 x/crosschain/*

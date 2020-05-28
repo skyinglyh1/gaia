@@ -67,7 +67,6 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
-		//crosschain.AppModuleBasic{},
 		headersync.AppModuleBasic{}, ccm.AppModuleBasic{},
 		lockproxy.AppModuleBasic{}, btcx.AppModuleBasic{}, ft.AppModuleBasic{},
 	)
@@ -147,7 +146,6 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		bam.MainStoreKey, auth.StoreKey, staking.StoreKey,
 		supply.StoreKey, mint.StoreKey, distr.StoreKey, slashing.StoreKey,
 		gov.StoreKey, params.StoreKey,
-		//crosschain.StoreKey,
 		headersync.StoreKey, ccm.StoreKey,
 		btcx.StoreKey, ft.StoreKey, lockproxy.StoreKey,
 	)

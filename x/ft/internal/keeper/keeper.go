@@ -58,6 +58,26 @@ func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Err
 	return nil
 }
 
+func (k Keeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) sdk.Error {
+	for _, coin := range coins {
+		if reason, exist := k.ExistDenom(ctx, coin.Denom); exist {
+			return sdk.ErrInternal(fmt.Sprintf("CreateCoins Error: denom:%s already exist, due to reason:%s", coin.Denom, reason))
+		}
+		k.ccmKeeper.SetDenomCreator(ctx, coin.Denom, creator)
+	}
+	if err := k.MintCoins(ctx, creator, coins); err != nil {
+		return sdk.ErrInternal(fmt.Sprintf("CreateAndDelegateCoinToProxy error: %v", err))
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeCreateAndDelegateCoinToProxy,
+			sdk.NewAttribute(types.AttributeKeyCreator, creator.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, coins.String()),
+		),
+	})
+	return nil
+}
+
 func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins) sdk.Error {
 
 	_, err := k.bankKeeper.AddCoins(ctx, toAcct, amt)

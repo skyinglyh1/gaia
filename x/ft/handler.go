@@ -20,6 +20,10 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		case types.MsgBindAssetHash:
 			return handleMsgBindAssetHash(ctx, k, msg)
+		case types.MsgLock:
+			return handleMsgLock(ctx, k, msg)
+		case types.MsgCreateCoins:
+			return handleMsgCreateCoins(ctx, k, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized staking message type: %T", msg)
@@ -86,6 +90,26 @@ func handleMsgLock(ctx sdk.Context, k keeper.Keeper, msg types.MsgLock) sdk.Resu
 	if err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("handleMsgLock, %v", err)).Result()
 	}
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	)
+
+	return sdk.Result{Events: ctx.EventManager().Events()}
+}
+
+func handleMsgCreateCoins(ctx sdk.Context, k keeper.Keeper, msg types.MsgCreateCoins) sdk.Result {
+	coins, err := sdk.ParseCoins(msg.Coins)
+	if err != nil {
+		return sdk.ErrInternal(fmt.Sprintf("handleMsgCreateCoins, parseCoins error:%v", err)).Result()
+	}
+	sdkErr := k.CreateCoins(ctx, msg.Creator, coins)
+	if sdkErr != nil {
+		return sdkErr.Result()
+	}
+
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

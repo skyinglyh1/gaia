@@ -25,6 +25,7 @@ const (
 	AttributeKeyFromAddress      = "from_address"
 	AttributeKeyToAddress        = "to_address"
 	AttributeKeyAmount           = "amount"
+	AttributeKeyCoins            = "coins"
 
 	EventTypeCreateCrossChainTx = "make_from_cosmos_proof"
 	AttributeCrossChainId       = "cross_chainId"
