@@ -119,6 +119,9 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 	// transfer back to btc
 	store := ctx.KVStore(k.storeKey)
 	redeemScriptHash := store.Get(GetDenomToScriptHashKey(sourceAssetDenom))
+	if redeemScriptHash == nil {
+		return sdk.ErrInternal(fmt.Sprintf("Invoke Lock of `btcx` module for denom: %s is illgeal", sourceAssetDenom))
+	}
 	sink := mcc.NewZeroCopySink(nil)
 	// contruct args bytes
 	if toChainId == 1 {
@@ -239,7 +242,7 @@ func (k Keeper) ExistDenom(ctx sdk.Context, denom string) (string, bool) {
 	if len(k.ccmKeeper.GetDenomCreator(ctx, denom)) != 0 {
 		return fmt.Sprintf("k.ccmKeeper.GetDenomCreator(ctx,%s) is %x", denom, k.ccmKeeper.GetDenomCreator(ctx, denom)), true
 	}
-	if storedSupplyCoins.AmountOf(denom).String() != sdk.ZeroInt().String() {
+	if !storedSupplyCoins.AmountOf(denom).Equal(sdk.ZeroInt()) {
 		return fmt.Sprintf("supply.AmountOf(%s) is %s", denom, storedSupplyCoins.AmountOf(denom).String()), true
 	}
 	return "", false

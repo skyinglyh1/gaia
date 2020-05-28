@@ -49,17 +49,19 @@ const (
 
 var (
 	// functions aliases
-	RegisterCodec           = types.RegisterCodec
-	NewKeeper               = keeper.NewKeeper
-	NewQuerier              = keeper.NewQuerier
+	RegisterCodec = types.RegisterCodec
+	NewKeeper     = keeper.NewKeeper
+	NewQuerier    = keeper.NewQuerier
+
 	NewMsgBindAssetParam    = types.NewMsgBindAssetParam
+	NewMsgBindProxyHash     = types.NewMsgBindProxyHash
 	NewMsgLock              = types.NewMsgLock
 	NewQueryProxyHashParams = types.NewQueryProxyHashParams
 	NewQueryAssetHashParams = types.NewQueryAssetHashParams
 	NewQueryLockedAmtParam  = types.NewQueryLockedAmtParam
 	GetBindProxyKey         = keeper.GetBindProxyKey
 	GetCrossedAmountKey     = keeper.GetCrossedAmountKey
-
+	NewMsgCreateLockProxy   = types.NewMsgCreateLockProxy
 	// variable aliases
 	ModuleCdc                    = types.ModuleCdc
 	OperatorKey                  = types.OperatorKey
@@ -81,8 +83,7 @@ var (
 )
 
 type (
-	Keeper = keeper.Keeper
-
+	Keeper             = keeper.Keeper
 	MsgCreateLockProxy = types.MsgCreateLockProxy
 	MsgBindProxyHash   = types.MsgBindProxyHash
 	MsgBindAssetHash   = types.MsgBindAssetHash

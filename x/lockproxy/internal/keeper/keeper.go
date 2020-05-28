@@ -56,7 +56,7 @@ func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Err
 }
 
 func (k Keeper) ContainToContractAddr(ctx sdk.Context, toContractAddr []byte, fromChainId uint64) bool {
-	return ctx.KVStore(k.storeKey).Get((GetBindAssetHashKey(toContractAddr, fromChainId))) != nil
+	return ctx.KVStore(k.storeKey).Get((GetBindProxyKey(toContractAddr, fromChainId))) != nil
 }
 
 func (k Keeper) CreateLockProxy(ctx sdk.Context, creator sdk.AccAddress) sdk.Error {
@@ -124,7 +124,7 @@ func (k Keeper) BindAssetHash(ctx sdk.Context, operator sdk.AccAddress, sourceAs
 	}
 	//	ensure the passed-in initialAmt is equal to the balance of lockproxy module account
 	moduleAcct := k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
-	if moduleAcct.GetCoins().AmountOf(sourceAssetDenom) != initialAmt {
+	if !moduleAcct.GetCoins().AmountOf(sourceAssetDenom).Equal(initialAmt) {
 		return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, operator:%s, denom:%s, initialAmt incorrect, expect:%s, got:%s", operator.String(), sourceAssetDenom, moduleAcct.GetCoins().AmountOf(sourceAssetDenom).String(), initialAmt.String()))
 	}
 
@@ -149,7 +149,7 @@ func (k Keeper) BindAssetHash(ctx sdk.Context, operator sdk.AccAddress, sourceAs
 
 func (k Keeper) ExistDenom(ctx sdk.Context, denom string) bool {
 	storedSupplyCoins := k.supplyKeeper.GetSupply(ctx).GetTotal()
-	return storedSupplyCoins.AmountOf(denom) != sdk.ZeroInt()
+	return !storedSupplyCoins.AmountOf(denom).Equal(sdk.ZeroInt())
 }
 
 func (k Keeper) GetAssetHash(ctx sdk.Context, sourceAssetDenom string, toChainId uint64) []byte {
@@ -239,8 +239,8 @@ func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk
 
 	// to asset hash should be the hex format string of source asset denom name, NOT Module account address
 	toAssetDenom := string(toAssetHash)
-	if !bytes.Equal(k.GetAssetHash(ctx, toAssetDenom, fromChainId), toAssetHash) {
-		return sdk.ErrInternal(fmt.Sprintf("toAssetHash:%x of denom:%s doesnot belong to the proxy hash:%x", toAssetHash, toAssetDenom, proxyHash))
+	if len(k.GetAssetHash(ctx, toAssetDenom, fromChainId)) == 0 {
+		return sdk.ErrInternal(fmt.Sprintf("toAssetHash:%x of denom:%s doesnot belong to the current lock proxy hash:%x", toAssetHash, toAssetDenom, toContractAddr))
 	}
 
 	// mint coin of sourceAssetDenom

@@ -160,7 +160,7 @@ func (k Keeper) ExistDenom(ctx sdk.Context, denom string) (string, bool) {
 	if len(k.ccmKeeper.GetDenomCreator(ctx, denom)) != 0 {
 		return fmt.Sprintf("k.ccmKeeper.GetDenomCreator(ctx,%s) is %x", denom, k.ccmKeeper.GetDenomCreator(ctx, denom)), true
 	}
-	if storedSupplyCoins.AmountOf(denom).String() != sdk.ZeroInt().String() {
+	if !storedSupplyCoins.AmountOf(denom).Equal(sdk.ZeroInt()) {
 		return fmt.Sprintf("supply.AmountOf(%s) is %s", denom, storedSupplyCoins.AmountOf(denom).String()), true
 	}
 	return "", false
