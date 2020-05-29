@@ -2,6 +2,7 @@ package btcx
 
 import (
 	"encoding/json"
+	"github.com/cosmos/gaia/x/btcx/client/rest"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -48,7 +49,7 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 
 // register rest routes
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	//rest.RegisterRoutes(ctx, rtr, StoreKey)
+	rest.RegisterRoutes(ctx, rtr, StoreKey)
 }
 
 // get the root tx command of this module

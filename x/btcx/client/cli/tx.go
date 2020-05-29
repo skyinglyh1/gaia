@@ -94,7 +94,7 @@ $ %s tx btcx bindassethash btca 3 12341234
 				return fmt.Errorf("decode hex string 'toAssetHash' error:%v", err)
 			}
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgBindAssetParam(cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAssetHash)
+			msg := types.NewMsgBindAssetHash(cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAssetHash)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

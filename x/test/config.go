@@ -11,11 +11,12 @@ const (
 	validatorWallet = "./wallets/172.168.3.94_node0"
 	operatorWallet  = "./wallets/operator"
 
-	user0Wallet = "./wallets/user0"
-	user0Addr   = "cosmos1ayc6faczpj42eu7wjsjkwcj7h0q2p2e4vrlkzf"
-	user1Addr   = "cosmos1mtgmggm73d4mqv5kcc7hvtplryflwhl998dk5q"
-	user2Addr   = "cosmos1vmg4h3etfpy9a8fyru44uz87sw9dwmvfdpw358"
-	operatorPwd = "12345678"
+	user0Wallet  = "./wallets/user0"
+	operatorAddr = "cosmos1c0n2e6kuzp03pqm3av9q2v0fqn6ql3z5c5ddw7"
+	user0Addr    = "cosmos1ayc6faczpj42eu7wjsjkwcj7h0q2p2e4vrlkzf"
+	user1Addr    = "cosmos1mtgmggm73d4mqv5kcc7hvtplryflwhl998dk5q"
+	user2Addr    = "cosmos1vmg4h3etfpy9a8fyru44uz87sw9dwmvfdpw358"
+	operatorPwd  = "12345678"
 	//ChainID         = "testing"
 	ChainID = "cc-cosmos"
 )

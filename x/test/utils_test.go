@@ -24,10 +24,11 @@ func Test_Transfer_StakeCoin_From_Operator(t *testing.T) {
 	fmt.Printf("acct = %v\n", fromAddr.String())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 	receivers := []string{
+		operatorAddr,
 		user0Addr,
 		"cosmos1v8rpqa4valmgx5a8gnnstsecv8xg76sgzw4820",
 	}
-	amt, _ := sdk.ParseCoins("1000000stake")
+	amt, _ := sdk.ParseCoins("1000stake")
 	for _, receiverAddrStr := range receivers {
 		toAddr, _ := sdk.AccAddressFromBech32(receiverAddrStr)
 		msg := bank.MsgSend{

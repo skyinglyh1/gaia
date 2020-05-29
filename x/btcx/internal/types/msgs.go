@@ -69,7 +69,7 @@ type MsgBindAssetHash struct {
 	ToAssetHash      []byte
 }
 
-func NewMsgBindAssetParam(creator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte) MsgBindAssetHash {
+func NewMsgBindAssetHash(creator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte) MsgBindAssetHash {
 	return MsgBindAssetHash{creator, sourceAssetDenom, toChainId, toAssetHash}
 }
 

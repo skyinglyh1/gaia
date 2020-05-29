@@ -52,9 +52,9 @@ var (
 	NewKeeper     = keeper.NewKeeper
 	NewQuerier    = keeper.NewQuerier
 
-	NewMsgCreateCoin     = types.NewMsgCreateCoin
-	NewMsgBindAssetParam = types.NewMsgBindAssetParam
-	NewMsgLock           = types.NewMsgLock
+	NewMsgCreateCoin    = types.NewMsgCreateCoin
+	NewMsgBindAssetHash = types.NewMsgBindAssetHash
+	NewMsgLock          = types.NewMsgLock
 
 	// variable aliases
 	ModuleCdc = types.ModuleCdc

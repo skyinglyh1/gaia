@@ -51,7 +51,7 @@ func Test_btcx_MsgBindAssetHash(t *testing.T) {
 		{"btc", 3, btcHahInOntDev},
 	}
 	for _, msgBindAssetParam := range msgBindAssetParams {
-		msg := btcx.NewMsgBindAssetParam(fromAddr, msgBindAssetParam.denom, msgBindAssetParam.toChainId, msgBindAssetParam.toAssetHash)
+		msg := btcx.NewMsgBindAssetHash(fromAddr, msgBindAssetParam.denom, msgBindAssetParam.toChainId, msgBindAssetParam.toAssetHash)
 		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 			t.Errorf("sendMsg error:%v", err)
 		}
