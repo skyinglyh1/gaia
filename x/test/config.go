@@ -4,13 +4,20 @@ import "encoding/hex"
 
 const (
 	//ip = "tcp://172.168.3.93:26657"
-	ip = "tcp://172.168.3.93:26657"
-	//ip              = "tcp://0.0.0.0:26657"
-	validatorWallet = "./wallets/validator"
+	//validatorWallet = "./wallets/validator"
+	//operatorWallet  = "./wallets/operator"
+
+	ip              = "tcp://172.168.3.95:26657"
+	validatorWallet = "./wallets/172.168.3.94_node0"
 	operatorWallet  = "./wallets/operator"
-	user0Wallet     = "./wallets/user0"
-	operatorPwd     = "12345678"
-	ChainID         = "testing"
+
+	user0Wallet = "./wallets/user0"
+	user0Addr   = "cosmos1ayc6faczpj42eu7wjsjkwcj7h0q2p2e4vrlkzf"
+	user1Addr   = "cosmos1mtgmggm73d4mqv5kcc7hvtplryflwhl998dk5q"
+	user2Addr   = "cosmos1vmg4h3etfpy9a8fyru44uz87sw9dwmvfdpw358"
+	operatorPwd = "12345678"
+	//ChainID         = "testing"
+	ChainID = "cc-cosmos"
 )
 
 var (

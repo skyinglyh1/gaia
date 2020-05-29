@@ -106,13 +106,13 @@ func (msg MsgBindProxyHash) GetSigners() []sdk.AccAddress {
 type MsgBindAssetHash struct {
 	Operator         sdk.AccAddress
 	SourceAssetDenom string
-	TargetChainId    uint64
-	TargetAssetHash  []byte
+	ToChainId        uint64
+	ToAssetHash      []byte
 	InitialAmt       sdk.Int
 }
 
-func NewMsgBindAssetParam(operator sdk.AccAddress, sourceAssetDenom string, targetChainId uint64, targetAssetHash []byte, initialAmt sdk.Int) MsgBindAssetHash {
-	return MsgBindAssetHash{operator, sourceAssetDenom, targetChainId, targetAssetHash, initialAmt}
+func NewMsgBindAssetParam(operator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte, initialAmt sdk.Int) MsgBindAssetHash {
+	return MsgBindAssetHash{operator, sourceAssetDenom, toChainId, toAssetHash, initialAmt}
 }
 
 //nolint
@@ -127,14 +127,14 @@ func (msg MsgBindAssetHash) ValidateBasic() sdk.Error {
 	if msg.SourceAssetDenom == "" {
 		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
 	}
-	if msg.TargetChainId <= 0 {
-		return ErrInvalidChainId(DefaultCodespace, msg.TargetChainId)
+	if msg.ToChainId <= 0 {
+		return ErrInvalidChainId(DefaultCodespace, msg.ToChainId)
 	}
-	if len(msg.TargetAssetHash) == 0 {
+	if len(msg.ToAssetHash) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.TargetAssetHash))
+		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.ToAssetHash))
 	}
 	if msg.InitialAmt.IsNegative() {
 		return sdk.ErrInternal(fmt.Sprintf("bind asset param limit should be positive"))
@@ -144,12 +144,12 @@ func (msg MsgBindAssetHash) ValidateBasic() sdk.Error {
 
 func (msg MsgBindAssetHash) String() string {
 	return fmt.Sprintf(`Bind Proxy Hash Message:
-  Signer:         %s
+  Signer:         	%s
   SourceAssetDenom: %s
-  TargetChainId:  %d
-  TargetAssetHash:     %s
-  Limit: %s
-`, msg.Operator.String(), msg.SourceAssetDenom, msg.TargetChainId, hex.EncodeToString(msg.TargetAssetHash), msg.InitialAmt.String())
+  ToChainId:  		%d
+  ToAssetHash:      %s
+  Limit: 			%s
+`, msg.Operator.String(), msg.SourceAssetDenom, msg.ToChainId, hex.EncodeToString(msg.ToAssetHash), msg.InitialAmt.String())
 }
 
 // Implements Msg.

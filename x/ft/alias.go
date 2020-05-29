@@ -68,6 +68,7 @@ var (
 	NewMsgCreateDenom                  = types.NewMsgCreateDenom
 	NewMsgCreateAndDelegateCoinToProxy = types.NewMsgCreateAndDelegateCoinToProxy
 	NewMsgBindAssetHash                = types.NewMsgBindAssetHash
+	NewMsgCreateCoins                  = types.NewMsgCreateCoins
 
 	// key function
 	GetBlockHashKey      = keeper.GetBlockHashKey

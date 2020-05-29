@@ -10,7 +10,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/gaia/app"
-	"github.com/cosmos/gaia/x/btcx"
 	"github.com/ontio/ontology/common"
 	"github.com/tendermint/tendermint/crypto"
 	rpchttp "github.com/tendermint/tendermint/rpc/client"
@@ -95,9 +94,22 @@ func Test_ft_Lock(t *testing.T) {
 		{"btc", 3, toOntAddr[:], sdk.NewInt(234)},
 	}
 	for _, toChainIdAddr := range toChainIdAddrs {
-		msg := btcx.NewMsgLock(fromAddr, toChainIdAddr.Denom, toChainIdAddr.ToChainId, toChainIdAddr.ToAddr, &toChainIdAddr.Amount)
+		msg := ft.NewMsgLock(fromAddr, toChainIdAddr.Denom, toChainIdAddr.ToChainId, toChainIdAddr.ToAddr, &toChainIdAddr.Amount)
 		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 			t.Errorf("sendMsg error:%v", err)
 		}
+	}
+}
+
+func Test_ft_CreateCoins(t *testing.T) {
+	client := rpchttp.NewHTTP(ip, "/websocket")
+	appCdc := app.MakeCodec()
+
+	fromPriv, fromAddr := setupFt()
+
+	coinsToBeCreated := "100000000MST,100000000MSU,100000000MSV"
+	msg := ft.NewMsgCreateCoins(fromAddr, coinsToBeCreated)
+	if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
+		t.Errorf("sendMsg error:%v", err)
 	}
 }

@@ -74,7 +74,7 @@ func queryAssetHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, s
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
-	assetHashBs := k.GetAssetHash(ctx, params.SourceAssetDenom, params.ChainId)
+	assetHashBs := k.GetAssetHash(ctx, params.LockProxyHash, params.SourceAssetDenom, params.ChainId)
 	//if assetHashBs == nil {
 	//	return nil, sdk.ErrInternal(fmt.Sprintf("queryAssetHash, there is no toChainAssetHash with chainId:%d correlated with sourceAssetDenom:%s in lockproxy contract:%x", params.ChainId, params.SourceAssetDenom, params.LockProxyHash))
 	//}

@@ -26,12 +26,13 @@ func NewQueryProxyHashParams(lockProxyHash []byte, chainId uint64) QueryProxyHas
 }
 
 type QueryAssetHashParam struct {
+	LockProxyHash    []byte
 	SourceAssetDenom string
 	ChainId          uint64
 }
 
-func NewQueryAssetHashParams(sourceAssetDenom string, chainId uint64) QueryAssetHashParam {
-	return QueryAssetHashParam{SourceAssetDenom: sourceAssetDenom, ChainId: chainId}
+func NewQueryAssetHashParams(lockProxyHash []byte, sourceAssetDenom string, chainId uint64) QueryAssetHashParam {
+	return QueryAssetHashParam{LockProxyHash: lockProxyHash, SourceAssetDenom: sourceAssetDenom, ChainId: chainId}
 }
 
 type QueryLockedAmtParam struct {

@@ -29,10 +29,10 @@ func GetBindProxyKey(proxyHash []byte, toChainId uint64) []byte {
 	return append(append(BindProxyPrefix, proxyHash...), b...)
 }
 
-func GetBindAssetHashKey(sourceAssetHash []byte, targetChainId uint64) []byte {
+func GetBindAssetHashKey(lockProxyHash []byte, sourceAssetHash []byte, targetChainId uint64) []byte {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, targetChainId)
-	return append(append(BindAssetPrefix, sourceAssetHash...), b...)
+	return append(append(append(BindAssetPrefix, lockProxyHash...), sourceAssetHash...), b...)
 }
 
 func GetCrossedAmountKey(sourceAssetHash []byte) []byte {

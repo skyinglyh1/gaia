@@ -118,17 +118,17 @@ $ %s tx lockproxy bindassethash ont 3 00000000000000000001 100000
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			sourceAssetDenom := args[0]
 
-			targetChainIdStr := args[1]
-			targetChainId, err := strconv.ParseUint(targetChainIdStr, 10, 64)
+			toChainIdStr := args[1]
+			toChainId, err := strconv.ParseUint(toChainIdStr, 10, 64)
 			if err != nil {
 				return err
 			}
 
-			targetAssetHashStr := args[2]
-			if targetAssetHashStr[0:2] == "0x" {
-				targetAssetHashStr = targetAssetHashStr[2:]
+			toAssetHashStr := args[2]
+			if toAssetHashStr[0:2] == "0x" {
+				toAssetHashStr = toAssetHashStr[2:]
 			}
-			targetAssetHash, err := hex.DecodeString(targetAssetHashStr)
+			toAssetHash, err := hex.DecodeString(toAssetHashStr)
 			if err != nil {
 				return fmt.Errorf("decode hex string 'targetProxyHash' error:%v", err)
 			}
@@ -139,7 +139,7 @@ $ %s tx lockproxy bindassethash ont 3 00000000000000000001 100000
 			}
 			initialAmt := sdk.NewIntFromBigInt(limitBigInt)
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgBindAssetParam(cliCtx.GetFromAddress(), sourceAssetDenom, targetChainId, targetAssetHash, initialAmt)
+			msg := types.NewMsgBindAssetParam(cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAssetHash, initialAmt)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

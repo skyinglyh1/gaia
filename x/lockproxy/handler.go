@@ -60,7 +60,7 @@ func handleMsgBindProxyHash(ctx sdk.Context, k keeper.Keeper, msg types.MsgBindP
 
 func handleMsgBindAssetHash(ctx sdk.Context, k keeper.Keeper, msg types.MsgBindAssetHash) sdk.Result {
 
-	err := k.BindAssetHash(ctx, msg.Operator, msg.SourceAssetDenom, msg.TargetChainId, msg.TargetAssetHash, msg.InitialAmt)
+	err := k.BindAssetHash(ctx, msg.Operator, msg.SourceAssetDenom, msg.ToChainId, msg.ToAssetHash, msg.InitialAmt)
 	if err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("handleMsgBindAssetHash, %v", err)).Result()
 	}
