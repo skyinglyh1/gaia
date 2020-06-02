@@ -10,7 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/gaia/x/btcx/exported"
 	"github.com/cosmos/gaia/x/btcx/internal/types"
-	mcc "github.com/ontio/multi-chain/common"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
 	"github.com/tendermint/tendermint/libs/log"
 	"math/big"
 	"strconv"
@@ -122,7 +122,7 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 	if redeemScriptHash == nil {
 		return sdk.ErrInternal(fmt.Sprintf("Invoke Lock of `btcx` module for denom: %s is illgeal", sourceAssetDenom))
 	}
-	sink := mcc.NewZeroCopySink(nil)
+	sink := polycommon.NewZeroCopySink(nil)
 	// contruct args bytes
 	if toChainId == 1 {
 		redeemScript := store.Get(GetScriptHashToRedeemScript(redeemScriptHash))
@@ -173,7 +173,7 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk.AccAddress, toContractAddr []byte, argsBs []byte) sdk.Error {
 
 	var args types.BTCArgs
-	if err := args.Deserialization(mcc.NewZeroCopySource(argsBs)); err != nil {
+	if err := args.Deserialization(polycommon.NewZeroCopySource(argsBs)); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("unlock, Deserialize args error:%s", err))
 	}
 	store := ctx.KVStore(k.storeKey)

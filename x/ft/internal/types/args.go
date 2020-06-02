@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	mcc "github.com/ontio/multi-chain/common"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
 	"math/big"
 )
 
@@ -11,17 +11,17 @@ type TxArgs struct {
 	Amount    *big.Int
 }
 
-func (this *TxArgs) Serialization(sink *mcc.ZeroCopySink, intLen int) error {
+func (this *TxArgs) Serialization(sink *polycommon.ZeroCopySink, intLen int) error {
 	sink.WriteVarBytes(this.ToAddress)
 	paddedAmountBs, err := Pad32Bytes(this.Amount, intLen)
 	if err != nil {
 		return fmt.Errorf("TxArgs Serialization error:%v", err)
 	}
-	sink.WriteBytes(mcc.ToArrayReverse(paddedAmountBs))
+	sink.WriteBytes(polycommon.ToArrayReverse(paddedAmountBs))
 	return nil
 }
 
-func (this *TxArgs) Deserialization(source *mcc.ZeroCopySource, intLen int) error {
+func (this *TxArgs) Deserialization(source *polycommon.ZeroCopySource, intLen int) error {
 	toAddress, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("TxArgs deserialize ToAddress error")

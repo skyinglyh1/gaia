@@ -7,10 +7,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/gaia/x/ccm/internal/types"
-	mcc "github.com/ontio/multi-chain/common"
-	mctype "github.com/ontio/multi-chain/core/types"
-	"github.com/ontio/multi-chain/merkle"
-	ccmc "github.com/ontio/multi-chain/native/service/cross_chain_manager/common"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
+	polytype "github.com/cosmos/gaia/x/headersync/poly-utils/core/types"
+	"github.com/cosmos/gaia/x/headersync/poly-utils/merkle"
+	ccmc "github.com/cosmos/gaia/x/headersync/poly-utils/native/service/cross_chain_manager/common"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/log"
 	ttype "github.com/tendermint/tendermint/types"
@@ -102,7 +102,7 @@ func (k Keeper) CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContra
 		Method:              method,
 		Args:                args,
 	}
-	sink := mcc.NewZeroCopySink(nil)
+	sink := polycommon.NewZeroCopySink(nil)
 	txParam.Serialization(sink)
 
 	store := ctx.KVStore(k.storeKey)
@@ -128,8 +128,8 @@ func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height 
 		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx error:%s", err.Error()))
 	}
 	if storedHeader == nil {
-		header := new(mctype.Header)
-		if err := header.Deserialization(mcc.NewZeroCopySource(headerBs)); err != nil {
+		header := new(polytype.Header)
+		if err := header.Deserialization(polycommon.NewZeroCopySource(headerBs)); err != nil {
 			return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx error:%s", types.ErrDeserializeHeader(types.DefaultCodespace, err).Error()))
 		}
 		if err := k.hsKeeper.ProcessHeader(ctx, header); err != nil {
@@ -170,14 +170,14 @@ func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height 
 	return sdk.ErrInternal(fmt.Sprintf("Cannot find any unlock keeper to perform 'unlock' method for toContractAddr:%x, fromChainId:%d", merkleValue.MakeTxParam.ToContractAddress, fromChainId))
 }
 
-func (k Keeper) VerifyToCosmosTx(ctx sdk.Context, proof []byte, fromChainId uint64, header *mctype.Header) (*ccmc.ToMerkleValue, sdk.Error) {
+func (k Keeper) VerifyToCosmosTx(ctx sdk.Context, proof []byte, fromChainId uint64, header *polytype.Header) (*ccmc.ToMerkleValue, sdk.Error) {
 	value, err := merkle.MerkleProve(proof, header.CrossStateRoot[:])
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("VerifyToCosmosTx, merkle.MerkleProve veify error:%s", err.Error()))
 	}
 
 	merkleValue := new(ccmc.ToMerkleValue)
-	if err := merkleValue.Deserialization(mcc.NewZeroCopySource(value)); err != nil {
+	if err := merkleValue.Deserialization(polycommon.NewZeroCopySource(value)); err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("VerifyToCosmosTx, ToMerkleValue Deserialization error:%s", err.Error()))
 	}
 

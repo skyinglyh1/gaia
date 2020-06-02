@@ -8,9 +8,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
 	selfexported "github.com/cosmos/gaia/x/lockproxy/exported"
 	"github.com/cosmos/gaia/x/lockproxy/internal/types"
-	mcc "github.com/ontio/multi-chain/common"
 	"strconv"
 )
 
@@ -183,7 +183,7 @@ func (k Keeper) Lock(ctx sdk.Context, lockProxyHash []byte, fromAddress sdk.AccA
 	toChainAssetHash := store.Get(GetBindAssetHashKey(lockProxyHash, sourceAssetHash, toChainId))
 
 	// get target asset hash from storage
-	sink := mcc.NewZeroCopySink(nil)
+	sink := polycommon.NewZeroCopySink(nil)
 	args := types.TxArgs{
 		ToAssetHash: toChainAssetHash,
 		ToAddress:   toAddressBs,
@@ -230,7 +230,7 @@ func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk
 		return sdk.ErrInternal(fmt.Sprintf("stored toProxyHash correlated with lockproxyHash:%x is not equal to fromContractAddress-expect:%x, got:%x", toContractAddr, proxyHash, fromContractAddr))
 	}
 	args := new(types.TxArgs)
-	if err := args.Deserialization(mcc.NewZeroCopySource(argsBs), 32); err != nil {
+	if err := args.Deserialization(polycommon.NewZeroCopySource(argsBs), 32); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("unlock, Deserialization args error:%s", err))
 	}
 	toAssetHash := args.ToAssetHash

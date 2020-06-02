@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"github.com/cosmos/gaia/app"
 	"github.com/cosmos/gaia/x/headersync"
-	mcc "github.com/ontio/multi-chain/common"
-	mctype "github.com/ontio/multi-chain/core/types"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
+	polytype "github.com/cosmos/gaia/x/headersync/poly-utils/core/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client"
 	"testing"
 )
 
 func Test_Deserialize_GenesisHeader(t *testing.T) {
-	genesisHeader := &mctype.Header{}
+	genesisHeader := &polytype.Header{}
 	heade0Bs, _ := hex.DecodeString(header0)
-	source := mcc.NewZeroCopySource(heade0Bs)
+	source := polycommon.NewZeroCopySource(heade0Bs)
 	if err := genesisHeader.Deserialization(source); err != nil {
 		t.Errorf("Deserialize...... err:%+v", err)
 	}

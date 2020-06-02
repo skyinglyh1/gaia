@@ -2,7 +2,7 @@ package types
 
 import (
 	"fmt"
-	mcc "github.com/ontio/multi-chain/common"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
 )
 
 type ToBTCArgs struct {
@@ -11,14 +11,14 @@ type ToBTCArgs struct {
 	RedeemScript []byte
 }
 
-func (this *ToBTCArgs) Serialization(sink *mcc.ZeroCopySink) error {
+func (this *ToBTCArgs) Serialization(sink *polycommon.ZeroCopySink) error {
 	sink.WriteVarBytes(this.ToBtcAddress)
 	sink.WriteUint64(this.Amount)
 	sink.WriteVarBytes(this.RedeemScript)
 	return nil
 }
 
-func (this *ToBTCArgs) Deserialization(source *mcc.ZeroCopySource) error {
+func (this *ToBTCArgs) Deserialization(source *polycommon.ZeroCopySource) error {
 	toBtcAddress, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("ToBTCArgs deserialize toBtcAddress error")
@@ -43,13 +43,13 @@ type BTCArgs struct {
 	Amount       uint64
 }
 
-func (this *BTCArgs) Serialization(sink *mcc.ZeroCopySink) error {
+func (this *BTCArgs) Serialization(sink *polycommon.ZeroCopySink) error {
 	sink.WriteVarBytes(this.ToBtcAddress)
 	sink.WriteUint64(this.Amount)
 	return nil
 }
 
-func (this *BTCArgs) Deserialization(source *mcc.ZeroCopySource) error {
+func (this *BTCArgs) Deserialization(source *polycommon.ZeroCopySource) error {
 	toBtcAddress, eof := source.NextVarBytes()
 	if eof {
 		return fmt.Errorf("ToBTCArgs deserialize toBtcAddress error")

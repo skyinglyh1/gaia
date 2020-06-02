@@ -3,7 +3,7 @@ package cli
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/version"
-	mctype "github.com/ontio/multi-chain/core/types"
+	polytype "github.com/cosmos/gaia/x/headersync/poly-utils/core/types"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -72,7 +72,7 @@ $ %s query crosschain header 0 1
 			if err != nil {
 				return err
 			}
-			var header mctype.Header
+			var header polytype.Header
 			cdc.MustUnmarshalJSON(res, &header)
 			fmt.Printf("header of height:%d is:\n %s\n", header.Height, MCHeader{header}.String())
 			return nil
@@ -82,7 +82,7 @@ $ %s query crosschain header 0 1
 }
 
 type MCHeader struct {
-	mctype.Header
+	polytype.Header
 }
 
 func (header MCHeader) String() string {

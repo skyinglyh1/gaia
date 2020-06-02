@@ -6,7 +6,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gaia/x/ft/internal/types"
-	mcc "github.com/ontio/multi-chain/common"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
 	"strconv"
 )
 
@@ -58,7 +58,7 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 	// transfer back to btc
 	store := ctx.KVStore(k.storeKey)
 
-	sink := mcc.NewZeroCopySink(nil)
+	sink := polycommon.NewZeroCopySink(nil)
 	args := types.TxArgs{
 		ToAddress: toAddr,
 		Amount:    amount.BigInt(),
@@ -95,7 +95,7 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk.AccAddress, toContractAddr []byte, argsBs []byte) sdk.Error {
 
 	var args types.TxArgs
-	if err := args.Deserialization(mcc.NewZeroCopySource(argsBs), 32); err != nil {
+	if err := args.Deserialization(polycommon.NewZeroCopySource(argsBs), 32); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("unlock, Deserialize args error:%s", err))
 	}
 
