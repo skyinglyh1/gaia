@@ -11,7 +11,6 @@ require (
 	github.com/golang/mock v1.3.1 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/itchyny/base58-go v0.1.0
-	github.com/ontio/ontology v1.10.0
 	github.com/ontio/ontology-crypto v1.0.9
 	github.com/otiai10/copy v1.0.2
 	github.com/otiai10/curr v0.0.0-20190513014714-f5a3d24e5776 // indirect

@@ -10,7 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/cosmos/gaia/app"
-	"github.com/ontio/ontology/common"
+	"github.com/cosmos/gaia/x/headersync/poly-utils/common"
 	"github.com/tendermint/tendermint/crypto"
 	rpchttp "github.com/tendermint/tendermint/rpc/client"
 )
