@@ -52,7 +52,7 @@ var (
 	NewKeeper     = keeper.NewKeeper
 	NewQuerier    = keeper.NewQuerier
 
-	NewMsgCreateCoin    = types.NewMsgCreateCoin
+	NewMsgCreateDenom   = types.NewMsgCreateDenom
 	NewMsgBindAssetHash = types.NewMsgBindAssetHash
 	NewMsgLock          = types.NewMsgLock
 
@@ -72,7 +72,7 @@ type (
 	DenomInfo       = types.DenomInfo
 
 	MsgBindAssetHash = types.MsgBindAssetHash
-	MsgCreateCoin    = types.MsgCreateCoin
+	MsgCreateDenom   = types.MsgCreateDenom
 	MsgLock          = types.MsgLock
 
 	ToBTCArgs = types.ToBTCArgs
