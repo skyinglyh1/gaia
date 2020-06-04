@@ -189,7 +189,7 @@ func (keeper Keeper) UpdateConsensusPeer(ctx sdk.Context, blockHeader *polytype.
 			consensusPeers.PeerMap[p.ID] = &types.Peer{Index: p.Index, PeerPubkey: p.ID}
 		}
 		//TODO: check consensus peer to avoid duplicate
-		if err := keeper.SetConsensusPeers(ctx, consensusPeers); err != nil {
+		if err := keeper.SetConsensusPeers(ctx, *consensusPeers); err != nil {
 			return sdk.ErrInternal(fmt.Sprintf("updateConsensusPeer, set ConsensusPeer error: %s", err.Error()))
 		}
 	}
@@ -197,14 +197,13 @@ func (keeper Keeper) UpdateConsensusPeer(ctx sdk.Context, blockHeader *polytype.
 	return nil
 }
 
-func (keeper Keeper) SetConsensusPeers(ctx sdk.Context, consensusPeers *types.ConsensusPeers) sdk.Error {
+func (keeper Keeper) SetConsensusPeers(ctx sdk.Context, consensusPeers types.ConsensusPeers) sdk.Error {
 	store := ctx.KVStore(keeper.storeKey)
 
-	bz, err := types.ModuleCdc.MarshalJSON(consensusPeers)
-	if err != nil {
-		return types.ErrMarshalSpecificTypeFail(types.DefaultCodespace, consensusPeers, err)
-	}
-	store.Set(GetConsensusPeerKey(consensusPeers.ChainID, consensusPeers.Height), bz)
+	sink := polycommon.NewZeroCopySink(nil)
+	consensusPeers.Serialization(sink)
+
+	store.Set(GetConsensusPeerKey(consensusPeers.ChainID, consensusPeers.Height), sink.Bytes())
 
 	// update key heights
 	keyHeights := keeper.GetKeyHeights(ctx, consensusPeers.ChainID)
@@ -225,8 +224,8 @@ func (keeper Keeper) GetConsensusPeers(ctx sdk.Context, chainId uint64, height u
 		return nil, types.ErrGetConsensusPeers(types.DefaultCodespace, height, chainId)
 	}
 	consensusPeers := new(types.ConsensusPeers)
-	if err := types.ModuleCdc.UnmarshalJSON(consensusPeerBytes, consensusPeers); err != nil {
-		return nil, types.ErrUnmarshalSpecificTypeFail(types.DefaultCodespace, consensusPeers, err)
+	if err := consensusPeers.Deserialization(polycommon.NewZeroCopySource(consensusPeerBytes)); err != nil {
+		return nil, sdk.ErrInternal(fmt.Sprintf("GetConsensusPeers, Deserialization Error:%v", err))
 	}
 	return consensusPeers, nil
 }
@@ -238,8 +237,8 @@ func (keeper Keeper) SetKeyHeights(ctx sdk.Context, chainId uint64, keyHeights *
 	})
 	store := ctx.KVStore(keeper.storeKey)
 	bz, err := types.ModuleCdc.MarshalBinaryLengthPrefixed(keyHeights)
+
 	if err != nil {
-		//return types.ErrMarshalKeyHeightsFail(types.DefaultCodespace, err)
 		return types.ErrMarshalSpecificTypeFail(types.DefaultCodespace, keyHeights, err)
 	}
 	store.Set(GetKeyHeightsKey(chainId), bz)
@@ -259,7 +258,7 @@ func (keeper Keeper) GetKeyHeights(ctx sdk.Context, chainId uint64) *types.KeyHe
 
 func (keeper Keeper) VerifyHeader(ctx sdk.Context, header *polytype.Header) sdk.Error {
 	height := header.Height
-	keyHeight, err := keeper.findKeyHeight(ctx, height, header.ChainID)
+	keyHeight, err := keeper.FindKeyHeight(ctx, height, header.ChainID)
 	if err != nil {
 		return err
 	}
@@ -284,7 +283,7 @@ func (keeper Keeper) VerifyHeader(ctx sdk.Context, header *polytype.Header) sdk.
 	return nil
 }
 
-func (keeper Keeper) findKeyHeight(ctx sdk.Context, height uint32, chainId uint64) (uint32, sdk.Error) {
+func (keeper Keeper) FindKeyHeight(ctx sdk.Context, height uint32, chainId uint64) (uint32, sdk.Error) {
 	keyHeights := keeper.GetKeyHeights(ctx, chainId)
 	for _, v := range keyHeights.HeightList {
 		if (height - v) > 0 {

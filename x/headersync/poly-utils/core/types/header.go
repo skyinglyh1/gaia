@@ -20,13 +20,14 @@ package types
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"github.com/cosmos/gaia/x/headersync/poly-utils/common"
+	"github.com/ontio/ontology-crypto/keypair"
 	"io"
 
 	"github.com/cosmos/gaia/x/headersync/poly-utils/common/serialization"
-	"github.com/ontio/ontology-crypto/keypair"
 )
 
 type Header struct {
@@ -363,4 +364,36 @@ func (bd *Header) ToArray() []byte {
 	sink := common.NewZeroCopySink(nil)
 	bd.Serialization(sink)
 	return sink.Bytes()
+}
+
+func (header *Header) String() string {
+	blockHash := header.Hash()
+	var bookerKeepers string
+	for _, bookKeeper := range header.Bookkeepers {
+		bookerKeepers = bookerKeepers + hex.EncodeToString(keypair.SerializePublicKey(bookKeeper)) + ", "
+	}
+	var sigData string
+	for _, sigdata := range header.SigData {
+		sigData = sigData + hex.EncodeToString(sigdata) + ", "
+	}
+	return fmt.Sprintf(`
+	Version: 		 : %d
+	ChainID          : %d
+	PrevBlockHash    : %s
+	TransactionsRoot : %s
+	CrossStateRoot   : %s
+	BlockRoot        : %s
+	Timestamp        : %d
+	Height           : %d
+	ConsensusData    : %d
+	ConsensusPayload : %s
+	NextBookkeeper   : %s
+	Bookkeepers 	 : %s
+	SigData     	 : %s
+	hash 			 : %s
+	
+`, header.Version, header.ChainID, header.PrevBlockHash.ToHexString(), header.TransactionsRoot.ToHexString(), header.CrossStateRoot.ToHexString(),
+		header.BlockRoot.ToHexString(), header.Timestamp, header.Height, header.ConsensusData, hex.EncodeToString(header.ConsensusPayload), header.NextBookkeeper.ToBase58(),
+		bookerKeepers, sigData,
+		blockHash.ToHexString())
 }

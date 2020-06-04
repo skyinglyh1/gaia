@@ -27,7 +27,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 func handleMsgGenesisHeader(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncGenesisParam) sdk.Result {
 
 	//err := k.SendCoins(ctx, msg.FromAddress, msg.ToAddress, msg.Amount)
-	ctx.BlockHeader()
+	//ctx.BlockHeader()
 	err := k.SyncGenesisHeader(ctx, msg.GenesisHeader)
 	if err != nil {
 		return err.Result()

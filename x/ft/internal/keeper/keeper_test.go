@@ -154,6 +154,7 @@ func Test_ftKeeper_CreateCoins(t *testing.T) {
 
 	addr := sdk.AccAddress([]byte("acct1"))
 	acc := input.authKeeper.NewAccountWithAddress(ctx, addr)
+
 	creator := acc.GetAddress()
 	coinsStr := "1000000000ont"
 	coins, err := sdk.ParseCoins(coinsStr)

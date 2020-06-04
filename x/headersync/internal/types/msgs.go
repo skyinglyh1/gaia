@@ -16,8 +16,6 @@ type MsgSyncGenesisParam struct {
 	GenesisHeader []byte
 }
 
-var _ sdk.Msg = MsgSyncGenesisParam{}
-
 // NewMsgSend - construct arbitrary multi-in, multi-out send msg.
 func NewMsgSyncGenesisParam(syncer sdk.AccAddress, genesisHeader []byte) MsgSyncGenesisParam {
 	return MsgSyncGenesisParam{Syncer: syncer, GenesisHeader: genesisHeader}
@@ -55,8 +53,6 @@ type MsgSyncHeadersParam struct {
 	Syncer  sdk.AccAddress
 	Headers [][]byte
 }
-
-var _ sdk.Msg = MsgSyncHeadersParam{}
 
 // NewMsgMultiSend - construct arbitrary multi-in, multi-out send msg.
 func NewMsgSyncHeadersParam(syncer sdk.AccAddress, headers [][]byte) MsgSyncHeadersParam {
