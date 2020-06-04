@@ -33,6 +33,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		SendCreateDenomTxCmd(cdc),
 		SendBindAssetHashTxCmd(cdc),
 		SendLockTxCmd(cdc),
+		SendCreateCoinTxCmd(cdc),
 	)...)
 	return txCmd
 }
@@ -185,6 +186,37 @@ $ %s tx crosschain lock ont 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123
 
 			// build and sign the transaction, then broadcast to Tendermint
 			msg := types.NewMsgLock(cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAddress, &value)
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	return cmd
+}
+func SendCreateCoinTxCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "createcoins [creator] [coins]",
+		Short: "Create coins by creator, and from will receive all the coins",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`
+Example:
+$ %s tx ft createdenom [creator_address],ont 
+`,
+				version.ClientName,
+			),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			creator, err := sdk.AccAddressFromBech32(args[0])
+			if err != nil {
+				return err
+			}
+
+			//for i, coin := range coins {
+			//	coins[i] = sdk.NewCoin(coin.Denom, sdk.NewInt(0))
+			//}
+			// build and sign the transaction, then broadcast to Tendermint
+			msg := types.NewMsgCreateCoins(creator, args[1])
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

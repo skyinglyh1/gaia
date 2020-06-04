@@ -50,3 +50,7 @@ type CrossChainManager interface {
 	SetDenomCreator(ctx sdk.Context, denom string, creator sdk.AccAddress)
 	GetDenomCreator(ctx sdk.Context, denom string) sdk.AccAddress
 }
+
+type LockProxyKeeper interface {
+	EnsureLockProxyExist(ctx sdk.Context, creator sdk.AccAddress) bool
+}

@@ -59,7 +59,7 @@ func createCoinRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgCreateCoin(fromAddr, req.Denom, req.RedeemScript)
+		msg := types.NewMsgCreateDenom(fromAddr, req.Denom, req.RedeemScript)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }

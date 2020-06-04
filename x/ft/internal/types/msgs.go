@@ -22,8 +22,9 @@ const (
 
 // MsgSend - high level transaction of the coin module
 type MsgCreateAndDelegateCoinToProxy struct {
-	Creator sdk.AccAddress
-	Coin    sdk.Coin
+	Creator       sdk.AccAddress
+	Coin          sdk.Coin
+	LockProxyHash []byte
 }
 
 var _ sdk.Msg = MsgCreateAndDelegateCoinToProxy{}

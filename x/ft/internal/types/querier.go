@@ -1,5 +1,10 @@
 package types
 
+const (
+	QueryDenom       = "denom_info"
+	QueryDenomWithid = "denom_info_id"
+)
+
 // QueryBalanceParams defines the params for querying an account balance.
 type QueryDenomInfo struct {
 	Denom string

@@ -13,19 +13,20 @@ import (
 
 // Keeper of the mint store
 type Keeper struct {
-	cdc          *codec.Codec
-	storeKey     sdk.StoreKey
-	paramSpace   params.Subspace
-	authKeeper   types.AccountKeeper
-	bankKeeper   types.BankKeeper
-	supplyKeeper types.SupplyKeeper
-	ccmKeeper    types.CrossChainManager
+	cdc             *codec.Codec
+	storeKey        sdk.StoreKey
+	paramSpace      params.Subspace
+	authKeeper      types.AccountKeeper
+	bankKeeper      types.BankKeeper
+	supplyKeeper    types.SupplyKeeper
+	ccmKeeper       types.CrossChainManager
+	lockProxyKeeper types.LockProxyKeeper
 	selfexported.UnlockKeeper
 }
 
 // NewKeeper creates a new mint Keeper instance
 func NewKeeper(
-	cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, ak types.AccountKeeper, bankKeeper types.BankKeeper, supplyKeeper types.SupplyKeeper, ccmKeeper types.CrossChainManager) Keeper {
+	cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, ak types.AccountKeeper, bankKeeper types.BankKeeper, supplyKeeper types.SupplyKeeper, lockProxyKeeper types.LockProxyKeeper, ccmKeeper types.CrossChainManager) Keeper {
 
 	// ensure mint module account is set
 	if addr := supplyKeeper.GetModuleAddress(types.ModuleName); addr == nil {
@@ -33,11 +34,13 @@ func NewKeeper(
 	}
 
 	return Keeper{
-		cdc:          cdc,
-		storeKey:     key,
-		authKeeper:   ak,
-		supplyKeeper: supplyKeeper,
-		ccmKeeper:    ccmKeeper,
+		cdc:             cdc,
+		storeKey:        key,
+		authKeeper:      ak,
+		bankKeeper:      bankKeeper,
+		supplyKeeper:    supplyKeeper,
+		lockProxyKeeper: lockProxyKeeper,
+		ccmKeeper:       ccmKeeper,
 	}
 }
 
@@ -65,8 +68,8 @@ func (k Keeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.C
 		}
 		k.ccmKeeper.SetDenomCreator(ctx, coin.Denom, creator)
 	}
-	if err := k.MintCoins(ctx, creator, coins); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("CreateAndDelegateCoinToProxy error: %v", err))
+	if err := k.MintCoins(ctx, creator, sdk.NewCoins(coins...)); err != nil {
+		return sdk.ErrInternal(fmt.Sprintf("CreateCoins error: %v", err))
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -82,7 +85,8 @@ func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins)
 
 	_, err := k.bankKeeper.AddCoins(ctx, toAcct, amt)
 	if err != nil {
-		panic(err)
+		//panic(err)
+		return sdk.ErrInternal(fmt.Sprintf("ft.keeper.bankKeeper.AddCoins(ctx, %s, %s), error is %+v", toAcct.String(), amt.String(), err))
 	}
 
 	// update total supply

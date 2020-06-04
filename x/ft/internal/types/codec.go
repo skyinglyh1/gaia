@@ -13,6 +13,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgCreateAndDelegateCoinToProxy{}, ModuleName+"/MsgCreateAndDelegateCoinToProxy", nil)
 	cdc.RegisterConcrete(MsgBindAssetHash{}, ModuleName+"/MsgBindAssetHash", nil)
 	cdc.RegisterConcrete(MsgLock{}, ModuleName+"/MsgLock", nil)
+	cdc.RegisterConcrete(MsgCreateCoins{}, ModuleName+"/MsgCreateCoins", nil)
 
 }
 

@@ -214,7 +214,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	app.ccmKeeper = ccm.NewKeeper(app.cdc, keys[ccm.StoreKey], ccmSubspace, app.headersyncKeeper, nil)
 	app.lockproxyKeeper = lockproxy.NewKeeper(app.cdc, keys[lockproxy.StoreKey], lockproxySubspace, app.accountKeeper, app.supplyKeeper, app.ccmKeeper)
 	app.btcxKeeper = btcx.NewKeeper(app.cdc, keys[btcx.StoreKey], btcxSubspace, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.ccmKeeper)
-	app.ftKeeper = ft.NewKeeper(app.cdc, keys[ft.StoreKey], ftSubspace, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.ccmKeeper)
+	app.ftKeeper = ft.NewKeeper(app.cdc, keys[ft.StoreKey], ftSubspace, app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.lockproxyKeeper, app.ccmKeeper)
 
 	app.ccmKeeper.MountUnlockKeeperMap(map[string]ccm.UnlockKeeper{
 		btcx.StoreKey:      app.btcxKeeper,

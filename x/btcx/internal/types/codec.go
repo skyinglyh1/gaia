@@ -8,7 +8,7 @@ import (
 var ModuleCdc *codec.Codec
 
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgCreateCoin{}, ModuleName+"/MsgCreateCoins", nil)
+	cdc.RegisterConcrete(MsgCreateDenom{}, ModuleName+"/MsgCreateDenoms", nil)
 	cdc.RegisterConcrete(MsgBindAssetHash{}, ModuleName+"/MsgBindAssetHash", nil)
 	cdc.RegisterConcrete(MsgLock{}, ModuleName+"/MsgLock", nil)
 }

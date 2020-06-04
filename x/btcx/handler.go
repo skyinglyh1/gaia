@@ -12,8 +12,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
-		case types.MsgCreateCoin:
-			return handleMsgCreateCoin(ctx, k, msg)
+		case types.MsgCreateDenom:
+			return handleMsgCreateDenom(ctx, k, msg)
 		case types.MsgBindAssetHash:
 			return handleMsgBindAssetHash(ctx, k, msg)
 		case types.MsgLock:
@@ -25,11 +25,11 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgCreateCoin(ctx sdk.Context, k keeper.Keeper, msg types.MsgCreateCoin) sdk.Result {
+func handleMsgCreateDenom(ctx sdk.Context, k keeper.Keeper, msg types.MsgCreateDenom) sdk.Result {
 
 	err := k.CreateCoin(ctx, msg.Creator, msg.Denom, msg.RedeemScript)
 	if err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("handleMsgCreateCoin, error, %v", err)).Result()
+		return sdk.ErrInternal(fmt.Sprintf("handleMsgCreateDenom, error, %v", err)).Result()
 	}
 
 	ctx.EventManager().EmitEvent(

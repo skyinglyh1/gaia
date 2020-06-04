@@ -55,7 +55,7 @@ $ %s tx btcx createcoin btccc redeemscript
 			denom := args[0]
 			redeemScript := args[1]
 
-			msg := types.NewMsgCreateCoin(cliCtx.GetFromAddress(), denom, redeemScript)
+			msg := types.NewMsgCreateDenom(cliCtx.GetFromAddress(), denom, redeemScript)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

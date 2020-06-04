@@ -77,7 +77,6 @@ func (k Keeper) SetDenomCreator(ctx sdk.Context, denom string, creator sdk.AccAd
 
 func (k Keeper) GetDenomCreator(ctx sdk.Context, denom string) sdk.AccAddress {
 	return ctx.KVStore(k.storeKey).Get(GetDenomToCreatorKey(denom))
-
 }
 
 func (k Keeper) CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContractHash, toContractHash []byte, method string, args []byte) sdk.Error {

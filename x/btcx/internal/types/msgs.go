@@ -12,39 +12,39 @@ import (
 const (
 	TypeMsgBindAssetHash = "bind_asset_hash"
 	TypeMsgLock          = "lock"
-	TypeMsgCreateCoin    = "create_coin"
+	TypeMsgCreateDenom   = "create_coin"
 )
 
-type MsgCreateCoin struct {
+type MsgCreateDenom struct {
 	Creator      sdk.AccAddress
 	Denom        string
 	RedeemScript string
 }
 
-func NewMsgCreateCoin(creator sdk.AccAddress, denom string, redeemScript string) MsgCreateCoin {
-	return MsgCreateCoin{Creator: creator, Denom: denom, RedeemScript: redeemScript}
+func NewMsgCreateDenom(creator sdk.AccAddress, denom string, redeemScript string) MsgCreateDenom {
+	return MsgCreateDenom{Creator: creator, Denom: denom, RedeemScript: redeemScript}
 }
 
 //nolint
-func (msg MsgCreateCoin) Route() string { return RouterKey }
-func (msg MsgCreateCoin) Type() string  { return TypeMsgCreateCoin }
+func (msg MsgCreateDenom) Route() string { return RouterKey }
+func (msg MsgCreateDenom) Type() string  { return TypeMsgCreateDenom }
 
 // Implements Msg.
-func (msg MsgCreateCoin) ValidateBasic() sdk.Error {
+func (msg MsgCreateDenom) ValidateBasic() sdk.Error {
 	if msg.Creator.Empty() {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateCoin.Creator is empty"))
+		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Creator is empty"))
 	}
 	if _, err := sdk.ParseCoins("10" + msg.Denom); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateCoin.Denom is illegal, err:%v", err))
+		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Denom is illegal, err:%v", err))
 	}
 	if _, err := hex.DecodeString(msg.RedeemScript); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateCoin.RedeemScript is not hex string format, err:%v", err))
+		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.RedeemScript is not hex string format, err:%v", err))
 	}
 	return nil
 }
 
-func (msg MsgCreateCoin) String() string {
-	return fmt.Sprintf(`MsgCreateCoin:
+func (msg MsgCreateDenom) String() string {
+	return fmt.Sprintf(`MsgCreateDenom:
   Creator:         %s
   Denom: 		   %s
   RedeemScript:    %s
@@ -52,13 +52,13 @@ func (msg MsgCreateCoin) String() string {
 }
 
 // Implements Msg.
-func (msg MsgCreateCoin) GetSignBytes() []byte {
+func (msg MsgCreateDenom) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // Implements Msg.
-func (msg MsgCreateCoin) GetSigners() []sdk.AccAddress {
+func (msg MsgCreateDenom) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Creator}
 }
 

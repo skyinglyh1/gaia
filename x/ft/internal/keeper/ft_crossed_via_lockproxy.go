@@ -7,10 +7,14 @@ import (
 	"github.com/cosmos/gaia/x/lockproxy"
 )
 
-func (k Keeper) CreateAndDelegateCoinToProxy(ctx sdk.Context, creator sdk.AccAddress, coin sdk.Coin) sdk.Error {
+func (k Keeper) CreateCoinAndDelegateToProxy(ctx sdk.Context, creator sdk.AccAddress, coin sdk.Coin, lockproxyHash []byte) sdk.Error {
 
 	if reason, exist := k.ExistDenom(ctx, coin.Denom); exist {
 		return sdk.ErrInternal(fmt.Sprintf("CreateAndDelegateCoinToProxy Error: denom:%s already exist, due to reason:%s", coin.Denom, reason))
+	}
+	if exist := k.lockProxyKeeper.EnsureLockProxyExist(ctx, lockproxyHash); !exist {
+		return sdk.ErrInternal(fmt.Sprintf("CreateAndDelegateCoinToProxy Error: lockproxy with hash: %s Not created", lockproxyHash))
+
 	}
 	//k.SetOperator(ctx, denom, creator)
 	k.ccmKeeper.SetDenomCreator(ctx, coin.Denom, creator)

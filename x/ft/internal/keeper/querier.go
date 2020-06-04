@@ -10,19 +10,14 @@ import (
 	"github.com/cosmos/gaia/x/ft/internal/types"
 )
 
-const (
-	QueryDenomInfo       = "denom_info"
-	QueryDenomInfoWithid = "denom_info_id"
-)
-
 // NewQuerier returns a minting Querier handler.
 func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
 		switch path[0] {
 
-		case QueryDenomInfo:
+		case types.QueryDenom:
 			return queryDenomInfo(ctx, req, k)
-		case QueryDenomInfoWithid:
+		case types.QueryDenomWithid:
 			return queryDenomInfoWithId(ctx, req, k)
 		default:
 			return nil, sdk.ErrUnknownRequest(fmt.Sprintf("unknown minting query endpoint: %s", path[0]))

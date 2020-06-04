@@ -36,7 +36,7 @@ func handleMsgCreateAndDelegateCoinToProxy(ctx sdk.Context, k keeper.Keeper, msg
 
 	//err := k.SendCoins(ctx, msg.FromAddress, msg.ToAddress, msg.Amount)
 
-	err := k.CreateAndDelegateCoinToProxy(ctx, msg.Creator, msg.Coin)
+	err := k.CreateCoinAndDelegateToProxy(ctx, msg.Creator, msg.Coin, msg.LockProxyHash)
 	if err != nil {
 		return err.Result()
 	}

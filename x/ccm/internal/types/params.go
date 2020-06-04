@@ -8,7 +8,7 @@ import (
 // Parameter store keys
 var (
 	CurrentChainIdKey        = []byte("chainId")
-	CurrentChainCrossChainId = uint64(8)
+	CurrentChainCrossChainId = uint64(10)
 	MaxDenomsPerAccount      = 200
 )
 
