@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/gaia/x/headersync/internal/keeper"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
 )
 
@@ -12,7 +11,7 @@ import (
 func QueryHeader(cliCtx context.CLIContext, queryRoute string, chainId uint64, height uint32) ([]byte, error) {
 
 	res, _, err := cliCtx.QueryWithData(
-		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryHeader),
+		fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryHeader),
 		cliCtx.Codec.MustMarshalJSON(types.NewQueryHeaderParams(chainId, height)),
 	)
 	return res, err
@@ -40,7 +39,7 @@ func QueryKeyHeights(cliCtx context.CLIContext, queryRoute string, chainId uint6
 func QueryKeyHeight(cliCtx context.CLIContext, queryRoute string, chainId uint64, height uint32) ([]byte, error) {
 
 	res, _, err := cliCtx.QueryWithData(
-		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryKeyHeight),
+		fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryKeyHeight),
 		cliCtx.Codec.MustMarshalJSON(types.NewQueryKeyHeightParams(chainId, height)),
 	)
 

@@ -61,8 +61,10 @@ var (
 	KeyHeightPrefix     = keeper.KeyHeightPrefix
 
 	BlockCurrentHeightKey = keeper.BlockCurrentHeightKey
-	QueryHeader           = keeper.QueryHeader
-	QueryCurrentHeight    = keeper.QueryCurrentHeight
+	QueryHeader           = types.QueryHeader
+	QueryCurrentHeight    = types.QueryCurrentHeight
+	QueryKeyHeights       = types.QueryKeyHeights
+	QueryKeyHeight        = types.QueryKeyHeight
 )
 
 type (
