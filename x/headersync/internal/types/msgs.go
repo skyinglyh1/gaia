@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // Governance message types and routes
@@ -28,12 +29,12 @@ func (msg MsgSyncGenesisParam) Route() string { return RouterKey }
 func (msg MsgSyncGenesisParam) Type() string { return TypeMsgSyncGenesis }
 
 // ValidateBasic Implements Msg.
-func (msg MsgSyncGenesisParam) ValidateBasic() sdk.Error {
+func (msg MsgSyncGenesisParam) ValidateBasic() error {
 	if msg.Syncer.Empty() {
-		return sdk.ErrInvalidAddress(msg.Syncer.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Syncer.String())
 	}
 	if len(msg.GenesisHeader) == 0 {
-		return sdk.ErrInvalidAddress("missing GenesisHeader bytes")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "missing GenesisHeader bytes")
 	}
 	return nil
 }
@@ -66,15 +67,15 @@ func (msg MsgSyncHeadersParam) Route() string { return RouterKey }
 func (msg MsgSyncHeadersParam) Type() string { return TypeMsgSyncHeaders }
 
 // ValidateBasic Implements Msg.
-func (msg MsgSyncHeadersParam) ValidateBasic() sdk.Error {
+func (msg MsgSyncHeadersParam) ValidateBasic() error {
 	if msg.Syncer.Empty() {
-		return sdk.ErrInvalidAddress(msg.Syncer.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Syncer.String())
 	}
 	if len(msg.Headers) == 0 {
-		return sdk.ErrInvalidAddress("missing BlockHeaders bytes")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "missing BlockHeaders bytes")
 	}
 	if len(msg.Headers[0]) == 0 {
-		return sdk.ErrInvalidAddress("missing BlockHeader bytes")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "missing BlockHeaders bytes")
 	}
 	return nil
 }

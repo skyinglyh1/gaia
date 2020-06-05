@@ -53,7 +53,7 @@ func (k Keeper) GetModuleAccount(ctx sdk.Context) exported.ModuleAccountI {
 	return k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
 }
 
-func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Error {
+func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) error {
 	acct := k.authKeeper.GetAccount(ctx, addr)
 	if acct == nil {
 		return sdk.ErrUnknownAddress(fmt.Sprintf("lockproxy: account %s does not exist", addr.String()))
@@ -61,7 +61,7 @@ func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Err
 	return nil
 }
 
-func (k Keeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) sdk.Error {
+func (k Keeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) error {
 	for _, coin := range coins {
 		if reason, exist := k.ExistDenom(ctx, coin.Denom); exist {
 			return sdk.ErrInternal(fmt.Sprintf("CreateCoins Error: denom:%s already exist, due to reason:%s", coin.Denom, reason))
@@ -81,7 +81,7 @@ func (k Keeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.C
 	return nil
 }
 
-func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins) sdk.Error {
+func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins) error {
 
 	_, err := k.bankKeeper.AddCoins(ctx, toAcct, amt)
 	if err != nil {
@@ -103,7 +103,7 @@ func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins)
 
 // BurnCoins burns coins deletes coins from the balance of the module account.
 // Panics if the name maps to a non-burner module account or if the amount is invalid.
-func (k Keeper) BurnCoins(ctx sdk.Context, fromAcct sdk.AccAddress, amt sdk.Coins) sdk.Error {
+func (k Keeper) BurnCoins(ctx sdk.Context, fromAcct sdk.AccAddress, amt sdk.Coins) error {
 
 	_, err := k.bankKeeper.SubtractCoins(ctx, fromAcct, amt)
 	if err != nil {

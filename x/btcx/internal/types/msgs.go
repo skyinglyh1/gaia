@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"encoding/hex"
 )
@@ -30,15 +31,15 @@ func (msg MsgCreateDenom) Route() string { return RouterKey }
 func (msg MsgCreateDenom) Type() string  { return TypeMsgCreateDenom }
 
 // Implements Msg.
-func (msg MsgCreateDenom) ValidateBasic() sdk.Error {
+func (msg MsgCreateDenom) ValidateBasic() error {
 	if msg.Creator.Empty() {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Creator is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCreateDenom.Creator is empty"))
 	}
 	if _, err := sdk.ParseCoins("10" + msg.Denom); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Denom is illegal, err:%v", err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCreateDenom.Denom is illegal, err:%v", err))
 	}
 	if _, err := hex.DecodeString(msg.RedeemScript); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.RedeemScript is not hex string format, err:%v", err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCreateDenom.RedeemScript is not hex string format, err:%v", err))
 	}
 	return nil
 }
@@ -78,21 +79,21 @@ func (msg MsgBindAssetHash) Route() string { return RouterKey }
 func (msg MsgBindAssetHash) Type() string  { return TypeMsgBindAssetHash }
 
 // Implements Msg.
-func (msg MsgBindAssetHash) ValidateBasic() sdk.Error {
+func (msg MsgBindAssetHash) ValidateBasic() error {
 	if msg.Creator.Empty() {
-		return sdk.ErrInvalidAddress(msg.Creator.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator.String())
 	}
 	if msg.SourceAssetDenom == "" {
-		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("SourceAssetDenom is empty"))
 	}
 	if msg.ToChainId <= 0 {
-		return ErrInvalidChainId(DefaultCodespace, msg.ToChainId)
+		return ErrInvalidChainId(msg.ToChainId)
 	}
 	if len(msg.ToAssetHash) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.ToAssetHash))
+		return ErrEmptyTargetHash(hex.EncodeToString(msg.ToAssetHash))
 	}
 	return nil
 }
@@ -134,24 +135,25 @@ func (msg MsgLock) Route() string { return RouterKey }
 func (msg MsgLock) Type() string  { return TypeMsgLock }
 
 // Implements Msg.
-func (msg MsgLock) ValidateBasic() sdk.Error {
+func (msg MsgLock) ValidateBasic() error {
 	if msg.FromAddress.Empty() {
-		return sdk.ErrInvalidAddress(msg.FromAddress.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.FromAddress.String())
 	}
 	if msg.SourceAssetDenom == "" {
-		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("SourceAssetDenom is empty"))
 	}
 	if msg.ToChainId <= 0 {
-		return ErrInvalidChainId(DefaultCodespace, msg.ToChainId)
+		return ErrInvalidChainId(msg.ToChainId)
 	}
 	if len(msg.ToAddressBs) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.ToAddressBs))
+		return ErrEmptyTargetHash(hex.EncodeToString(msg.ToAddressBs))
 	}
 	if msg.Value.IsNegative() {
-		return sdk.ErrInternal(fmt.Sprintf("bind asset param limit should be positive"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("bind asset param limit should be positive"))
+
 	}
 	return nil
 }

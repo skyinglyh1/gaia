@@ -41,7 +41,7 @@ func (msg MsgCreateAndDelegateCoinToProxy) Route() string { return RouterKey }
 func (msg MsgCreateAndDelegateCoinToProxy) Type() string { return TypeMsgCreateAndDelegateCoinToProxy }
 
 // ValidateBasic Implements Msg.
-func (msg MsgCreateAndDelegateCoinToProxy) ValidateBasic() sdk.Error {
+func (msg MsgCreateAndDelegateCoinToProxy) ValidateBasic() error {
 	if msg.Creator.Empty() {
 		return sdk.ErrInvalidAddress(msg.Creator.String())
 	}
@@ -75,7 +75,7 @@ func (msg MsgCreateDenom) Route() string { return RouterKey }
 func (msg MsgCreateDenom) Type() string  { return TypeMsgCreateDenom }
 
 // Implements Msg.
-func (msg MsgCreateDenom) ValidateBasic() sdk.Error {
+func (msg MsgCreateDenom) ValidateBasic() error {
 	if msg.Creator.Empty() {
 		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Creator is empty"))
 	}
@@ -119,7 +119,7 @@ func (msg MsgBindAssetHash) Route() string { return RouterKey }
 func (msg MsgBindAssetHash) Type() string  { return TypeMsgBindAssetHash }
 
 // Implements Msg.
-func (msg MsgBindAssetHash) ValidateBasic() sdk.Error {
+func (msg MsgBindAssetHash) ValidateBasic() error {
 	if msg.Creator.Empty() {
 		return sdk.ErrInvalidAddress(msg.Creator.String())
 	}
@@ -175,7 +175,7 @@ func (msg MsgLock) Route() string { return RouterKey }
 func (msg MsgLock) Type() string  { return TypeMsgLock }
 
 // Implements Msg.
-func (msg MsgLock) ValidateBasic() sdk.Error {
+func (msg MsgLock) ValidateBasic() error {
 	if msg.FromAddress.Empty() {
 		return sdk.ErrInvalidAddress(msg.FromAddress.String())
 	}
@@ -231,7 +231,7 @@ func (msg MsgCreateCoins) Route() string { return RouterKey }
 func (msg MsgCreateCoins) Type() string  { return TypeMsgCreateDenom }
 
 // Implements Msg.
-func (msg MsgCreateCoins) ValidateBasic() sdk.Error {
+func (msg MsgCreateCoins) ValidateBasic() error {
 	if msg.Creator.Empty() {
 		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Creator is empty"))
 	}

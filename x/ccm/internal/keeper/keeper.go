@@ -18,8 +18,8 @@ import (
 )
 
 type KeeperI interface {
-	ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height uint32, proofStr string, headerBs []byte) sdk.Error
-	CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContractHash, toContractHash []byte, method string, args []byte) sdk.Error
+	ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height uint32, proofStr string, headerBs []byte) error
+	CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContractHash, toContractHash []byte, method string, args []byte) error
 	SetDenomCreator(ctx sdk.Context, denom string, creator sdk.AccAddress)
 	GetDenomCreator(ctx sdk.Context, denom string) sdk.AccAddress
 }
@@ -79,7 +79,7 @@ func (k Keeper) GetDenomCreator(ctx sdk.Context, denom string) sdk.AccAddress {
 	return ctx.KVStore(k.storeKey).Get(GetDenomToCreatorKey(denom))
 }
 
-func (k Keeper) CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContractHash, toContractHash []byte, method string, args []byte) sdk.Error {
+func (k Keeper) CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContractHash, toContractHash []byte, method string, args []byte) error {
 	crossChainId, err := k.getCrossChainId(ctx)
 	if err != nil {
 		return err
@@ -121,7 +121,7 @@ func (k Keeper) CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContra
 	return nil
 }
 
-func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height uint32, proofStr string, headerBs []byte) sdk.Error {
+func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height uint32, proofStr string, headerBs []byte) error {
 	storedHeader, err := k.hsKeeper.GetHeaderByHeight(ctx, fromChainId, height)
 	if err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx error:%s", err.Error()))
@@ -169,7 +169,7 @@ func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height 
 	return sdk.ErrInternal(fmt.Sprintf("Cannot find any unlock keeper to perform 'unlock' method for toContractAddr:%x, fromChainId:%d", merkleValue.MakeTxParam.ToContractAddress, fromChainId))
 }
 
-func (k Keeper) VerifyToCosmosTx(ctx sdk.Context, proof []byte, fromChainId uint64, header *polytype.Header) (*ccmc.ToMerkleValue, sdk.Error) {
+func (k Keeper) VerifyToCosmosTx(ctx sdk.Context, proof []byte, fromChainId uint64, header *polytype.Header) (*ccmc.ToMerkleValue, error) {
 	value, err := merkle.MerkleProve(proof, header.CrossStateRoot[:])
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("VerifyToCosmosTx, merkle.MerkleProve veify error:%s", err.Error()))
@@ -212,7 +212,7 @@ func (k Keeper) putDoneTx(ctx sdk.Context, fromChainId uint64, crossChainId []by
 	store.Set(GetDoneTxKey(fromChainId, crossChainId), crossChainId)
 }
 
-func (k Keeper) getCrossChainId(ctx sdk.Context) (sdk.Int, sdk.Error) {
+func (k Keeper) getCrossChainId(ctx sdk.Context) (sdk.Int, error) {
 	store := ctx.KVStore(k.storeKey)
 	idBs := store.Get(CrossChainIdKey)
 	if idBs == nil {
@@ -225,7 +225,7 @@ func (k Keeper) getCrossChainId(ctx sdk.Context) (sdk.Int, sdk.Error) {
 
 	return crossChainId, nil
 }
-func (k Keeper) setCrossChainId(ctx sdk.Context, crossChainId sdk.Int) sdk.Error {
+func (k Keeper) setCrossChainId(ctx sdk.Context, crossChainId sdk.Int) error {
 	store := ctx.KVStore(k.storeKey)
 	idBs, err := k.cdc.MarshalBinaryLengthPrefixed(crossChainId)
 	if err != nil {

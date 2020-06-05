@@ -1,16 +1,16 @@
 package app
 
 import (
+	"io"
+
 	"github.com/cosmos/gaia/x/btcx"
 	"github.com/cosmos/gaia/x/ccm"
 	"github.com/cosmos/gaia/x/ft"
 	"github.com/cosmos/gaia/x/headersync"
 	"github.com/cosmos/gaia/x/lockproxy"
 	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-	"io"
 
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -31,6 +31,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+
 	//hs "github.com/cosmos/gaia/x/headersync"
 	//lp "github.com/cosmos/gaia/x/lockproxy"
 
@@ -279,7 +280,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	if loadLatest {
 		err := app.LoadLatestVersion(app.keys[bam.MainStoreKey])
 		if err != nil {
-			cmn.Exit(err.Error())
+			panic(err)
 		}
 	}
 

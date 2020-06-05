@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"encoding/hex"
 )
@@ -31,21 +32,21 @@ func (msg MsgProcessCrossChainTx) Route() string { return RouterKey }
 func (msg MsgProcessCrossChainTx) Type() string  { return TypeMsgProcessCrossChainTx }
 
 // Implements Msg.
-func (msg MsgProcessCrossChainTx) ValidateBasic() sdk.Error {
+func (msg MsgProcessCrossChainTx) ValidateBasic() error {
 	if msg.Submitter.Empty() {
-		return sdk.ErrInvalidAddress(msg.Submitter.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Submitter.String())
 	}
 	if msg.FromChainId <= 0 {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCrossChaintx.FromChainId should be positive"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCrossChaintx.FromChainId should be positive"))
 	}
 	if len(msg.Proof) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return sdk.ErrInternal(fmt.Sprintf("MsgCrossChaintx.Proof should not be empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCrossChaintx.Proof should not be empty"))
 	}
 	if len(msg.Header) == 0 {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCrossChainTx.Header should not be empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCrossChainTx.Header should not be empty"))
 	}
 	return nil
 }
@@ -87,18 +88,18 @@ func (msg MsgCreateCrossChainTx) Route() string { return RouterKey }
 func (msg MsgCreateCrossChainTx) Type() string  { return TypeMsgCreateCoins }
 
 // Implements Msg.
-func (msg MsgCreateCrossChainTx) ValidateBasic() sdk.Error {
+func (msg MsgCreateCrossChainTx) ValidateBasic() error {
 	if msg.ToChainID > 0 {
-		return sdk.ErrInternal("Invalid ToChainId")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Invalid ToChainId")
 	}
 	if len(msg.ToContractAddress) == 0 {
-		return sdk.ErrInternal("ToContractAddress is empty")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "ToContractAddress is empty")
 	}
 	if msg.Method == "" {
-		return sdk.ErrInternal("Method is empty")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Method is empty")
 	}
 	if len(msg.Args) == 0 {
-		return sdk.ErrInternal("Args is empty")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "Args is empty")
 	}
 
 	return nil

@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-func (k Keeper) CreateDenom(ctx sdk.Context, creator sdk.AccAddress, denom string) sdk.Error {
+func (k Keeper) CreateDenom(ctx sdk.Context, creator sdk.AccAddress, denom string) error {
 	if reason, exist := k.ExistDenom(ctx, denom); exist {
 		return sdk.ErrInternal(fmt.Sprintf("CreateDenom Error: denom:%s already exist, due to reason:%s", denom, reason))
 	}
@@ -28,7 +28,7 @@ func (k Keeper) CreateDenom(ctx sdk.Context, creator sdk.AccAddress, denom strin
 	return nil
 }
 
-func (k Keeper) BindAssetHash(ctx sdk.Context, creator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte) sdk.Error {
+func (k Keeper) BindAssetHash(ctx sdk.Context, creator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte) error {
 	if !k.ValidCreator(ctx, sourceAssetDenom, creator) {
 		//return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, creator is not valid, expect:%s, got:%s", k.GetOperator(ctx, sourceAssetDenom).String(), creator.String()))
 		return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, creator is not valid, expect:%s, got:%s", k.ccmKeeper.GetDenomCreator(ctx, sourceAssetDenom).String(), creator.String()))
@@ -54,7 +54,7 @@ func (k Keeper) BindAssetHash(ctx sdk.Context, creator sdk.AccAddress, sourceAss
 	return nil
 }
 
-func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddr []byte, amount sdk.Int) sdk.Error {
+func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddr []byte, amount sdk.Int) error {
 	// transfer back to btc
 	store := ctx.KVStore(k.storeKey)
 
@@ -92,7 +92,7 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 	return nil
 }
 
-func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk.AccAddress, toContractAddr []byte, argsBs []byte) sdk.Error {
+func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk.AccAddress, toContractAddr []byte, argsBs []byte) error {
 
 	var args types.TxArgs
 	if err := args.Deserialization(polycommon.NewZeroCopySource(argsBs), 32); err != nil {

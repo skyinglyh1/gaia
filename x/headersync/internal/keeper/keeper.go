@@ -4,6 +4,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"sort"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -12,14 +15,12 @@ import (
 	vconfig "github.com/cosmos/gaia/x/headersync/poly-utils/consensus/vbft/config"
 	polysig "github.com/cosmos/gaia/x/headersync/poly-utils/core/signature"
 	polytype "github.com/cosmos/gaia/x/headersync/poly-utils/core/types"
-	"sort"
-	"strconv"
 )
 
 type KeeperI interface {
-	SyncGenesisHeader(ctx sdk.Context, genesisHeader []byte) sdk.Error
-	SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk.Error
-	ProcessHeader(ctx sdk.Context, header *polytype.Header) sdk.Error
+	SyncGenesisHeader(ctx sdk.Context, genesisHeader []byte) error
+	SyncBlockHeaders(ctx sdk.Context, headers [][]byte) error
+	ProcessHeader(ctx sdk.Context, header *polytype.Header) error
 	HeaderSyncViewKeeper
 }
 
@@ -41,7 +42,7 @@ func NewKeeper(
 	}
 }
 
-func (keeper Keeper) SyncGenesisHeader(ctx sdk.Context, genesisHeaderBytes []byte) sdk.Error {
+func (keeper Keeper) SyncGenesisHeader(ctx sdk.Context, genesisHeaderBytes []byte) error {
 	genesisHeader := &polytype.Header{}
 
 	source := polycommon.NewZeroCopySource(genesisHeaderBytes)
@@ -60,7 +61,7 @@ func (keeper Keeper) SyncGenesisHeader(ctx sdk.Context, genesisHeaderBytes []byt
 	return nil
 }
 
-func (keeper Keeper) SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk.Error {
+func (keeper Keeper) SyncBlockHeaders(ctx sdk.Context, headers [][]byte) error {
 	for _, headerBytes := range headers {
 		header := &polytype.Header{}
 		source := polycommon.NewZeroCopySource(headerBytes)
@@ -81,7 +82,7 @@ func (keeper Keeper) SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk.Err
 	return nil
 }
 
-func (keeper Keeper) ProcessHeader(ctx sdk.Context, header *polytype.Header) sdk.Error {
+func (keeper Keeper) ProcessHeader(ctx sdk.Context, header *polytype.Header) error {
 	if err := keeper.VerifyHeader(ctx, header); err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("processHeader, %s", err.Error()))
 	}
@@ -95,14 +96,14 @@ func (keeper Keeper) ProcessHeader(ctx sdk.Context, header *polytype.Header) sdk
 }
 
 type HeaderSyncViewKeeper interface {
-	GetHeaderByHeight(ctx sdk.Context, chainId uint64, height uint32) (*polytype.Header, sdk.Error)
-	GetHeaderByHash(ctx sdk.Context, chainId uint64, hash polycommon.Uint256) (*polytype.Header, sdk.Error)
-	GetCurrentHeight(ctx sdk.Context, chainId uint64) (uint32, sdk.Error)
-	GetConsensusPeers(ctx sdk.Context, chainId uint64, height uint32) (*types.ConsensusPeers, sdk.Error)
+	GetHeaderByHeight(ctx sdk.Context, chainId uint64, height uint32) (*polytype.Header, error)
+	GetHeaderByHash(ctx sdk.Context, chainId uint64, hash polycommon.Uint256) (*polytype.Header, error)
+	GetCurrentHeight(ctx sdk.Context, chainId uint64) (uint32, error)
+	GetConsensusPeers(ctx sdk.Context, chainId uint64, height uint32) (*types.ConsensusPeers, error)
 	GetKeyHeights(ctx sdk.Context, chainId uint64) *types.KeyHeights
 }
 
-func (keeper Keeper) SetBlockHeader(ctx sdk.Context, blockHeader *polytype.Header) sdk.Error {
+func (keeper Keeper) SetBlockHeader(ctx sdk.Context, blockHeader *polytype.Header) error {
 
 	store := ctx.KVStore(keeper.storeKey)
 	blockHash := blockHeader.Hash()
@@ -124,7 +125,7 @@ func (keeper Keeper) SetBlockHeader(ctx sdk.Context, blockHeader *polytype.Heade
 	})
 	return nil
 }
-func (keeper Keeper) GetCurrentHeight(ctx sdk.Context, chainId uint64) (uint32, sdk.Error) {
+func (keeper Keeper) GetCurrentHeight(ctx sdk.Context, chainId uint64) (uint32, error) {
 	store := ctx.KVStore(keeper.storeKey)
 	heightBs := store.Get(GetBlockCurHeightKey(chainId))
 	if heightBs == nil {
@@ -138,7 +139,7 @@ func (keeper Keeper) GetCurrentHeight(ctx sdk.Context, chainId uint64) (uint32, 
 
 }
 
-func (keeper Keeper) GetHeaderByHeight(ctx sdk.Context, chainId uint64, height uint32) (*polytype.Header, sdk.Error) {
+func (keeper Keeper) GetHeaderByHeight(ctx sdk.Context, chainId uint64, height uint32) (*polytype.Header, error) {
 	store := ctx.KVStore(keeper.storeKey)
 	hashBytes := store.Get(GetBlockHashKey(chainId, height))
 	if hashBytes == nil {
@@ -158,7 +159,7 @@ func (keeper Keeper) GetHeaderByHeight(ctx sdk.Context, chainId uint64, height u
 	return header, nil
 
 }
-func (keeper Keeper) GetHeaderByHash(ctx sdk.Context, chainId uint64, hash polycommon.Uint256) (*polytype.Header, sdk.Error) {
+func (keeper Keeper) GetHeaderByHash(ctx sdk.Context, chainId uint64, hash polycommon.Uint256) (*polytype.Header, error) {
 	store := ctx.KVStore(keeper.storeKey)
 	headerBytes := store.Get(GetBlockHeaderKey(chainId, hash.ToArray()))
 	if headerBytes == nil {
@@ -173,7 +174,7 @@ func (keeper Keeper) GetHeaderByHash(ctx sdk.Context, chainId uint64, hash polyc
 
 }
 
-func (keeper Keeper) UpdateConsensusPeer(ctx sdk.Context, blockHeader *polytype.Header) sdk.Error {
+func (keeper Keeper) UpdateConsensusPeer(ctx sdk.Context, blockHeader *polytype.Header) error {
 
 	blkInfo := &vconfig.VbftBlockInfo{}
 	if err := json.Unmarshal(blockHeader.ConsensusPayload, blkInfo); err != nil {
@@ -197,7 +198,7 @@ func (keeper Keeper) UpdateConsensusPeer(ctx sdk.Context, blockHeader *polytype.
 	return nil
 }
 
-func (keeper Keeper) SetConsensusPeers(ctx sdk.Context, consensusPeers types.ConsensusPeers) sdk.Error {
+func (keeper Keeper) SetConsensusPeers(ctx sdk.Context, consensusPeers *types.ConsensusPeers) error {
 	store := ctx.KVStore(keeper.storeKey)
 
 	sink := polycommon.NewZeroCopySink(nil)
@@ -216,7 +217,7 @@ func (keeper Keeper) SetConsensusPeers(ctx sdk.Context, consensusPeers types.Con
 	return nil
 }
 
-func (keeper Keeper) GetConsensusPeers(ctx sdk.Context, chainId uint64, height uint32) (*types.ConsensusPeers, sdk.Error) {
+func (keeper Keeper) GetConsensusPeers(ctx sdk.Context, chainId uint64, height uint32) (*types.ConsensusPeers, error) {
 	store := ctx.KVStore(keeper.storeKey)
 
 	consensusPeerBytes := store.Get(GetConsensusPeerKey(chainId, height))
@@ -230,7 +231,7 @@ func (keeper Keeper) GetConsensusPeers(ctx sdk.Context, chainId uint64, height u
 	return consensusPeers, nil
 }
 
-func (keeper Keeper) SetKeyHeights(ctx sdk.Context, chainId uint64, keyHeights *types.KeyHeights) sdk.Error {
+func (keeper Keeper) SetKeyHeights(ctx sdk.Context, chainId uint64, keyHeights *types.KeyHeights) error {
 	//first sort the list  (big -> small)
 	sort.SliceStable(keyHeights.HeightList, func(i, j int) bool {
 		return keyHeights.HeightList[i] > keyHeights.HeightList[j]
@@ -256,7 +257,7 @@ func (keeper Keeper) GetKeyHeights(ctx sdk.Context, chainId uint64) *types.KeyHe
 	return keyHeights
 }
 
-func (keeper Keeper) VerifyHeader(ctx sdk.Context, header *polytype.Header) sdk.Error {
+func (keeper Keeper) VerifyHeader(ctx sdk.Context, header *polytype.Header) error {
 	height := header.Height
 	keyHeight, err := keeper.FindKeyHeight(ctx, height, header.ChainID)
 	if err != nil {
@@ -283,7 +284,7 @@ func (keeper Keeper) VerifyHeader(ctx sdk.Context, header *polytype.Header) sdk.
 	return nil
 }
 
-func (keeper Keeper) FindKeyHeight(ctx sdk.Context, height uint32, chainId uint64) (uint32, sdk.Error) {
+func (keeper Keeper) findKeyHeight(ctx sdk.Context, height uint32, chainId uint64) (uint32, error) {
 	keyHeights := keeper.GetKeyHeights(ctx, chainId)
 	for _, v := range keyHeights.HeightList {
 		if (height - v) > 0 {

@@ -15,7 +15,7 @@ const (
 
 // NewQuerier returns a minting Querier handler.
 func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case QueryContractToContractAddr:
 			return queryContractToContractAddr(ctx, req, k)
@@ -26,7 +26,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 	}
 }
 
-func queryContractToContractAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryContractToContractAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryContainToContract
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {

@@ -47,7 +47,7 @@ func (k Keeper) GetModuleAccount(ctx sdk.Context) exported.ModuleAccountI {
 	return k.supplyKeeper.GetModuleAccount(ctx, types.ModuleName)
 }
 
-func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Error {
+func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) error {
 	acct := k.authKeeper.GetAccount(ctx, addr)
 	if acct == nil {
 		return sdk.ErrUnknownAddress(fmt.Sprintf("lockproxy: account %s does not exist", addr.String()))
@@ -59,7 +59,7 @@ func (k Keeper) ContainToContractAddr(ctx sdk.Context, toContractAddr []byte, fr
 	return ctx.KVStore(k.storeKey).Get((GetBindProxyKey(toContractAddr, fromChainId))) != nil
 }
 
-func (k Keeper) CreateLockProxy(ctx sdk.Context, creator sdk.AccAddress) sdk.Error {
+func (k Keeper) CreateLockProxy(ctx sdk.Context, creator sdk.AccAddress) error {
 	if k.EnsureLockProxyExist(ctx, creator) {
 		return sdk.ErrInternal(fmt.Sprintf("CreateLockProxy Error: creator:%s already created lockproxy contract with hash:%x", creator.String(), creator.Bytes()))
 	}
@@ -90,7 +90,7 @@ func (k Keeper) GetLockProxyByOperator(ctx sdk.Context, operator sdk.AccAddress)
 	return proxyBytes
 }
 
-func (k Keeper) BindProxyHash(ctx sdk.Context, operator sdk.AccAddress, toChainId uint64, toProxyHash []byte) sdk.Error {
+func (k Keeper) BindProxyHash(ctx sdk.Context, operator sdk.AccAddress, toChainId uint64, toProxyHash []byte) error {
 	if !k.EnsureLockProxyExist(ctx, operator) {
 		return sdk.ErrInternal(fmt.Sprintf("BindProxyHash Error: operator:%s have NOT created lockproxy contract", operator.String()))
 	}
@@ -113,7 +113,7 @@ func (k Keeper) GetProxyHash(ctx sdk.Context, operator sdk.AccAddress, toChainId
 	return store.Get(GetBindProxyKey(operator, toChainId))
 }
 
-func (k Keeper) BindAssetHash(ctx sdk.Context, operator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte, initialAmt sdk.Int) sdk.Error {
+func (k Keeper) BindAssetHash(ctx sdk.Context, operator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte, initialAmt sdk.Int) error {
 	// ensure the operator has created the lockproxy contract
 	if !k.EnsureLockProxyExist(ctx, operator) {
 		return sdk.ErrInternal(fmt.Sprintf("BindAssetHash,operator:%s have NOT created lockproxy contract", operator.String()))
@@ -171,7 +171,7 @@ func (k Keeper) setLockededAmt(ctx sdk.Context, sourceAssetHash []byte, lockedAm
 	store.Set(GetCrossedAmountKey(sourceAssetHash), k.cdc.MustMarshalBinaryLengthPrefixed(lockedAmt))
 }
 
-func (k Keeper) Lock(ctx sdk.Context, lockProxyHash []byte, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddressBs []byte, value sdk.Int) sdk.Error {
+func (k Keeper) Lock(ctx sdk.Context, lockProxyHash []byte, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddressBs []byte, value sdk.Int) error {
 	// send coin of sourceAssetDenom from fromAddress to module account address
 	amt := sdk.NewCoins(sdk.NewCoin(sourceAssetDenom, value))
 	if err := k.supplyKeeper.SendCoinsFromAccountToModule(ctx, fromAddress, types.ModuleName, amt); err != nil {
@@ -220,7 +220,7 @@ func (k Keeper) Lock(ctx sdk.Context, lockProxyHash []byte, fromAddress sdk.AccA
 	return nil
 }
 
-func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk.AccAddress, toContractAddr []byte, argsBs []byte) sdk.Error {
+func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk.AccAddress, toContractAddr []byte, argsBs []byte) error {
 
 	proxyHash := k.GetProxyHash(ctx, toContractAddr, fromChainId)
 	if len(proxyHash) == 0 {

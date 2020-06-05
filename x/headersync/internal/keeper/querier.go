@@ -12,7 +12,7 @@ import (
 
 // NewQuerier returns a minting Querier handler.
 func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case types.QueryHeader:
 			return queryHeader(ctx, req, k)
@@ -28,7 +28,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 	}
 }
 
-func queryHeader(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryHeader(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryHeaderParams
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
@@ -45,7 +45,7 @@ func queryHeader(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.
 
 	return bz, nil
 }
-func queryCurrentHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryCurrentHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryCurrentHeightParams
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {

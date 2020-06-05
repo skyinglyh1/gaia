@@ -19,7 +19,7 @@ const (
 
 // NewQuerier returns a minting Querier handler.
 func NewQuerier(k Keeper) sdk.Querier {
-	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, sdk.Error) {
+	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case QueryProxyByOperator:
 			return queryProxyByOperator(ctx, req, k)
@@ -35,7 +35,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 	}
 }
 
-func queryProxyByOperator(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryProxyByOperator(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryProxyByOperator
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
@@ -53,7 +53,7 @@ func queryProxyByOperator(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]b
 	return bz, nil
 }
 
-func queryProxyHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryProxyHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryProxyHashParam
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
@@ -68,7 +68,7 @@ func queryProxyHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, s
 	return bz, nil
 }
 
-func queryAssetHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryAssetHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryAssetHashParam
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
@@ -86,7 +86,7 @@ func queryAssetHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, s
 	return bz, nil
 }
 
-func queryLockedAmount(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryLockedAmount(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryLockedAmtParam
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {

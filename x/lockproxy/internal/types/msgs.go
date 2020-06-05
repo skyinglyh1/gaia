@@ -35,7 +35,7 @@ func (msg MsgCreateLockProxy) Route() string { return RouterKey }
 func (msg MsgCreateLockProxy) Type() string { return TypeMsgCreateLockProxy }
 
 // ValidateBasic Implements Msg.
-func (msg MsgCreateLockProxy) ValidateBasic() sdk.Error {
+func (msg MsgCreateLockProxy) ValidateBasic() error {
 	if msg.Creator.Empty() {
 		return sdk.ErrInvalidAddress(msg.Creator.String())
 	}
@@ -67,7 +67,7 @@ func (msg MsgBindProxyHash) Route() string { return RouterKey }
 func (msg MsgBindProxyHash) Type() string  { return TypeMsgBindProxyHash }
 
 // Implements Msg.
-func (msg MsgBindProxyHash) ValidateBasic() sdk.Error {
+func (msg MsgBindProxyHash) ValidateBasic() error {
 	if msg.Operator.Empty() {
 		return sdk.ErrInvalidAddress(msg.Operator.String())
 	}
@@ -120,7 +120,7 @@ func (msg MsgBindAssetHash) Route() string { return RouterKey }
 func (msg MsgBindAssetHash) Type() string  { return TypeMsgBindAssetHash }
 
 // Implements Msg.
-func (msg MsgBindAssetHash) ValidateBasic() sdk.Error {
+func (msg MsgBindAssetHash) ValidateBasic() error {
 	if msg.Operator.Empty() {
 		return sdk.ErrInvalidAddress(msg.Operator.String())
 	}
@@ -181,7 +181,7 @@ func (msg MsgLock) Route() string { return RouterKey }
 func (msg MsgLock) Type() string  { return TypeMsgLock }
 
 // Implements Msg.
-func (msg MsgLock) ValidateBasic() sdk.Error {
+func (msg MsgLock) ValidateBasic() error {
 	if len(msg.LockProxyHash) == 0 {
 		return sdk.ErrInternal("passed in lockProxyHash is empty")
 	}

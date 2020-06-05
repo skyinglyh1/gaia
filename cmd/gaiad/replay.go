@@ -7,11 +7,9 @@ import (
 	"path/filepath"
 	"time"
 
-	cpm "github.com/otiai10/copy"
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
 	"github.com/tendermint/tendermint/proxy"
 	tmsm "github.com/tendermint/tendermint/state"
 	tmstore "github.com/tendermint/tendermint/store"
@@ -37,20 +35,6 @@ func replayCmd() *cobra.Command {
 }
 
 func replayTxs(rootDir string) error {
-
-	if false {
-		// Copy the rootDir to a new directory, to preserve the old one.
-		fmt.Fprintln(os.Stderr, "Copying rootdir over")
-		oldRootDir := rootDir
-		rootDir = oldRootDir + "_replay"
-		if cmn.FileExists(rootDir) {
-			cmn.Exit(fmt.Sprintf("temporary copy dir %v already exists", rootDir))
-		}
-		if err := cpm.Copy(oldRootDir, rootDir); err != nil {
-			return err
-		}
-	}
-
 	configDir := filepath.Join(rootDir, "config")
 	dataDir := filepath.Join(rootDir, "data")
 	ctx := server.NewDefaultContext()

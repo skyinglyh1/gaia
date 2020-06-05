@@ -4,16 +4,18 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"math/big"
+	"strconv"
+
 	"github.com/btcsuite/btcutil"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/gaia/x/btcx/exported"
 	"github.com/cosmos/gaia/x/btcx/internal/types"
 	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
 	"github.com/tendermint/tendermint/libs/log"
-	"math/big"
-	"strconv"
 )
 
 // Keeper of the mint store
@@ -52,17 +54,17 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Error {
+func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) error {
 	acct := k.authKeeper.GetAccount(ctx, addr)
 	if acct == nil {
-		return sdk.ErrUnknownAddress(fmt.Sprintf("lockproxy: account %s does not exist", addr.String()))
+		return sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, fmt.Sprintf("lockproxy: account %s does not exist", addr.String()))
 	}
 	return nil
 }
 
-func (k Keeper) CreateCoin(ctx sdk.Context, creator sdk.AccAddress, denom string, redeemScript string) sdk.Error {
+func (k Keeper) CreateCoin(ctx sdk.Context, creator sdk.AccAddress, denom string, redeemScript string) error {
 	if reason, exist := k.ExistDenom(ctx, denom); exist {
-		return sdk.ErrInternal(fmt.Sprintf("CreateCoins Error: denom:%s already exist, due to reason:%s", denom, reason))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("CreateCoins Error: denom:%s already exist, due to reason:%s", denom, reason))
 	}
 	//k.SetOperator(ctx, denom, creator)
 	k.ccmKeeper.SetDenomCreator(ctx, denom, creator)
@@ -90,10 +92,9 @@ func (k Keeper) CreateCoin(ctx sdk.Context, creator sdk.AccAddress, denom string
 	return nil
 }
 
-func (k Keeper) BindAssetHash(ctx sdk.Context, creator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte) sdk.Error {
+func (k Keeper) BindAssetHash(ctx sdk.Context, creator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte) error {
 	if !k.ValidCreator(ctx, sourceAssetDenom, creator) {
-		//return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, creator is not valid, expect:%s, got:%s", k.GetOperator(ctx, sourceAssetDenom).String(), creator.String()))
-		return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, creator is not valid, expect:%s, got:%s", k.ccmKeeper.GetDenomCreator(ctx, sourceAssetDenom).String(), creator.String()))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("BindAssetHash, creator is not valid, expect:%s, got:%s", k.ccmKeeper.GetDenomCreator(ctx, sourceAssetDenom).String(), creator.String()))
 	}
 	store := ctx.KVStore(k.storeKey)
 	// for lock usage
@@ -115,12 +116,12 @@ func (k Keeper) BindAssetHash(ctx sdk.Context, creator sdk.AccAddress, sourceAss
 	return nil
 }
 
-func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddr []byte, amount sdk.Int) sdk.Error {
+func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddr []byte, amount sdk.Int) error {
 	// transfer back to btc
 	store := ctx.KVStore(k.storeKey)
 	redeemScriptHash := store.Get(GetDenomToScriptHashKey(sourceAssetDenom))
 	if redeemScriptHash == nil {
-		return sdk.ErrInternal(fmt.Sprintf("Invoke Lock of `btcx` module for denom: %s is illgeal", sourceAssetDenom))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Invoke Lock of `btcx` module for denom: %s is illgeal", sourceAssetDenom))
 	}
 	sink := polycommon.NewZeroCopySink(nil)
 	// contruct args bytes
@@ -132,7 +133,7 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 			RedeemScript: redeemScript,
 		}
 		if err := toBtcArgs.Serialization(sink); err != nil {
-			return sdk.ErrInternal(fmt.Sprintf("ToBTCArgs Serialization error:%v", err))
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ToBTCArgs Serialization error:%v", err))
 		}
 	} else {
 		args := types.BTCArgs{
@@ -140,19 +141,19 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 			Amount:       amount.BigInt().Uint64(),
 		}
 		if err := args.Serialization(sink); err != nil {
-			return sdk.ErrInternal(fmt.Sprintf("BTCArgs Serialization error:%v", err))
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("BTCArgs Serialization error:%v", err))
 		}
 	}
 
 	// burn coins from fromAddr
 	if err := k.BurnCoins(ctx, fromAddr, sdk.NewCoins(sdk.NewCoin(sourceAssetDenom, amount))); err != nil {
-		return types.ErrMintCoinsFail(types.DefaultCodespace)
+		return types.ErrMintCoinsFail()
 	}
 	// get toAssetHash from storage
 	toAssetHash := store.Get(GetScriptHashAndChainIdToAssetHashKey(redeemScriptHash, toChainId))
 	// invoke cross_chain_manager module to construct cosmos proof
 	if sdkErr := k.ccmKeeper.CreateCrossChainTx(ctx, toChainId, redeemScriptHash, toAssetHash, "unlock", sink.Bytes()); sdkErr != nil {
-		return sdk.ErrInternal(fmt.Sprintf("Lock, CreateCrossChainTx error:%v", sdkErr))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Lock, CreateCrossChainTx error:%v", sdkErr))
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -170,23 +171,23 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 	return nil
 }
 
-func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk.AccAddress, toContractAddr []byte, argsBs []byte) sdk.Error {
+func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk.AccAddress, toContractAddr []byte, argsBs []byte) error {
 
 	var args types.BTCArgs
 	if err := args.Deserialization(polycommon.NewZeroCopySource(argsBs)); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("unlock, Deserialize args error:%s", err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("unlock, Deserialize args error:%s", err))
 	}
 	store := ctx.KVStore(k.storeKey)
 	toAssetHash := store.Get(GetScriptHashAndChainIdToAssetHashKey(toContractAddr, fromChainId))
 	if !bytes.Equal(fromContractAddr, toAssetHash) {
-		return sdk.ErrInternal(fmt.Sprintf("Unlock, fromContractaddr:%x is not the stored assetHash:%x", fromContractAddr, toAssetHash))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Unlock, fromContractaddr:%x is not the stored assetHash:%x", fromContractAddr, toAssetHash))
 	}
 	toDenom := string(store.Get(GetScriptHashToDenomKey(toContractAddr)))
 
 	toAccAddr := sdk.AccAddress(args.ToBtcAddress)
 	amount := sdk.NewIntFromBigInt(big.NewInt(0).SetUint64(args.Amount))
 	if sdkErr := k.MintCoins(ctx, toAccAddr, sdk.NewCoins(sdk.NewCoin(toDenom, amount))); sdkErr != nil {
-		return sdk.ErrInternal(fmt.Sprintf("Unlock, burnCoins from Addr:%s error:%v", toAccAddr.String(), sdkErr))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Unlock, burnCoins from Addr:%s error:%v", toAccAddr.String(), sdkErr))
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -259,7 +260,7 @@ func (k Keeper) ExistDenom(ctx sdk.Context, denom string) (string, bool) {
 
 // MintCoins creates new coins from thin air and adds it to the module account.
 // Panics if the name maps to a non-minter module account or if the amount is invalid.
-func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins) sdk.Error {
+func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins) error {
 	_, err := k.bankKeeper.AddCoins(ctx, toAcct, amt)
 	if err != nil {
 		panic(err)
@@ -279,7 +280,7 @@ func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins)
 
 // BurnCoins burns coins deletes coins from the balance of the module account.
 // Panics if the name maps to a non-burner module account or if the amount is invalid.
-func (k Keeper) BurnCoins(ctx sdk.Context, fromAcct sdk.AccAddress, amt sdk.Coins) sdk.Error {
+func (k Keeper) BurnCoins(ctx sdk.Context, fromAcct sdk.AccAddress, amt sdk.Coins) error {
 
 	_, err := k.bankKeeper.SubtractCoins(ctx, fromAcct, amt)
 	if err != nil {
