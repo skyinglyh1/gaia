@@ -204,7 +204,6 @@ func (keeper Keeper) SetConsensusPeers(ctx sdk.Context, consensusPeers types.Con
 	consensusPeers.Serialization(sink)
 
 	store.Set(GetConsensusPeerKey(consensusPeers.ChainID, consensusPeers.Height), sink.Bytes())
-
 	// update key heights
 	keyHeights := keeper.GetKeyHeights(ctx, consensusPeers.ChainID)
 

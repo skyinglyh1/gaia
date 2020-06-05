@@ -22,7 +22,7 @@ type QueryContainToContractRes struct {
 }
 
 func (this QueryContainToContractRes) String() string {
-	return fmt.Sprintf(` QueryContainToContractRes is :
+	return fmt.Sprintf(`
   KeyStore:				%s,
   Exist:				%t,
   Info:					%s,

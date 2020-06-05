@@ -22,7 +22,7 @@ import (
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "crosschain module send transaction subcommands",
+		Short:                      fmt.Sprintf("%s module send transaction subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -40,7 +40,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 func SendCreateAndDelegateCoinToProxyTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "createdelegatedenom [creator] [coin]",
+		Use:   "createdelegatedenom [creator] [coin] [lock_proxy]",
 		Short: "Create coin by creator, and immediately delegate to the lock proxy module account",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
@@ -65,7 +65,12 @@ $ %s tx ft createdelegatedenom [creator_address] [1000bch]
 				return err
 			}
 
-			msg := types.NewMsgCreateAndDelegateCoinToProxy(creator, coin)
+			lockProxy, err := hex.DecodeString(args[2])
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCreateCoinAndDelegateToProxy(creator, coin, sdk.AccAddress(lockProxy))
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -185,7 +190,7 @@ $ %s tx crosschain lock ont 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123
 			value := sdk.NewIntFromBigInt(valueBigInt)
 
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgLock(cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAddress, &value)
+			msg := types.NewMsgLock(cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAddress, value)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

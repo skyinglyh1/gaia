@@ -21,7 +21,7 @@ import (
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	ccQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the crossChain module",
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -42,16 +42,16 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryValidatorOutstandingRewards implements the query validator outstanding rewards command.
 func GetCmdQueryProxyByOperator(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "proxy [operator]",
+		Use:   "proxyhash [operator]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query lockproxy hex string by the operator/creator",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the currently synced height of chainId blockchain
+			fmt.Sprintf(`Query the created lock proxy contract hash created by the operator
 
 Example:
-$ %s query crosschain height 0
+$ %s query %s height 0
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -68,9 +68,8 @@ $ %s query crosschain height 0
 			}
 			var proxyHash []byte
 			cdc.MustUnmarshalJSON(res, &proxyHash)
-			fmt.Printf("creator:%s with hash lock proxy hash:%x \n", operatorAddr, proxyHash)
+			fmt.Printf("creator:%s with lock proxy hash:%x \n", operatorAddr, proxyHash)
 			return nil
-			//return cliCtx.PrintOutput(MCHeader{header})
 		},
 	}
 }
@@ -79,16 +78,16 @@ $ %s query crosschain height 0
 // parameters.
 func GetCmdQueryProxyHash(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "proxy [lockproxy] [chainId]",
-		Short: "Query the proxy hash",
+		Use:   "proxyhash [lockproxy] [chainId]",
+		Short: "Query the proxy hash deployed in another chain with chainId",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query proxy contract hash bond with self in another blockchain 
 with chainId
 
 Example:
-$ %s query crosschain proxy 3
+$ %s query %s proxyhash 3
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
@@ -121,16 +120,16 @@ $ %s query crosschain proxy 3
 // inflation value.
 func GetCmdQueryAssetHash(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "asset [lockproxy/operator] [sourceassetdenom] [chainId]",
+		Use:   "assethash [lockproxy/operator] [sourceassetdenom] [chainId]",
 		Short: "Query the asset hash in chainId chain corresponding with soureAssetDenom",
 		Args:  cobra.ExactArgs(3),
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query the currently synced height of chainId blockchain
 
 Example:
-$ %s query crosschain asset height 0
+$ %s query %s assethash height 0
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -167,13 +166,13 @@ $ %s query crosschain asset height 0
 
 func GetCmdQueryLockedAmount(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use: "lockedamt [sourceassetdenom]",
+		Use: "lockedamt [denom]",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the asset crossed limit in chainId chain corresponding with soureAssetDenom
+			fmt.Sprintf(`Query the asset crossed amount in chainId chain corresponding with soureAssetDenom
 Example:
-$ %s query crosschain crossedlimit stake 3
+$ %s query %s lockedamt stake
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(1),

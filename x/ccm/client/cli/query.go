@@ -18,7 +18,7 @@ import (
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	ccQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the crossChain module",
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -36,17 +36,16 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryValidatorOutstandingRewards implements the query validator outstanding rewards command.
 func GetCmdQueryContainToContractAddr(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "ifcontainaddr [denom]",
+		Use:   "ifContainContract [module_store_key] [to_contract_addr] [from_chain_id]",
 		Args:  cobra.ExactArgs(3),
-		Short: "Query denom info",
+		Short: "Query if module_store_key module should be targeted to execute `unlock` logic based on ToMerkleValue.MakeTxParam.ToContractAddress and ToMerkleValue.FromChainId",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query block header for a specific height 
-already synced from another blockchain, normally, relayer-chain (with chainId=0), into current chain 
+			fmt.Sprintf(`
 
 Example:
-$ %s query crosschain header 0 1
+$ %s query %s ifContainContract btcx c330431496364497d7257839737b5e4596f5ac06 2
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {

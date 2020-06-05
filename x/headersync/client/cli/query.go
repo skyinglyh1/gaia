@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/version"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
 	polytype "github.com/cosmos/gaia/x/headersync/poly-utils/core/types"
 	"strings"
 
@@ -20,7 +21,7 @@ import (
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	ccQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the crossChain module",
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -74,7 +75,9 @@ $ %s query crosschain header 0 1
 				return err
 			}
 			var header polytype.Header
-			cdc.MustUnmarshalJSON(res, &header)
+			if err := header.Deserialization(polycommon.NewZeroCopySource(res)); err != nil {
+				fmt.Printf("Query PolyChain header Deserialization")
+			}
 			fmt.Printf("header of height:%d is:\n %s\n", header.Height, header.String())
 			return nil
 		},
@@ -107,7 +110,6 @@ $ %s query crosschain height 0
 			}
 
 			res, err := common.QueryCurrentHeaderHeight(cliCtx, queryRoute, chainId)
-			fmt.Printf("cli.query.res = %v\n", res)
 			if err != nil {
 				return err
 			}
@@ -145,7 +147,6 @@ $ %s query crosschain height 0
 			}
 
 			res, err := common.QueryKeyHeights(cliCtx, queryRoute, chainId)
-			fmt.Printf("cli.query.res = %v\n", res)
 			if err != nil {
 				return err
 			}
@@ -183,7 +184,6 @@ $ %s query crosschain height 0
 				return err
 			}
 			res, err := common.QueryKeyHeight(cliCtx, queryRoute, chainId, uint32(height))
-			fmt.Printf("cli.query.res = %v\n", res)
 			if err != nil {
 				return err
 			}

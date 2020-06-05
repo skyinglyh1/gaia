@@ -17,7 +17,7 @@ import (
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	ccQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the crossChain module",
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -40,11 +40,11 @@ func GetCmdQueryDenomInfo(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		Short: "Query denom info",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query block header for a specific height 
-already synced from another blockchain, normally, relayer-chain (with chainId=0), into current chain 
+			fmt.Sprintf(`Query a specific denom or coin info incluing the coin creator,  coin total supply, the 
+redeem script and redeem script hash
 
 Example:
-$ %s query crosschain header 0 1
+$ %s query btcx denomInfo btcx
 `,
 				version.ClientName,
 			),
@@ -71,12 +71,13 @@ func GetCmdQueryDenomInfoWithChainId(queryRoute string, cdc *codec.Codec) *cobra
 	return &cobra.Command{
 		Use:   "denomInfoId [denom] [chainId]",
 		Args:  cobra.ExactArgs(2),
-		Short: "Query denom info correlated with chainId",
+		Short: "Query denom info correlated with a specific chainId",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the currently synced height of chainId blockchain
+			fmt.Sprintf(`Query a specific denom or coin info correlated with a specific chainId incluing the coin creator,  coin total supply, the 
+redeem script and redeem script hash, toChainId and the corresponding toAssetHash in hex format
 
 Example:
-$ %s query btcx denomInfoId btca 2
+$ %s query btcx denomInfoId btcx 2
 `,
 				version.ClientName,
 			),

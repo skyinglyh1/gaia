@@ -111,7 +111,7 @@ type MsgBindAssetHash struct {
 	InitialAmt       sdk.Int
 }
 
-func NewMsgBindAssetParam(operator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte, initialAmt sdk.Int) MsgBindAssetHash {
+func NewMsgBindAssetHash(operator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte, initialAmt sdk.Int) MsgBindAssetHash {
 	return MsgBindAssetHash{operator, sourceAssetDenom, toChainId, toAssetHash, initialAmt}
 }
 
@@ -169,10 +169,10 @@ type MsgLock struct {
 	SourceAssetDenom string
 	ToChainId        uint64
 	ToAddressBs      []byte
-	Value            *sdk.Int
+	Value            sdk.Int
 }
 
-func NewMsgLock(lockProxyHash []byte, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddress []byte, value *sdk.Int) MsgLock {
+func NewMsgLock(lockProxyHash []byte, fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddress []byte, value sdk.Int) MsgLock {
 	return MsgLock{lockProxyHash, fromAddress, sourceAssetDenom, toChainId, toAddress, value}
 }
 

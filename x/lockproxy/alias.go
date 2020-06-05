@@ -53,7 +53,7 @@ var (
 	NewKeeper     = keeper.NewKeeper
 	NewQuerier    = keeper.NewQuerier
 
-	NewMsgBindAssetParam    = types.NewMsgBindAssetParam
+	NewMsgBindAssetHash     = types.NewMsgBindAssetHash
 	NewMsgBindProxyHash     = types.NewMsgBindProxyHash
 	NewMsgLock              = types.NewMsgLock
 	NewQueryProxyHashParams = types.NewQueryProxyHashParams

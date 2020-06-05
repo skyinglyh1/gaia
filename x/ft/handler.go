@@ -12,8 +12,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
-		case types.MsgCreateAndDelegateCoinToProxy:
-			return handleMsgCreateAndDelegateCoinToProxy(ctx, k, msg)
+		case types.MsgCreateCoinAndDelegateToProxy:
+			return handleMsgCreateCoinAndDelegateToProxy(ctx, k, msg)
 
 		case types.MsgCreateDenom:
 			return handleMsgCreateDenom(ctx, k, msg)
@@ -32,7 +32,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 	}
 }
 
-func handleMsgCreateAndDelegateCoinToProxy(ctx sdk.Context, k keeper.Keeper, msg types.MsgCreateAndDelegateCoinToProxy) sdk.Result {
+func handleMsgCreateCoinAndDelegateToProxy(ctx sdk.Context, k keeper.Keeper, msg types.MsgCreateCoinAndDelegateToProxy) sdk.Result {
 
 	//err := k.SendCoins(ctx, msg.FromAddress, msg.ToAddress, msg.Amount)
 
@@ -86,7 +86,7 @@ func handleMsgBindAssetHash(ctx sdk.Context, k keeper.Keeper, msg types.MsgBindA
 
 func handleMsgLock(ctx sdk.Context, k keeper.Keeper, msg types.MsgLock) sdk.Result {
 
-	err := k.Lock(ctx, msg.FromAddress, msg.SourceAssetDenom, msg.ToChainId, msg.ToAddressBs, *msg.Value)
+	err := k.Lock(ctx, msg.FromAddress, msg.SourceAssetDenom, msg.ToChainId, msg.ToAddressBs, msg.Value)
 	if err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("handleMsgLock, %v", err)).Result()
 	}

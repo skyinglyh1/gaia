@@ -18,12 +18,7 @@ const (
 	QueryParameters   = types.QueryParameters
 	RouterKey         = types.RouterKey
 
-	AttributeValueCategory        = types.AttributeValueCategory
-	EventTypeSyncHeader           = types.EventTypeSyncHeader
-	AttributeKeyChainId           = types.AttributeKeyChainId
-	AttributeKeyHeight            = types.AttributeKeyHeight
-	AttributeKeyBlockHash         = types.AttributeKeyBlockHash
-	AttributeKeyNativeChainHeight = types.AttributeKeyNativeChainHeight
+	AttributeValueCategory = types.AttributeValueCategory
 
 	AttributeKeyToChainId        = types.AttributeKeyToChainId
 	AttributeKeyToChainProxyHash = types.AttributeKeyToChainProxyHash
@@ -66,7 +61,7 @@ var (
 
 	NewMsgLock                         = types.NewMsgLock
 	NewMsgCreateDenom                  = types.NewMsgCreateDenom
-	NewMsgCreateAndDelegateCoinToProxy = types.NewMsgCreateAndDelegateCoinToProxy
+	NewMsgCreateCoinAndDelegateToProxy = types.NewMsgCreateCoinAndDelegateToProxy
 	NewMsgBindAssetHash                = types.NewMsgBindAssetHash
 	NewMsgCreateCoins                  = types.NewMsgCreateCoins
 
@@ -125,7 +120,7 @@ type (
 	MsgBindAssetHash                = types.MsgBindAssetHash
 	MsgLock                         = types.MsgLock
 	MsgCreateDenom                  = types.MsgCreateDenom
-	MsgCreateAndDelegateCoinToProxy = types.MsgCreateAndDelegateCoinToProxy
+	MsgCreateCoinAndDelegateToProxy = types.MsgCreateCoinAndDelegateToProxy
 
 	TxArgs = types.TxArgs
 )

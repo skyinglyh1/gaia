@@ -27,7 +27,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 func handleMsgCreateDenom(ctx sdk.Context, k keeper.Keeper, msg types.MsgCreateDenom) sdk.Result {
 
-	err := k.CreateCoin(ctx, msg.Creator, msg.Denom, msg.RedeemScript)
+	err := k.CreateDenom(ctx, msg.Creator, msg.Denom, msg.RedeemScript)
 	if err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("handleMsgCreateDenom, error, %v", err)).Result()
 	}

@@ -76,7 +76,7 @@ func handleMsgBindAssetHash(ctx sdk.Context, k keeper.Keeper, msg types.MsgBindA
 
 func handleMsgLock(ctx sdk.Context, k keeper.Keeper, msg types.MsgLock) sdk.Result {
 
-	err := k.Lock(ctx, msg.LockProxyHash, msg.FromAddress, msg.SourceAssetDenom, msg.ToChainId, msg.ToAddressBs, *msg.Value)
+	err := k.Lock(ctx, msg.LockProxyHash, msg.FromAddress, msg.SourceAssetDenom, msg.ToChainId, msg.ToAddressBs, msg.Value)
 	if err != nil {
 		return sdk.ErrInternal(fmt.Sprintf("handleMsgLock, %v", err)).Result()
 	}

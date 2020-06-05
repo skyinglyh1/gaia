@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -38,12 +39,11 @@ func queryHeader(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.
 	if err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("queryHeader, %v", err))
 	}
-	bz, e := codec.MarshalJSONIndent(types.ModuleCdc, header)
-	if e != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", e.Error()))
+	sink := polycommon.NewZeroCopySink(nil)
+	if e := header.Serialization(sink); e != nil {
+		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("PolyHeader Serialization error:", e.Error()))
 	}
-
-	return bz, nil
+	return sink.Bytes(), nil
 }
 func queryCurrentHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
 	var params types.QueryCurrentHeightParams

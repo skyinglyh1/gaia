@@ -60,7 +60,7 @@ func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) sdk.Err
 	return nil
 }
 
-func (k Keeper) CreateCoin(ctx sdk.Context, creator sdk.AccAddress, denom string, redeemScript string) sdk.Error {
+func (k Keeper) CreateDenom(ctx sdk.Context, creator sdk.AccAddress, denom string, redeemScript string) sdk.Error {
 	if reason, exist := k.ExistDenom(ctx, denom); exist {
 		return sdk.ErrInternal(fmt.Sprintf("CreateCoins Error: denom:%s already exist, due to reason:%s", denom, reason))
 	}
@@ -80,7 +80,7 @@ func (k Keeper) CreateCoin(ctx sdk.Context, creator sdk.AccAddress, denom string
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeCreateCoin,
+			types.EventTypeCreateDenom,
 			sdk.NewAttribute(types.AttributeKeySourceAssetDenom, denom),
 			sdk.NewAttribute(types.AttributeKeyRedeemKey, hex.EncodeToString(scriptHashKeyBs)),
 			sdk.NewAttribute(types.AttributeKeyRedeemScript, hex.EncodeToString(redeemScriptBs)),

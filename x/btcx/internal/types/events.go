@@ -25,7 +25,7 @@ const (
 	AttributeKeyFromContractHash = "from_contract_hash"
 	AttributeKeyToAssetDenom     = "to_asset_denom"
 
-	EventTypeCreateCoin      = "create_coin"
+	EventTypeCreateDenom     = "create_denom"
 	AttributeKeyRedeemKey    = "redeem_key"
 	AttributeKeyRedeemScript = "redeem_script"
 )

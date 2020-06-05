@@ -6,6 +6,7 @@
 package btcx
 
 import (
+	"github.com/cosmos/gaia/x/btcx/client/rest"
 	"github.com/cosmos/gaia/x/btcx/exported"
 	"github.com/cosmos/gaia/x/btcx/internal/keeper"
 	"github.com/cosmos/gaia/x/btcx/internal/types"
@@ -20,6 +21,7 @@ const (
 	RouterKey         = types.RouterKey
 
 	AttributeValueCategory = types.AttributeValueCategory
+	EventTypeCreateDenom   = types.EventTypeCreateDenom
 
 	AttributeKeyToChainId = types.AttributeKeyToChainId
 
@@ -39,7 +41,6 @@ const (
 	AttributeKeyFromContractHash = types.AttributeKeyFromContractHash
 	AttributeKeyToAssetDenom     = types.AttributeKeyToAssetDenom
 
-	EventTypeCreateCoin         = types.EventTypeCreateCoin
 	AttributeKeyCreator         = types.AttributeKeyCreator
 	AttributeKeyRedeemKey       = types.AttributeKeyRedeemKey
 	AttributeKeyRedeemScript    = types.AttributeKeyRedeemScript
@@ -74,6 +75,9 @@ type (
 	MsgBindAssetHash = types.MsgBindAssetHash
 	MsgCreateDenom   = types.MsgCreateDenom
 	MsgLock          = types.MsgLock
+	CreateCoinReq    = rest.CreateCoinReq
+	BindAssetHashReq = rest.BindAssetHashReq
+	LockReq          = rest.LockReq
 
 	ToBTCArgs = types.ToBTCArgs
 	BTCArgs   = types.BTCArgs

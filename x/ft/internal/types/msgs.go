@@ -11,7 +11,7 @@ import (
 
 // Governance message types and routes
 const (
-	TypeMsgCreateAndDelegateCoinToProxy = "create_delegate_to_proxy"
+	TypeMsgCreateCoinAndDelegateToProxy = "create_delegate_to_proxy"
 	TypeMsgCreateDenom                  = "create_denom"
 
 	TypeMsgBindProxyHash       = "bind_proxy_hash"
@@ -21,27 +21,27 @@ const (
 )
 
 // MsgSend - high level transaction of the coin module
-type MsgCreateAndDelegateCoinToProxy struct {
+type MsgCreateCoinAndDelegateToProxy struct {
 	Creator       sdk.AccAddress
 	Coin          sdk.Coin
 	LockProxyHash []byte
 }
 
-var _ sdk.Msg = MsgCreateAndDelegateCoinToProxy{}
+var _ sdk.Msg = MsgCreateCoinAndDelegateToProxy{}
 
 // NewMsgSend - construct arbitrary multi-in, multi-out send msg.
-func NewMsgCreateAndDelegateCoinToProxy(creator sdk.AccAddress, coin sdk.Coin) MsgCreateAndDelegateCoinToProxy {
-	return MsgCreateAndDelegateCoinToProxy{Creator: creator, Coin: coin}
+func NewMsgCreateCoinAndDelegateToProxy(creator sdk.AccAddress, coin sdk.Coin, lockProxyHash []byte) MsgCreateCoinAndDelegateToProxy {
+	return MsgCreateCoinAndDelegateToProxy{Creator: creator, Coin: coin, LockProxyHash: lockProxyHash}
 }
 
 // Route Implements Msg.
-func (msg MsgCreateAndDelegateCoinToProxy) Route() string { return RouterKey }
+func (msg MsgCreateCoinAndDelegateToProxy) Route() string { return RouterKey }
 
 // Type Implements Msg.
-func (msg MsgCreateAndDelegateCoinToProxy) Type() string { return TypeMsgCreateAndDelegateCoinToProxy }
+func (msg MsgCreateCoinAndDelegateToProxy) Type() string { return TypeMsgCreateCoinAndDelegateToProxy }
 
 // ValidateBasic Implements Msg.
-func (msg MsgCreateAndDelegateCoinToProxy) ValidateBasic() sdk.Error {
+func (msg MsgCreateCoinAndDelegateToProxy) ValidateBasic() sdk.Error {
 	if msg.Creator.Empty() {
 		return sdk.ErrInvalidAddress(msg.Creator.String())
 	}
@@ -52,12 +52,12 @@ func (msg MsgCreateAndDelegateCoinToProxy) ValidateBasic() sdk.Error {
 }
 
 // GetSigners Implements Msg.
-func (msg MsgCreateAndDelegateCoinToProxy) GetSigners() []sdk.AccAddress {
+func (msg MsgCreateCoinAndDelegateToProxy) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{msg.Creator}
 }
 
 // GetSignBytes Implements Msg.
-func (msg MsgCreateAndDelegateCoinToProxy) GetSignBytes() []byte {
+func (msg MsgCreateCoinAndDelegateToProxy) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
@@ -163,10 +163,10 @@ type MsgLock struct {
 	SourceAssetDenom string
 	ToChainId        uint64
 	ToAddressBs      []byte
-	Value            *sdk.Int
+	Value            sdk.Int
 }
 
-func NewMsgLock(fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddress []byte, value *sdk.Int) MsgLock {
+func NewMsgLock(fromAddress sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAddress []byte, value sdk.Int) MsgLock {
 	return MsgLock{fromAddress, sourceAssetDenom, toChainId, toAddress, value}
 }
 

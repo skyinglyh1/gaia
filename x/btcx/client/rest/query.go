@@ -13,12 +13,12 @@ import (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute string) {
 	r.HandleFunc(
-		fmt.Sprintf("/btcx/demon_info/{%s}", Denom),
+		fmt.Sprintf("/btcx/denom_info/{%s}", Denom),
 		queryDemonHandlerFn(cliCtx, queryRoute),
 	).Methods("GET")
 
 	r.HandleFunc(
-		fmt.Sprintf("/btcx/demon_info/{%s}/{%s}", Denom, ChainId),
+		fmt.Sprintf("/btcx/denom_info/{%s}/{%s}", Denom, ChainId),
 		queryDemonWithChainIdHandlerFn(cliCtx, queryRoute),
 	).Methods("GET")
 }

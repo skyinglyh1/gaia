@@ -11,7 +11,7 @@ type DenomInfo struct {
 }
 
 func (msg DenomInfo) String() string {
-	return fmt.Sprintf(`DenomInfo:
+	return fmt.Sprintf(`
   Creator:        	 %s
   TotalSupply:		 %s
 `, msg.Creator.String(), msg.TotalSupply.String())

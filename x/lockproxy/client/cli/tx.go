@@ -22,7 +22,7 @@ import (
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	txCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "crosschain module send transaction subcommands",
+		Short:                      fmt.Sprintf("%s module send transaction subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -39,14 +39,14 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 func SendCreateLockProxyTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "createproxy [creator]",
+		Use:   "createlockproxy [creator]",
 		Short: "Create lockproxy contract by creator, needs creator's signature",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx lockproxy createlockproxy [creator_address] 
+$ %s tx %s createlockproxy [creator_address] 
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(1),
@@ -68,9 +68,9 @@ func SendBindProxyHashTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx crosschain bindproxyhash 3 11223344556677889900 
+$ %s tx %s bindproxyhash 3 11223344556677889900 
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(3),
@@ -102,14 +102,14 @@ $ %s tx crosschain bindproxyhash 3 11223344556677889900
 
 func SendBindAssetHashTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bindassethash [source_asset_denom] [target_chainId] [target_asset_hash] [initialAmount]",
+		Use:   "bindassethash [source_asset_denom] [to_chainId] [to_asset_hash] [initial_balance_of_lockproxy_module_acct_for_asset_denom]",
 		Short: "bind asset hash by the operator, ",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx lockproxy bindassethash ont 3 00000000000000000001 100000
+$ %s tx %s bindassethash ont 3 00000000000000000001 100000
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(4),
@@ -139,7 +139,7 @@ $ %s tx lockproxy bindassethash ont 3 00000000000000000001 100000
 			}
 			initialAmt := sdk.NewIntFromBigInt(limitBigInt)
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgBindAssetParam(cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAssetHash, initialAmt)
+			msg := types.NewMsgBindAssetHash(cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAssetHash, initialAmt)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -153,9 +153,9 @@ func SendLockTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx lockproxy lock 12341234 ont 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123 
+$ %s tx %s lock 12341234 ont 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123 
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		Args: cobra.ExactArgs(5),
@@ -189,7 +189,7 @@ $ %s tx lockproxy lock 12341234 ont 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 1
 			value := sdk.NewIntFromBigInt(valueBigInt)
 
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgLock(lockProxyHash, cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAddress, &value)
+			msg := types.NewMsgLock(lockProxyHash, cliCtx.GetFromAddress(), sourceAssetDenom, toChainId, toAddress, value)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}

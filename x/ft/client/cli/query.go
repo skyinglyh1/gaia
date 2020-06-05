@@ -19,7 +19,7 @@ import (
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	ccQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      "Querying commands for the crossChain module",
+		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
@@ -43,12 +43,12 @@ func GetCmdQueryDenomInfo(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Short: "Query the asset hash in chainId chain corresponding with soureAssetDenom",
 		Args:  cobra.ExactArgs(1),
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the currently synced height of chainId blockchain
+			fmt.Sprintf(`Query a specific denom or coin info incluing the coin creator, coin total supply
 
 Example:
-$ %s query crosschain asset height 0
+$ %s query %s denomInfo btcx
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -69,16 +69,19 @@ $ %s query crosschain asset height 0
 
 func GetCmdQueryDenomInfoWithId(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use: "denominfowithid [sourceassetdenom] [chainid]",
+		Use:   "denomInfoId [denom] [chainId]",
+		Args:  cobra.ExactArgs(2),
+		Short: "Query denom info correlated with a specific chainId",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query the asset crossed limit in chainId chain corresponding with soureAssetDenom
+			fmt.Sprintf(`Query a specific denom or coin info correlated with a specific chainId incluing the coin creator,  coin total supply, 
+toChainId and the corresponding toAssetHash in hex format
+
 Example:
-$ %s query crosschain crossedlimit stake 3
+$ %s query %s denomInfoId btcx 2
 `,
-				version.ClientName,
+				version.ClientName, types.ModuleName,
 			),
 		),
-		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			sourceAssetdenom := args[0]
@@ -94,7 +97,6 @@ $ %s query crosschain crossedlimit stake 3
 			var denomInfo types.DenomInfoWithId
 			cdc.MustUnmarshalJSON(res, &denomInfo)
 			fmt.Printf("denomInfo in detail of denom:%s is:\n %s\n", sourceAssetdenom, denomInfo.String())
-			//return cliCtx.PrintOutput(hex.EncodeToString(proxyHash))
 			return nil
 		},
 	}
