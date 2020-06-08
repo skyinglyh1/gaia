@@ -19,7 +19,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute st
 
 	r.HandleFunc(
 		fmt.Sprintf("/ft/denom_cc_info/{%s}/{%s}", Denom, ChainId),
-		queryDemonWithChainIdHandlerFn(cliCtx, queryRoute),
+		queryDemonCrossChainInfoHandlerFn(cliCtx, queryRoute),
 	).Methods("GET")
 
 }
@@ -43,7 +43,7 @@ func queryDemonHandlerFn(cliCtx context.CLIContext, queryRoute string) http.Hand
 	}
 }
 
-func queryDemonWithChainIdHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
+func queryDemonCrossChainInfoHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -56,7 +56,7 @@ func queryDemonWithChainIdHandlerFn(cliCtx context.CLIContext, queryRoute string
 		if !ok {
 			return
 		}
-		res, ok := checkResponseQueryDenomInfoWithChainIdResponse(w, cliCtx, queryRoute, denom, chainId)
+		res, ok := checkResponseQueryDenomCCInfoResponse(w, cliCtx, queryRoute, denom, chainId)
 		if !ok {
 			return
 		}
@@ -76,7 +76,7 @@ func checkResponseQueryDenomInfoResponse(
 
 	return res, true
 }
-func checkResponseQueryDenomInfoWithChainIdResponse(
+func checkResponseQueryDenomCCInfoResponse(
 	w http.ResponseWriter, cliCtx context.CLIContext, queryRoute string, denom string, chainId uint64) (res []byte, ok bool) {
 
 	res, err := common.QueryDenomCrossChainInfo(cliCtx, queryRoute, denom, chainId)

@@ -133,16 +133,16 @@ func (k Keeper) GetDenomInfo(ctx sdk.Context, denom string) *types.DenomInfo {
 	return &types.DenomInfo{
 		Creator:     operator,
 		Denom:       denom,
-		AssetHash:   []byte(denom),
+		AssetHash:   hex.EncodeToString([]byte(denom)),
 		TotalSupply: k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(denom),
 	}
 }
 
 func (k Keeper) GetDenomCrossChainInfo(ctx sdk.Context, denom string, toChainId uint64) *types.DenomCrossChainInfo {
 	return &types.DenomCrossChainInfo{
-		DenomInfo:   k.GetDenomInfo(ctx, denom),
+		DenomInfo:   *k.GetDenomInfo(ctx, denom),
 		ToChainId:   toChainId,
-		ToAssetHash: ctx.KVStore(k.storeKey).Get(GetBindAssetHashKey([]byte(denom), toChainId)),
+		ToAssetHash: hex.EncodeToString(ctx.KVStore(k.storeKey).Get(GetBindAssetHashKey([]byte(denom), toChainId))),
 	}
 }
 

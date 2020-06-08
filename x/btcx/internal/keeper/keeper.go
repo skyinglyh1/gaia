@@ -213,8 +213,9 @@ func (k Keeper) GetDenomInfo(ctx sdk.Context, denom string) *types.DenomInfo {
 	denomInfo := new(types.DenomInfo)
 	denomInfo.Creator = operator
 	denomInfo.TotalSupply = k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(denom)
-	denomInfo.RedeemScriptHash = store.Get(GetDenomToScriptHashKey(denom))
-	denomInfo.RedeemScipt = store.Get(GetScriptHashToRedeemScript(denomInfo.RedeemScriptHash))
+	redeemHash := store.Get(GetDenomToScriptHashKey(denom))
+	denomInfo.RedeemScriptHash = hex.EncodeToString(redeemHash)
+	denomInfo.RedeemScipt = hex.EncodeToString(store.Get(GetScriptHashToRedeemScript(redeemHash)))
 	return denomInfo
 }
 
@@ -222,7 +223,9 @@ func (k Keeper) GetDenomCrossChainInfo(ctx sdk.Context, denom string, toChainId 
 	denomInfo := new(types.DenomCrossChainInfo)
 	denomInfo.DenomInfo = *k.GetDenomInfo(ctx, denom)
 	denomInfo.ToChainId = toChainId
-	denomInfo.ToAssetHash = ctx.KVStore(k.storeKey).Get(GetScriptHashAndChainIdToAssetHashKey(denomInfo.RedeemScriptHash, toChainId))
+	store := ctx.KVStore(k.storeKey)
+	redeemHash := store.Get(GetDenomToScriptHashKey(denom))
+	denomInfo.ToAssetHash = hex.EncodeToString(store.Get(GetScriptHashAndChainIdToAssetHashKey(redeemHash, toChainId)))
 	return denomInfo
 }
 
@@ -231,8 +234,6 @@ func (k Keeper) ContainToContractAddr(ctx sdk.Context, toContractAddr []byte, fr
 }
 
 func (k Keeper) ValidCreator(ctx sdk.Context, denom string, creator sdk.AccAddress) bool {
-	//store := ctx.KVStore(k.storeKey)
-	//return bytes.Equal(store.Get(GetDenomToOperatorKey(denom)), creator.Bytes())
 	return bytes.Equal(k.ccmKeeper.GetDenomCreator(ctx, denom), creator.Bytes())
 }
 
@@ -247,15 +248,6 @@ func (k Keeper) ExistDenom(ctx sdk.Context, denom string) (string, bool) {
 	}
 	return "", false
 }
-
-//func (k Keeper) SetOperator(ctx sdk.Context, denom string, creator sdk.AccAddress) {
-//	ctx.KVStore(k.storeKey).Set(GetDenomToOperatorKey(denom), creator.Bytes())
-//}
-//
-//func (k Keeper) GetOperator(ctx sdk.Context, denom string) sdk.AccAddress {
-//	return ctx.KVStore(k.storeKey).Get(GetDenomToOperatorKey(denom))
-//
-//}
 
 // MintCoins creates new coins from thin air and adds it to the module account.
 // Panics if the name maps to a non-minter module account or if the amount is invalid.

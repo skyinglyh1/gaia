@@ -8,28 +8,28 @@ import (
 type DenomInfo struct {
 	Creator     sdk.AccAddress
 	Denom       string
-	AssetHash   []byte
+	AssetHash   string
 	TotalSupply sdk.Int
 }
 
 func (msg DenomInfo) String() string {
 	return fmt.Sprintf(`
   Denom:			 %s
-  AssetHash:		 %x
+  AssetHash:		 %s
   Creator:        	 %s
   TotalSupply:		 %s
 `, msg.Denom, msg.AssetHash, msg.Creator.String(), msg.TotalSupply.String())
 }
 
 type DenomCrossChainInfo struct {
-	*DenomInfo
+	DenomInfo
 	ToChainId   uint64
-	ToAssetHash []byte
+	ToAssetHash string
 }
 
 func (msg DenomCrossChainInfo) String() string {
 	return msg.DenomInfo.String() + fmt.Sprintf(`
   ToChainId:       	 %d
-  ToAssetHash:		 %x
+  ToAssetHash:		 %s
 `, msg.ToChainId, msg.ToAssetHash)
 }
