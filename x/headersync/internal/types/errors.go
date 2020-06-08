@@ -15,19 +15,13 @@ const (
 	CodeBookKeeperNumErrType
 	CodeInvalidPublicKeyType
 	CodeInvalidMultiSignatureType
-	CodeUnmarshalBlockInfoFailType
 	CodeMarshalSpecificType
 	CodeUnmarshalSpecificType
 	CodeEmptyTargetHashType
-	CodeProposalHandlerNotExists
 	CodeBelowCrossedLimit
 	CodeCrossedAmountOverflow
 	CodeSupplyKeeperMintCoinFailType
-	CodeSendCoinsToModuleFailType
-	CodeSendCoinsFromModuleFailType
 	CodeCrossedAmountOverLimitType
-	CodeGetCrossChainIdFailType
-	CodeCreateNegativeCoinsType
 
 	DefaultCodespace sdk.CodespaceType = ModuleName
 )
@@ -84,20 +78,4 @@ func ErrCrossedAmountOverflow(codespace sdk.CodespaceType, newCrossedAmount sdk.
 }
 func ErrSupplyKeeperMintCoinsFail(codespace sdk.CodespaceType) sdk.Error {
 	return sdk.NewError(codespace, CodeSupplyKeeperMintCoinFailType, fmt.Sprintf("supplyKeeper mint coins failed "))
-}
-
-func ErrSendCoinsToModuleFail(codespace sdk.CodespaceType, amt sdk.Coins, fromAddr sdk.AccAddress, toAcct sdk.AccAddress) sdk.Error {
-	return sdk.NewError(codespace, CodeSendCoinsToModuleFailType, fmt.Sprintf("send coins:%s from account:%s to Module account:%s error", amt.String(), fromAddr.String(), toAcct.String()))
-}
-
-func ErrSendCoinsFromModuleFail(codespace sdk.CodespaceType, amt sdk.Coins, fromAddr sdk.AccAddress, toAcct sdk.AccAddress) sdk.Error {
-	return sdk.NewError(codespace, CodeSendCoinsFromModuleFailType, fmt.Sprintf("send coins:%s from Module account:%s to receiver account:%s error", amt.String(), fromAddr.String(), toAcct.String()))
-}
-
-func ErrCreateCrossChainTx(codespace sdk.CodespaceType, err error) sdk.Error {
-	return sdk.NewError(codespace, CodeGetCrossChainIdFailType, fmt.Sprintf("create cross chain tx error:%v", err))
-}
-
-func ErrCreateNegativeCoins(codespace sdk.CodespaceType, coins sdk.Coins) sdk.Error {
-	return sdk.NewError(codespace, CodeCreateNegativeCoinsType, fmt.Sprintf("create negative coins:%s", coins.String()))
 }

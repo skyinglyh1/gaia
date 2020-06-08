@@ -7,6 +7,7 @@ import (
 )
 
 const (
+	Operator        = "operator"
 	LockProxyHash   = "lock_proxy_hash"
 	ToChainId       = "to_chain_id"
 	AssetDenom      = "asset_denom"

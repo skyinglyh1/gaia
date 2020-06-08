@@ -24,13 +24,13 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 // SendReq defines the properties of a send request's body.
 type CreateCoinReq struct {
 	BaseReq      rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Denom        string       `json:"denom" yarml:"denom"`
+	Denom        string       `json:"denom" yaml:"denom"`
 	RedeemScript string       `json:"redeem_script" yaml:"redeem_script"`
 }
 
 type BindAssetHashReq struct {
 	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Denom       string       `json:"denom" yarml:"denom"`
+	Denom       string       `json:"denom" yaml:"denom"`
 	ToChainId   uint64       `json:"redeem_script" yaml:"redeem_script"`
 	ToAssetHash []byte       `json:"to_asset_hash" yaml:"to_asset_hash"`
 }

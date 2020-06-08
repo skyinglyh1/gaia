@@ -16,7 +16,7 @@ import (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute string) {
 	r.HandleFunc(
-		"/lockproxy/proxyhash_by_operator",
+		fmt.Sprintf("/lockproxy/proxyhash_by_operator/{%s}", Operator),
 		queryProxyHashByOperatorHandlerFn(cliCtx, queryRoute),
 	).Methods("GET")
 
@@ -43,8 +43,11 @@ func queryProxyHashByOperatorHandlerFn(cliCtx context.CLIContext, queryRoute str
 		if !ok {
 			return
 		}
-
-		res, ok := checkResponseQueryProxyHashByOperatorResponse(w, cliCtx, queryRoute, cliCtx.FromAddress)
+		operatorAddr, err := sdk.AccAddressFromBech32(mux.Vars(r)[Operator])
+		if err != nil {
+			return
+		}
+		res, ok := checkResponseQueryProxyHashByOperatorResponse(w, cliCtx, queryRoute, operatorAddr)
 		if !ok {
 			return
 		}

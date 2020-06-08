@@ -17,11 +17,11 @@ func QueryDenomInfo(cliCtx context.CLIContext, queryRoute string, denom string) 
 	return res, err
 }
 
-func QueryDenomInfoWithId(cliCtx context.CLIContext, queryRoute string, denom string, toChainId uint64) ([]byte, error) {
+func QueryDenomCrossChainInfo(cliCtx context.CLIContext, queryRoute string, denom string, toChainId uint64) ([]byte, error) {
 
 	res, _, err := cliCtx.QueryWithData(
-		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryDenomInfoWithid),
-		cliCtx.Codec.MustMarshalJSON(types.NewQueryDenomInfoWithId(denom, toChainId)),
+		fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryDenomCrossChainInfo),
+		cliCtx.Codec.MustMarshalJSON(types.NewQueryDenomCrossChainInfo(denom, toChainId)),
 	)
 	return res, err
 }

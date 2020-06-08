@@ -17,8 +17,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 
 		case types.QueryDenom:
 			return queryDenomInfo(ctx, req, k)
-		case types.QueryDenomWithid:
-			return queryDenomInfoWithId(ctx, req, k)
+		case types.QueryDenomCrossChain:
+			return queryDenomCrossChainInfo(ctx, req, k)
 		default:
 			return nil, sdk.ErrUnknownRequest(fmt.Sprintf("unknown minting query endpoint: %s", path[0]))
 		}
@@ -41,15 +41,15 @@ func queryDenomInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, s
 	return bz, nil
 }
 
-func queryDenomInfoWithId(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
-	var params types.QueryDenomInfoWithId
+func queryDenomCrossChainInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+	var params types.QueryDenomCrossChainInfo
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
-	crossedAmount := k.GetDenomInfoWithId(ctx, params.Denom, params.ChainId)
+	denomInfoWithId := k.GetDenomCrossChainInfo(ctx, params.Denom, params.ChainId)
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, crossedAmount)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, denomInfoWithId)
 	if err != nil {
 		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", err.Error()))
 	}

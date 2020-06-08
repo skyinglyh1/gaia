@@ -14,22 +14,22 @@ type DenomInfo struct {
 
 func (msg DenomInfo) String() string {
 	return fmt.Sprintf(`
-  Creator:        	 %s
-  TotalSupply:		 %s
-  RedeemScriptHash:  %x
-  RedeemScipt: 		 %x
+  Creator:        	 			%s
+  TotalSupply:		 			%s
+  RedeemScriptHash(AssetHash):  %x
+  RedeemScipt: 					%x
 `, msg.Creator.String(), msg.TotalSupply.String(), msg.RedeemScriptHash, msg.RedeemScipt)
 }
 
-type DenomInfoWithId struct {
+type DenomCrossChainInfo struct {
 	DenomInfo
 	ToChainId   uint64
 	ToAssetHash []byte
 }
 
-func (msg DenomInfoWithId) String() string {
+func (msg DenomCrossChainInfo) String() string {
 	return msg.DenomInfo.String() + fmt.Sprintf(`
-  ToChainId:       	 %d
-  ToAssetHash:		 %x
+  ToChainId:       	 			%d
+  ToAssetHash:		 			%x
 `, msg.ToChainId, msg.ToAssetHash)
 }

@@ -28,7 +28,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	ccQueryCmd.AddCommand(
 		client.GetCommands(
 			GetCmdQueryDenomInfo(queryRoute, cdc),
-			GetCmdQueryDenomInfoWithId(queryRoute, cdc),
+			GetCmdQueryDenomCrossChainInfo(queryRoute, cdc),
 		)...,
 	)
 
@@ -67,11 +67,11 @@ $ %s query %s denomInfo btcx
 	}
 }
 
-func GetCmdQueryDenomInfoWithId(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryDenomCrossChainInfo(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "denomInfoId [denom] [chainId]",
+		Use:   "denomccinfo [denom] [chainId]",
 		Args:  cobra.ExactArgs(2),
-		Short: "Query denom info correlated with a specific chainId",
+		Short: "Query denom cross chain info correlated with a specific chainId",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query a specific denom or coin info correlated with a specific chainId incluing the coin creator,  coin total supply, 
 toChainId and the corresponding toAssetHash in hex format
@@ -90,11 +90,11 @@ $ %s query %s denomInfoId btcx 2
 			if err != nil {
 				return err
 			}
-			res, err := common.QueryDenomInfoWithId(cliCtx, queryRoute, sourceAssetdenom, chainId)
+			res, err := common.QueryDenomCrossChainInfo(cliCtx, queryRoute, sourceAssetdenom, chainId)
 			if err != nil {
 				return err
 			}
-			var denomInfo types.DenomInfoWithId
+			var denomInfo types.DenomCrossChainInfo
 			cdc.MustUnmarshalJSON(res, &denomInfo)
 			fmt.Printf("denomInfo in detail of denom:%s is:\n %s\n", sourceAssetdenom, denomInfo.String())
 			return nil

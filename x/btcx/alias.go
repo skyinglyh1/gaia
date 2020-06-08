@@ -68,9 +68,9 @@ var (
 )
 
 type (
-	Keeper          = keeper.Keeper
-	DenomInfoWithId = types.DenomInfoWithId
-	DenomInfo       = types.DenomInfo
+	Keeper              = keeper.Keeper
+	DenomCrossChainInfo = types.DenomCrossChainInfo
+	DenomInfo           = types.DenomInfo
 
 	MsgBindAssetHash = types.MsgBindAssetHash
 	MsgCreateDenom   = types.MsgCreateDenom

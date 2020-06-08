@@ -10,12 +10,12 @@ func NewQueryDenomInfo(denom string) QueryDenomInfo {
 	return QueryDenomInfo{denom}
 }
 
-type QueryDenomInfoWithId struct {
+type QueryDenomCrossChainInfo struct {
 	Denom   string
 	ChainId uint64
 }
 
 // NewQueryBalanceParams creates a new instance of QueryBalanceParams.
-func NewQueryDenomInfoWithId(denom string, toChainId uint64) QueryDenomInfoWithId {
-	return QueryDenomInfoWithId{denom, toChainId}
+func NewQueryDenomCrossChainInfo(denom string, toChainId uint64) QueryDenomCrossChainInfo {
+	return QueryDenomCrossChainInfo{denom, toChainId}
 }

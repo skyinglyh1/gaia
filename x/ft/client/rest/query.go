@@ -18,7 +18,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute st
 	).Methods("GET")
 
 	r.HandleFunc(
-		fmt.Sprintf("/ft/denom_info/{%s}/{%s}", Denom, ChainId),
+		fmt.Sprintf("/ft/denom_cc_info/{%s}/{%s}", Denom, ChainId),
 		queryDemonWithChainIdHandlerFn(cliCtx, queryRoute),
 	).Methods("GET")
 
@@ -79,7 +79,7 @@ func checkResponseQueryDenomInfoResponse(
 func checkResponseQueryDenomInfoWithChainIdResponse(
 	w http.ResponseWriter, cliCtx context.CLIContext, queryRoute string, denom string, chainId uint64) (res []byte, ok bool) {
 
-	res, err := common.QueryDenomInfoWithId(cliCtx, queryRoute, denom, chainId)
+	res, err := common.QueryDenomCrossChainInfo(cliCtx, queryRoute, denom, chainId)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 		return nil, false

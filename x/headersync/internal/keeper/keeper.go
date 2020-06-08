@@ -16,13 +16,6 @@ import (
 	"strconv"
 )
 
-type KeeperI interface {
-	SyncGenesisHeader(ctx sdk.Context, genesisHeader []byte) sdk.Error
-	SyncBlockHeaders(ctx sdk.Context, headers [][]byte) sdk.Error
-	ProcessHeader(ctx sdk.Context, header *polytype.Header) sdk.Error
-	HeaderSyncViewKeeper
-}
-
 // Keeper of the mint store
 type Keeper struct {
 	cdc        *codec.Codec

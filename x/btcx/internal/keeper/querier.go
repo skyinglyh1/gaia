@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	QueryDenomInfo       = "denom_info"
-	QueryDenomInfoWithid = "denom_info_id"
+	QueryDenomInfo           = "denom_info"
+	QueryDenomCrossChainInfo = "denom_cc_info"
 )
 
 // NewQuerier returns a minting Querier handler.
@@ -20,7 +20,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryDenomInfo:
 			return queryDenomInfo(ctx, req, k)
-		case QueryDenomInfoWithid:
+		case QueryDenomCrossChainInfo:
 			return queryDenomInfoWithId(ctx, req, k)
 		default:
 			return nil, sdk.ErrUnknownRequest(fmt.Sprintf("unknown minting query endpoint: %s", path[0]))
@@ -45,12 +45,12 @@ func queryDenomInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, s
 }
 
 func queryDenomInfoWithId(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
-	var params types.QueryDenomInfoWithId
+	var params types.QueryDenomCrossChainInfo
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
 		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
 	}
-	denomInfo := k.GetDenomInfoWithId(ctx, params.Denom, params.ChainId)
+	denomInfo := k.GetDenomCrossChainInfo(ctx, params.Denom, params.ChainId)
 
 	bz, e := codec.MarshalJSONIndent(types.ModuleCdc, denomInfo)
 	if e != nil {

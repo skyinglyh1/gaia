@@ -218,8 +218,8 @@ func (k Keeper) GetDenomInfo(ctx sdk.Context, denom string) *types.DenomInfo {
 	return denomInfo
 }
 
-func (k Keeper) GetDenomInfoWithId(ctx sdk.Context, denom string, toChainId uint64) *types.DenomInfoWithId {
-	denomInfo := new(types.DenomInfoWithId)
+func (k Keeper) GetDenomCrossChainInfo(ctx sdk.Context, denom string, toChainId uint64) *types.DenomCrossChainInfo {
+	denomInfo := new(types.DenomCrossChainInfo)
 	denomInfo.DenomInfo = *k.GetDenomInfo(ctx, denom)
 	denomInfo.ToChainId = toChainId
 	denomInfo.ToAssetHash = ctx.KVStore(k.storeKey).Get(GetScriptHashAndChainIdToAssetHashKey(denomInfo.RedeemScriptHash, toChainId))

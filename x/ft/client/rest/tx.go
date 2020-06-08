@@ -34,13 +34,13 @@ type CreateReq struct {
 
 type BindAssetHashReq struct {
 	BaseReq     rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Denom       string       `json:"denom" yarml:"denom"`
+	Denom       string       `json:"denom" yaml:"denom"`
 	ToChainId   uint64       `json:"to_chain_id" yaml:"to_chain_id"`
 	ToAssetHash string       `json:"to_asset_hash" yaml:"to_asset_hash"`
 }
 type LockReq struct {
 	BaseReq   rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Denom     string       `json:"denom" yarml:"denom"`
+	Denom     string       `json:"denom" yaml:"denom"`
 	ToChainId uint64       `json:"to_chain_id" yaml:"to_chain_id"`
 	ToAddress []byte       `json:"to_address" yaml:"to_address"`
 	Amount    *big.Int     `json:"amount" yaml:"amount"`

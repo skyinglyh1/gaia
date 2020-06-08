@@ -36,7 +36,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryValidatorOutstandingRewards implements the query validator outstanding rewards command.
 func GetCmdQueryDenomInfo(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "denomInfo [denom]",
+		Use:   "denominfo [denom]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query denom info",
 		Long: strings.TrimSpace(
@@ -69,7 +69,7 @@ $ %s query btcx denomInfo btcx
 // GetCmdQueryValidatorOutstandingRewards implements the query validator outstanding rewards command.
 func GetCmdQueryDenomInfoWithChainId(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "denomInfoId [denom] [chainId]",
+		Use:   "denomccinfo [denom] [chainId]",
 		Args:  cobra.ExactArgs(2),
 		Short: "Query denom info correlated with a specific chainId",
 		Long: strings.TrimSpace(
@@ -91,14 +91,14 @@ $ %s query btcx denomInfoId btcx 2
 				return err
 			}
 
-			res, err := common.QueryDenomInfoWithId(cliCtx, queryRoute, denom, toChainId)
+			res, err := common.QueryDenomCrossChainInfo(cliCtx, queryRoute, denom, toChainId)
 			if err != nil {
 				return err
 			}
 
-			var denomInfoWithId types.DenomInfoWithId
-			cdc.MustUnmarshalJSON(res, &denomInfoWithId)
-			fmt.Printf("denomInfo of denom:%s for chainId:%d is:\n %s\n", denom, toChainId, denomInfoWithId.String())
+			var denomCCInfo types.DenomCrossChainInfo
+			cdc.MustUnmarshalJSON(res, &denomCCInfo)
+			fmt.Printf("denom cross chain Info of denom:%s for chainId:%d is:\n %s\n", denom, toChainId, denomCCInfo.String())
 			return nil
 			//return cliCtx.PrintOutput(MCHeader{header})
 		},

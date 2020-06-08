@@ -42,7 +42,7 @@ type BindAssetHashReq struct {
 type LockReq struct {
 	BaseReq   rest.BaseReq `json:"base_req" yaml:"base_req"`
 	LockProxy []byte       `json:"lock_proxy" yaml:"lock_proxy"`
-	Denom     string       `json:"denom" yarml:"denom"`
+	Denom     string       `json:"denom" yaml:"denom"`
 	ToChainId uint64       `json:"to_chain_id" yaml:"to_chain_id"`
 	ToAddress []byte       `json:"to_address" yaml:"to_address"`
 	Amount    *big.Int     `json:"amount" yaml:"amount"`

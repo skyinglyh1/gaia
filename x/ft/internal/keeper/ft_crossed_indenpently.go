@@ -126,23 +126,24 @@ func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk
 }
 
 func (k Keeper) GetDenomInfo(ctx sdk.Context, denom string) *types.DenomInfo {
-	//operator := store.Get(GetDenomToOperatorKey(denom))
 	operator := k.ccmKeeper.GetDenomCreator(ctx, denom)
 	if len(operator) == 0 {
 		return nil
 	}
-	denomInfo := new(types.DenomInfo)
-	denomInfo.Creator = operator
-	denomInfo.TotalSupply = k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(denom)
-	return denomInfo
+	return &types.DenomInfo{
+		Creator:     operator,
+		Denom:       denom,
+		AssetHash:   []byte(denom),
+		TotalSupply: k.supplyKeeper.GetSupply(ctx).GetTotal().AmountOf(denom),
+	}
 }
 
-func (k Keeper) GetDenomInfoWithId(ctx sdk.Context, denom string, toChainId uint64) *types.DenomInfoWithId {
-	denomInfo := new(types.DenomInfoWithId)
-	denomInfo.DenomInfo = *k.GetDenomInfo(ctx, denom)
-	denomInfo.ToChainId = toChainId
-	denomInfo.ToAssetHash = ctx.KVStore(k.storeKey).Get(GetBindAssetHashKey([]byte(denom), toChainId))
-	return denomInfo
+func (k Keeper) GetDenomCrossChainInfo(ctx sdk.Context, denom string, toChainId uint64) *types.DenomCrossChainInfo {
+	return &types.DenomCrossChainInfo{
+		DenomInfo:   k.GetDenomInfo(ctx, denom),
+		ToChainId:   toChainId,
+		ToAssetHash: ctx.KVStore(k.storeKey).Get(GetBindAssetHashKey([]byte(denom), toChainId)),
+	}
 }
 
 func (k Keeper) ContainToContractAddr(ctx sdk.Context, toContractAddr []byte, fromChainId uint64) bool {
