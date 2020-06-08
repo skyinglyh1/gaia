@@ -1,12 +1,16 @@
 package cli
 
 import (
+	"bufio"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
-	"strings"
 
 	"encoding/hex"
 	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,7 +18,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/gaia/x/ccm/internal/types"
-	"strconv"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -26,9 +29,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	txCmd.AddCommand(client.PostCommands(
-		SendProcessCrossChainTxTxCmd(cdc),
-	)...)
 	return txCmd
 }
 
@@ -46,7 +46,8 @@ $ %s tx crosschain processcrosschaintx 3 1000 'proof_hex_str_at_height_1000' 'he
 		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			fromChainIdStr := args[0]
 			fromChainId, err := strconv.ParseUint(fromChainIdStr, 10, 64)

@@ -3,8 +3,11 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/gaia/x/ccm/internal/types"
 	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
@@ -14,7 +17,6 @@ import (
 	"github.com/tendermint/tendermint/crypto/tmhash"
 	"github.com/tendermint/tendermint/libs/log"
 	ttype "github.com/tendermint/tendermint/types"
-	"strconv"
 )
 
 type KeeperI interface {
@@ -124,15 +126,15 @@ func (k Keeper) CreateCrossChainTx(ctx sdk.Context, toChainId uint64, fromContra
 func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height uint32, proofStr string, headerBs []byte) error {
 	storedHeader, err := k.hsKeeper.GetHeaderByHeight(ctx, fromChainId, height)
 	if err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx error:%s", err.Error()))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ProcessCrossChainTx error:%s", err.Error()))
 	}
 	if storedHeader == nil {
 		header := new(polytype.Header)
 		if err := header.Deserialization(polycommon.NewZeroCopySource(headerBs)); err != nil {
-			return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx error:%s", types.ErrDeserializeHeader(types.DefaultCodespace, err).Error()))
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ProcessCrossChainTx error:%s", types.ErrDeserializeHeader(err).Error()))
 		}
 		if err := k.hsKeeper.ProcessHeader(ctx, header); err != nil {
-			return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx error:%s", err.Error()))
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ProcessCrossChainTx error:%s", err.Error()))
 		}
 		storedHeader = header
 
@@ -140,15 +142,15 @@ func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height 
 
 	proof, e := hex.DecodeString(proofStr)
 	if e != nil {
-		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx, decode proof hex string to byte error:%s", e.Error()))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ProcessCrossChainTx, decode proof hex string to byte error:%s", e.Error()))
 	}
 
 	merkleValue, err := k.VerifyToCosmosTx(ctx, proof, fromChainId, storedHeader)
 	if err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx, error:%s", err.Error()))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ProcessCrossChainTx, error:%s", err.Error()))
 	}
 	if merkleValue.MakeTxParam.ToChainID != types.CurrentChainCrossChainId {
-		return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx toChainId is not for this chain"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ProcessCrossChainTx toChainId is not for this chain"))
 	}
 	// check if tocontractAddress is lockproxy module account, if yes, invoke lockproxy.unlock(), otherwise, invoke btcx.unlock
 	k.Logger(ctx).Info(fmt.Sprintf("k.unkeeperMap is %+v ", k.ulKeeperMap))
@@ -160,28 +162,28 @@ func (k Keeper) ProcessCrossChainTx(ctx sdk.Context, fromChainId uint64, height 
 
 		if unlockKeeper.ContainToContractAddr(ctx, merkleValue.MakeTxParam.ToContractAddress, fromChainId) {
 			if err := unlockKeeper.Unlock(ctx, fromChainId, merkleValue.MakeTxParam.FromContractAddress, merkleValue.MakeTxParam.ToContractAddress, merkleValue.MakeTxParam.Args); err != nil {
-				return sdk.ErrInternal(fmt.Sprintf("ProcessCrossChainTx, unlock errror:%v", err))
+				return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ProcessCrossChainTx, unlock errror:%v", err))
 			}
 			return nil
 		}
 	}
 
-	return sdk.ErrInternal(fmt.Sprintf("Cannot find any unlock keeper to perform 'unlock' method for toContractAddr:%x, fromChainId:%d", merkleValue.MakeTxParam.ToContractAddress, fromChainId))
+	return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Cannot find any unlock keeper to perform 'unlock' method for toContractAddr:%x, fromChainId:%d", merkleValue.MakeTxParam.ToContractAddress, fromChainId))
 }
 
 func (k Keeper) VerifyToCosmosTx(ctx sdk.Context, proof []byte, fromChainId uint64, header *polytype.Header) (*ccmc.ToMerkleValue, error) {
 	value, err := merkle.MerkleProve(proof, header.CrossStateRoot[:])
 	if err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("VerifyToCosmosTx, merkle.MerkleProve veify error:%s", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("VerifyToCosmosTx, merkle.MerkleProve veify error:%s", err.Error()))
 	}
 
 	merkleValue := new(ccmc.ToMerkleValue)
 	if err := merkleValue.Deserialization(polycommon.NewZeroCopySource(value)); err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("VerifyToCosmosTx, ToMerkleValue Deserialization error:%s", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("VerifyToCosmosTx, ToMerkleValue Deserialization error:%s", err.Error()))
 	}
 
 	if err := k.checkDoneTx(ctx, fromChainId, merkleValue.MakeTxParam.CrossChainID); err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("VerifyToCosmosTx, error:%s", err.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("VerifyToCosmosTx, error:%s", err.Error()))
 	}
 
 	k.putDoneTx(ctx, fromChainId, merkleValue.MakeTxParam.CrossChainID)
@@ -220,7 +222,7 @@ func (k Keeper) getCrossChainId(ctx sdk.Context) (sdk.Int, error) {
 	}
 	var crossChainId sdk.Int
 	if err := k.cdc.UnmarshalBinaryLengthPrefixed(idBs, &crossChainId); err != nil {
-		return sdk.NewInt(0), types.ErrUnmarshalSpecificTypeFail(types.DefaultCodespace, crossChainId, err)
+		return sdk.NewInt(0), types.ErrUnmarshalSpecificTypeFail(crossChainId, err)
 	}
 
 	return crossChainId, nil
@@ -229,7 +231,7 @@ func (k Keeper) setCrossChainId(ctx sdk.Context, crossChainId sdk.Int) error {
 	store := ctx.KVStore(k.storeKey)
 	idBs, err := k.cdc.MarshalBinaryLengthPrefixed(crossChainId)
 	if err != nil {
-		return types.ErrMarshalSpecificTypeFail(types.DefaultCodespace, crossChainId, err)
+		return types.ErrMarshalSpecificTypeFail(crossChainId, err)
 	}
 	store.Set(CrossChainIdKey, idBs)
 	return nil

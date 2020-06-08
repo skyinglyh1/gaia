@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"bufio"
 	"encoding/hex"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,10 +23,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	txCmd.AddCommand(client.PostCommands(
-		SendSyncGenesisTxCmd(cdc),
-		SendSyncHeaderTxCmd(cdc),
-	)...)
 	return txCmd
 }
 
@@ -34,7 +32,8 @@ func SendSyncGenesisTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short: "Create and sign a syncgenesis tx",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			genesisHeaderBytes, err := hex.DecodeString(args[0])
 			if err != nil {
@@ -54,7 +53,8 @@ func SendSyncHeaderTxCmd(cdc *codec.Codec) *cobra.Command {
 		Short: "Sync one block header",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			headerBytes, err := hex.DecodeString(args[0])
 			if err != nil {

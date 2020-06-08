@@ -39,7 +39,11 @@ func ErrDeserializeHeader(err error) error {
 }
 
 func ErrMarshalSpecificTypeFail(o interface{}, err error) error {
-	return sdkerrors.Wrap(ErrUnmarshalSpecificType, fmt.Sprintf("marshal type: %s, error: %s", reflect.TypeOf(o).String(), err.Error()))
+	return sdkerrors.Wrap(ErrMarshalSpecificType, fmt.Sprintf("marshal type: %s, error: %s", reflect.TypeOf(o).String(), err.Error()))
+}
+
+func ErrUnmarshalSpecificTypeFail(o interface{}, err error) error {
+	return sdkerrors.Wrap(ErrUnmarshalSpecificType, fmt.Sprintf("unmarshal type: %s, error: %s", reflect.TypeOf(o).String(), err.Error()))
 }
 
 func ErrFindKeyHeight(height uint32, chainId uint64) error {

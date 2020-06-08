@@ -22,7 +22,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/genaccounts"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/mint"
@@ -56,7 +55,6 @@ var (
 	// non-dependant module elements, such as codec registration
 	// and genesis verification.
 	ModuleBasics = module.NewBasicManager(
-		genaccounts.AppModuleBasic{},
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
@@ -161,7 +159,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	}
 
 	// init params keeper and subspaces
-	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey], params.DefaultCodespace)
+	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tkeys[params.TStoreKey])
 	authSubspace := app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	bankSubspace := app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	stakingSubspace := app.paramsKeeper.Subspace(staking.DefaultParamspace)
@@ -180,17 +178,14 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 
 	// add keepers
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], authSubspace, auth.ProtoBaseAccount)
-	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, bank.DefaultCodespace, app.ModuleAccountAddrs())
+	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, bankSubspace, app.ModuleAccountAddrs())
 	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
-	stakingKeeper := staking.NewKeeper(
-		app.cdc, keys[staking.StoreKey], tkeys[staking.TStoreKey],
-		app.supplyKeeper, stakingSubspace, staking.DefaultCodespace,
-	)
+	stakingKeeper := staking.NewKeeper(app.cdc, keys[staking.StoreKey], app.supplyKeeper, stakingSubspace)
 	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], mintSubspace, &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName)
 	app.distrKeeper = distr.NewKeeper(app.cdc, keys[distr.StoreKey], distrSubspace, &stakingKeeper,
-		app.supplyKeeper, distr.DefaultCodespace, auth.FeeCollectorName, app.ModuleAccountAddrs())
+		app.supplyKeeper, auth.FeeCollectorName, app.ModuleAccountAddrs())
 	app.slashingKeeper = slashing.NewKeeper(
-		app.cdc, keys[slashing.StoreKey], &stakingKeeper, slashingSubspace, slashing.DefaultCodespace,
+		app.cdc, keys[slashing.StoreKey], &stakingKeeper, slashingSubspace,
 	)
 	app.crisisKeeper = crisis.NewKeeper(crisisSubspace, invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
 
@@ -200,8 +195,8 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
 	app.govKeeper = gov.NewKeeper(
-		app.cdc, keys[gov.StoreKey], app.paramsKeeper, govSubspace,
-		app.supplyKeeper, &stakingKeeper, gov.DefaultCodespace, govRouter,
+		app.cdc, keys[gov.StoreKey], govSubspace, app.supplyKeeper,
+		&stakingKeeper, govRouter,
 	)
 
 	// register the staking hooks
@@ -226,17 +221,16 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// NOTE: Any module instantiated in the module manager that is later modified
 	// must be passed by reference here.
 	app.mm = module.NewManager(
-		genaccounts.NewAppModule(app.accountKeeper),
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		crisis.NewAppModule(&app.crisisKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		distr.NewAppModule(app.distrKeeper, app.supplyKeeper),
-		gov.NewAppModule(app.govKeeper, app.supplyKeeper),
+		distr.NewAppModule(app.distrKeeper, app.accountKeeper, app.supplyKeeper, app.stakingKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		mint.NewAppModule(app.mintKeeper),
-		slashing.NewAppModule(app.slashingKeeper, app.stakingKeeper),
-		staking.NewAppModule(app.stakingKeeper, app.distrKeeper, app.accountKeeper, app.supplyKeeper),
+		slashing.NewAppModule(app.slashingKeeper, app.accountKeeper, app.stakingKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 
 		//crosschain.NewAppModule(app.ccKeeper, app.supplyKeeper),
 
@@ -257,7 +251,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 	// NOTE: The genutils module must occur after staking so that pools are
 	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
-		genaccounts.ModuleName, distr.ModuleName, staking.ModuleName,
+		distr.ModuleName, staking.ModuleName,
 		auth.ModuleName, bank.ModuleName, slashing.ModuleName, gov.ModuleName,
 		mint.ModuleName, supply.ModuleName, crisis.ModuleName, genutil.ModuleName,
 		//crosschain.ModuleName,

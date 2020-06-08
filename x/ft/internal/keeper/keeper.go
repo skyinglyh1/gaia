@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/cosmos/gaia/x/ft/internal/types"
@@ -56,7 +58,7 @@ func (k Keeper) GetModuleAccount(ctx sdk.Context) exported.ModuleAccountI {
 func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) error {
 	acct := k.authKeeper.GetAccount(ctx, addr)
 	if acct == nil {
-		return sdk.ErrUnknownAddress(fmt.Sprintf("lockproxy: account %s does not exist", addr.String()))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("lockproxy: account %s does not exist", addr.String()))
 	}
 	return nil
 }
@@ -64,12 +66,12 @@ func (k Keeper) EnsureAccountExist(ctx sdk.Context, addr sdk.AccAddress) error {
 func (k Keeper) CreateCoins(ctx sdk.Context, creator sdk.AccAddress, coins sdk.Coins) error {
 	for _, coin := range coins {
 		if reason, exist := k.ExistDenom(ctx, coin.Denom); exist {
-			return sdk.ErrInternal(fmt.Sprintf("CreateCoins Error: denom:%s already exist, due to reason:%s", coin.Denom, reason))
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("CreateCoins Error: denom:%s already exist, due to reason:%s", coin.Denom, reason))
 		}
 		k.ccmKeeper.SetDenomCreator(ctx, coin.Denom, creator)
 	}
 	if err := k.MintCoins(ctx, creator, sdk.NewCoins(coins...)); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("CreateCoins error: %v", err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("CreateCoins error: %v", err))
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -86,7 +88,7 @@ func (k Keeper) MintCoins(ctx sdk.Context, toAcct sdk.AccAddress, amt sdk.Coins)
 	_, err := k.bankKeeper.AddCoins(ctx, toAcct, amt)
 	if err != nil {
 		//panic(err)
-		return sdk.ErrInternal(fmt.Sprintf("ft.keeper.bankKeeper.AddCoins(ctx, %s, %s), error is %+v", toAcct.String(), amt.String(), err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ft.keeper.bankKeeper.AddCoins(ctx, %s, %s), error is %+v", toAcct.String(), amt.String(), err))
 	}
 
 	// update total supply

@@ -2,19 +2,22 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/version"
 	"strings"
+
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/spf13/cobra"
 
 	"encoding/hex"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gaia/x/lockproxy/client/common"
 	"github.com/cosmos/gaia/x/lockproxy/internal/types"
-	"strconv"
 )
 
 // GetQueryCmd returns the cli query commands for the minting module.
@@ -26,15 +29,6 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-
-	ccQueryCmd.AddCommand(
-		client.GetCommands(
-			GetCmdQueryProxyByOperator(queryRoute, cdc),
-			GetCmdQueryProxyHash(queryRoute, cdc),
-			GetCmdQueryAssetHash(queryRoute, cdc),
-			GetCmdQueryLockedAmount(queryRoute, cdc),
-		)...,
-	)
 
 	return ccQueryCmd
 }
@@ -82,7 +76,7 @@ func GetCmdQueryProxyHash(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Use:   "proxy [lockproxy] [chainId]",
 		Short: "Query the proxy hash",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query proxy contract hash bond with self in another blockchain 
+			fmt.Sprintf(`Query proxy contract hash bond with self in another blockchain
 with chainId
 
 Example:
@@ -139,7 +133,7 @@ $ %s query crosschain asset height 0
 			if err != nil {
 				lockProxyBs, err1 := hex.DecodeString(args[0])
 				if err1 != nil {
-					return sdk.ErrInternal(fmt.Sprintf("lockproxy: %s or operator error: %s", err, err1))
+					return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("lockproxy: %s or operator error: %s", err, err1))
 				}
 				lockProxy = append(lockProxy, lockProxyBs...)
 			}

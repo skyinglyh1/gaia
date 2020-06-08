@@ -1,12 +1,17 @@
 package cli
 
 import (
+	"bufio"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
-	"strings"
 
 	"encoding/hex"
 	"fmt"
+	"math/big"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,8 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/gaia/x/ft/internal/types"
-	"math/big"
-	"strconv"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -27,14 +30,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	txCmd.AddCommand(client.PostCommands(
-		SendCreateAndDelegateCoinToProxyTxCmd(cdc),
-
-		SendCreateDenomTxCmd(cdc),
-		SendBindAssetHashTxCmd(cdc),
-		SendLockTxCmd(cdc),
-		SendCreateCoinTxCmd(cdc),
-	)...)
 	return txCmd
 }
 
@@ -45,14 +40,15 @@ func SendCreateAndDelegateCoinToProxyTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx ft createdelegatedenom [creator_address] [1000bch] 
+$ %s tx ft createdelegatedenom [creator_address] [1000bch]
 `,
 				version.ClientName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			creator, err := sdk.AccAddressFromBech32(args[0])
@@ -78,14 +74,15 @@ func SendCreateDenomTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx ft createdenom [creator_address],ont 
+$ %s tx ft createdenom [creator_address],ont
 `,
 				version.ClientName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			creator, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
@@ -110,14 +107,15 @@ func SendBindAssetHashTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx crosschain bindassethash ont 3 00000000000000000001 100000 true 
+$ %s tx crosschain bindassethash ont 3 00000000000000000001 100000 true
 `,
 				version.ClientName,
 			),
 		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			sourceAssetDenom := args[0]
 
@@ -155,14 +153,15 @@ func SendLockTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx crosschain lock ont 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123 
+$ %s tx crosschain lock ont 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123
 `,
 				version.ClientName,
 			),
 		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			sourceAssetDenom := args[0]
 
@@ -198,14 +197,15 @@ func SendCreateCoinTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx ft createdenom [creator_address],ont 
+$ %s tx ft createdenom [creator_address],ont
 `,
 				version.ClientName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			creator, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {

@@ -2,7 +2,9 @@ package keeper
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gaia/x/ft/internal/types"
 	"github.com/cosmos/gaia/x/lockproxy"
 )
@@ -10,17 +12,17 @@ import (
 func (k Keeper) CreateCoinAndDelegateToProxy(ctx sdk.Context, creator sdk.AccAddress, coin sdk.Coin, lockproxyHash []byte) error {
 
 	if reason, exist := k.ExistDenom(ctx, coin.Denom); exist {
-		return sdk.ErrInternal(fmt.Sprintf("CreateAndDelegateCoinToProxy Error: denom:%s already exist, due to reason:%s", coin.Denom, reason))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("CreateAndDelegateCoinToProxy Error: denom:%s already exist, due to reason:%s", coin.Denom, reason))
 	}
 	if exist := k.lockProxyKeeper.EnsureLockProxyExist(ctx, lockproxyHash); !exist {
-		return sdk.ErrInternal(fmt.Sprintf("CreateAndDelegateCoinToProxy Error: lockproxy with hash: %s Not created", lockproxyHash))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("CreateAndDelegateCoinToProxy Error: lockproxy with hash: %s Not created", lockproxyHash))
 
 	}
 	//k.SetOperator(ctx, denom, creator)
 	k.ccmKeeper.SetDenomCreator(ctx, coin.Denom, creator)
 
 	if err := k.supplyKeeper.MintCoins(ctx, lockproxy.ModuleName, sdk.NewCoins(coin)); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("CreateAndDelegateCoinToProxy error: %v", err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("CreateAndDelegateCoinToProxy error: %v", err))
 	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

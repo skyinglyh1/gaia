@@ -2,9 +2,11 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/cosmos/gaia/x/ccm"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"encoding/hex"
 )
@@ -43,10 +45,10 @@ func (msg MsgCreateAndDelegateCoinToProxy) Type() string { return TypeMsgCreateA
 // ValidateBasic Implements Msg.
 func (msg MsgCreateAndDelegateCoinToProxy) ValidateBasic() error {
 	if msg.Creator.Empty() {
-		return sdk.ErrInvalidAddress(msg.Creator.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator.String())
 	}
 	if !msg.Coin.IsValid() {
-		return sdk.ErrInternal(fmt.Sprintf("Invalid coin:%s", msg.Coin.String()))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Invalid coin:%s", msg.Coin.String()))
 	}
 	return nil
 }
@@ -77,10 +79,10 @@ func (msg MsgCreateDenom) Type() string  { return TypeMsgCreateDenom }
 // Implements Msg.
 func (msg MsgCreateDenom) ValidateBasic() error {
 	if msg.Creator.Empty() {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Creator is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCreateDenom.Creator is empty"))
 	}
 	if _, err := sdk.ParseCoin("100" + msg.Denom); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Denom:%s is invalid", msg.Denom))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCreateDenom.Denom:%s is invalid", msg.Denom))
 	}
 	return nil
 }
@@ -121,19 +123,19 @@ func (msg MsgBindAssetHash) Type() string  { return TypeMsgBindAssetHash }
 // Implements Msg.
 func (msg MsgBindAssetHash) ValidateBasic() error {
 	if msg.Creator.Empty() {
-		return sdk.ErrInvalidAddress(msg.Creator.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator.String())
 	}
 	if msg.SourceAssetDenom == "" {
-		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("SourceAssetDenom is empty"))
 	}
 	if msg.ToChainId <= 0 || msg.ToChainId == ccm.CurrentChainCrossChainId {
-		return ErrInvalidChainId(DefaultCodespace, msg.ToChainId)
+		return ErrInvalidChainId(msg.ToChainId)
 	}
 	if len(msg.ToAssetHash) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.ToAssetHash))
+		return ErrEmptyTargetHash(hex.EncodeToString(msg.ToAssetHash))
 	}
 	return nil
 }
@@ -177,22 +179,22 @@ func (msg MsgLock) Type() string  { return TypeMsgLock }
 // Implements Msg.
 func (msg MsgLock) ValidateBasic() error {
 	if msg.FromAddress.Empty() {
-		return sdk.ErrInvalidAddress(msg.FromAddress.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.FromAddress.String())
 	}
 	if msg.SourceAssetDenom == "" {
-		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("SourceAssetDenom is empty"))
 	}
 	if msg.ToChainId <= 0 {
-		return ErrInvalidChainId(DefaultCodespace, msg.ToChainId)
+		return ErrInvalidChainId(msg.ToChainId)
 	}
 	if len(msg.ToAddressBs) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.ToAddressBs))
+		return ErrEmptyTargetHash(hex.EncodeToString(msg.ToAddressBs))
 	}
 	if msg.Value.IsNegative() {
-		return sdk.ErrInternal(fmt.Sprintf("bind asset param limit should be positive"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("bind asset param limit should be positive"))
 	}
 	return nil
 }
@@ -233,10 +235,10 @@ func (msg MsgCreateCoins) Type() string  { return TypeMsgCreateDenom }
 // Implements Msg.
 func (msg MsgCreateCoins) ValidateBasic() error {
 	if msg.Creator.Empty() {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateDenom.Creator is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCreateDenom.Creator is empty"))
 	}
 	if _, err := sdk.ParseCoins(msg.Coins); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("MsgCreateCoins.Coins:%s is invalid", msg.Coins))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("MsgCreateCoins.Coins:%s is invalid", msg.Coins))
 	}
 	return nil
 }

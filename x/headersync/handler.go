@@ -2,13 +2,15 @@ package headersync
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gaia/x/headersync/internal/keeper"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
 )
 
 func NewHandler(k keeper.Keeper) sdk.Handler {
-	return func(ctx sdk.Context, msg sdk.Msg) sdk.Result {
+	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 
 		switch msg := msg.(type) {
@@ -19,18 +21,18 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized staking message type: %T", msg)
-			return sdk.ErrUnknownRequest(errMsg).Result()
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
 		}
 	}
 }
 
-func handleMsgGenesisHeader(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncGenesisParam) sdk.Result {
+func handleMsgGenesisHeader(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncGenesisParam) (*sdk.Result, error) {
 
 	//err := k.SendCoins(ctx, msg.FromAddress, msg.ToAddress, msg.Amount)
 	//ctx.BlockHeader()
 	err := k.SyncGenesisHeader(ctx, msg.GenesisHeader)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -40,14 +42,14 @@ func handleMsgGenesisHeader(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncG
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
 // Handle MsgMultiSend.
-func handleMsgBlockHeaders(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncHeadersParam) sdk.Result {
+func handleMsgBlockHeaders(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncHeadersParam) (*sdk.Result, error) {
 	err := k.SyncBlockHeaders(ctx, msg.Headers)
 	if err != nil {
-		return err.Result()
+		return nil, err
 	}
 
 	ctx.EventManager().EmitEvent(
@@ -57,5 +59,5 @@ func handleMsgBlockHeaders(ctx sdk.Context, k keeper.Keeper, msg types.MsgSyncHe
 		),
 	)
 
-	return sdk.Result{Events: ctx.EventManager().Events()}
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

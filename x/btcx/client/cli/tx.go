@@ -1,12 +1,17 @@
 package cli
 
 import (
+	"bufio"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
-	"strings"
 
 	"encoding/hex"
 	"fmt"
+	"math/big"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,8 +19,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/gaia/x/btcx/internal/types"
-	"math/big"
-	"strconv"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -27,11 +30,6 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-	txCmd.AddCommand(client.PostCommands(
-		SendCreateCoinTxCmd(cdc),
-		SendBindAssetHashTxCmd(cdc),
-		SendLockTxCmd(cdc),
-	)...)
 	return txCmd
 }
 
@@ -42,14 +40,15 @@ func SendCreateCoinTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx btcx createcoin btccc redeemscript 
+$ %s tx btcx createcoin btccc redeemscript
 `,
 				version.ClientName,
 			),
 		),
 		Args: cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			denom := args[0]
@@ -76,7 +75,8 @@ $ %s tx btcx bindassethash btca 3 12341234
 		),
 		Args: cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			sourceAssetDenom := args[0]
 
@@ -108,14 +108,15 @@ func SendLockTxCmd(cdc *codec.Codec) *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`
 Example:
-$ %s tx crosschain lock btca 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123 
+$ %s tx crosschain lock btca 3 616f2a4a38396ff203ea01e6c070ae421bb8ce2d 123
 `,
 				version.ClientName,
 			),
 		),
 		Args: cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			txBldr := auth.NewTxBuilderFromCLI().WithTxEncoder(utils.GetTxEncoder(cdc))
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 			sourceAssetDenom := args[0]
 

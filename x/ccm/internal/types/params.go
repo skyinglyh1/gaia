@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
@@ -33,6 +34,10 @@ func (p ChainIdParam) String() string {
 // Implements params.ParamSet
 func (p *ChainIdParam) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{CurrentChainIdKey, &p.ChainId},
+		params.NewParamSetPair(CurrentChainIdKey, &p.ChainId, validateChainId),
 	}
+}
+
+func validateChainId(i interface{}) error {
+	return nil
 }

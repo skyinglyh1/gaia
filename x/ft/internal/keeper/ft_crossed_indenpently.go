@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gaia/x/ft/internal/types"
 	polycommon "github.com/cosmos/gaia/x/headersync/poly-utils/common"
-	"strconv"
 )
 
 func (k Keeper) CreateDenom(ctx sdk.Context, creator sdk.AccAddress, denom string) error {
 	if reason, exist := k.ExistDenom(ctx, denom); exist {
-		return sdk.ErrInternal(fmt.Sprintf("CreateDenom Error: denom:%s already exist, due to reason:%s", denom, reason))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("CreateDenom Error: denom:%s already exist, due to reason:%s", denom, reason))
 	}
 	//k.SetOperator(ctx, denom, creator)
 	k.ccmKeeper.SetDenomCreator(ctx, denom, creator)
@@ -30,13 +32,12 @@ func (k Keeper) CreateDenom(ctx sdk.Context, creator sdk.AccAddress, denom strin
 
 func (k Keeper) BindAssetHash(ctx sdk.Context, creator sdk.AccAddress, sourceAssetDenom string, toChainId uint64, toAssetHash []byte) error {
 	if !k.ValidCreator(ctx, sourceAssetDenom, creator) {
-		//return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, creator is not valid, expect:%s, got:%s", k.GetOperator(ctx, sourceAssetDenom).String(), creator.String()))
-		return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, creator is not valid, expect:%s, got:%s", k.ccmKeeper.GetDenomCreator(ctx, sourceAssetDenom).String(), creator.String()))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("BindAssetHash, creator is not valid, expect:%s, got:%s", k.ccmKeeper.GetDenomCreator(ctx, sourceAssetDenom).String(), creator.String()))
 	}
 
 	store := ctx.KVStore(k.storeKey)
 	if !bytes.Equal([]byte(sourceAssetDenom), store.Get(GetIndependentCrossDenomKey(sourceAssetDenom))) {
-		return sdk.ErrInternal(fmt.Sprintf("BindAssetHash, denom:%s is not designed to be able to be bondAssetHash through this interface", sourceAssetDenom))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("BindAssetHash, denom:%s is not designed to be able to be bondAssetHash through this interface", sourceAssetDenom))
 
 	}
 	store.Set(GetBindAssetHashKey([]byte(sourceAssetDenom), toChainId), toAssetHash)
@@ -64,18 +65,18 @@ func (k Keeper) Lock(ctx sdk.Context, fromAddr sdk.AccAddress, sourceAssetDenom 
 		Amount:    amount.BigInt(),
 	}
 	if err := args.Serialization(sink, 32); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("TxArgs Serialization error:%v", err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("TxArgs Serialization error:%v", err))
 	}
 
 	// burn coins from fromAddr
 	if err := k.BurnCoins(ctx, fromAddr, sdk.NewCoins(sdk.NewCoin(sourceAssetDenom, amount))); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("ft_crossed_independently.Lock.BurnCoins error:%v", err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("ft_crossed_independently.Lock.BurnCoins error:%v", err))
 	}
 	// get toAssetHash from storage
 	toAssetHash := store.Get(GetBindAssetHashKey([]byte(sourceAssetDenom), toChainId))
 	// invoke cross_chain_manager module to construct cosmos proof
 	if sdkErr := k.ccmKeeper.CreateCrossChainTx(ctx, toChainId, []byte(sourceAssetDenom), toAssetHash, "unlock", sink.Bytes()); sdkErr != nil {
-		return sdk.ErrInternal(fmt.Sprintf("Lock, CreateCrossChainTx error:%v", sdkErr))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Lock, CreateCrossChainTx error:%v", sdkErr))
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -96,20 +97,20 @@ func (k Keeper) Unlock(ctx sdk.Context, fromChainId uint64, fromContractAddr sdk
 
 	var args types.TxArgs
 	if err := args.Deserialization(polycommon.NewZeroCopySource(argsBs), 32); err != nil {
-		return sdk.ErrInternal(fmt.Sprintf("unlock, Deserialize args error:%s", err))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("unlock, Deserialize args error:%s", err))
 	}
 
 	store := ctx.KVStore(k.storeKey)
 	denom := string(toContractAddr)
 	storedFromAssetHash := store.Get(GetBindAssetHashKey([]byte(denom), fromChainId))
 	if !bytes.Equal(fromContractAddr, storedFromAssetHash) {
-		return sdk.ErrInternal(fmt.Sprintf("Unlock, fromContractaddr:%x is not the stored assetHash:%x", fromContractAddr, storedFromAssetHash))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Unlock, fromContractaddr:%x is not the stored assetHash:%x", fromContractAddr, storedFromAssetHash))
 	}
 
 	toAccAddr := sdk.AccAddress(args.ToAddress)
 	amount := sdk.NewIntFromBigInt(args.Amount)
 	if sdkErr := k.MintCoins(ctx, toAccAddr, sdk.NewCoins(sdk.NewCoin(denom, amount))); sdkErr != nil {
-		return sdk.ErrInternal(fmt.Sprintf("Unlock, burnCoins from Addr:%s error:%v", toAccAddr.String(), sdkErr))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("Unlock, burnCoins from Addr:%s error:%v", toAccAddr.String(), sdkErr))
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{

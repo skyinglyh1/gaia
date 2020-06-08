@@ -3,6 +3,9 @@ package cli
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -10,8 +13,6 @@ import (
 	"github.com/cosmos/gaia/x/ccm/client/common"
 	"github.com/cosmos/gaia/x/ccm/internal/types"
 	"github.com/spf13/cobra"
-	"strconv"
-	"strings"
 )
 
 // GetQueryCmd returns the cli query commands for the minting module.
@@ -24,12 +25,6 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	ccQueryCmd.AddCommand(
-		client.GetCommands(
-			GetCmdQueryContainToContractAddr(queryRoute, cdc),
-		)...,
-	)
-
 	return ccQueryCmd
 }
 
@@ -40,8 +35,8 @@ func GetCmdQueryContainToContractAddr(queryRoute string, cdc *codec.Codec) *cobr
 		Args:  cobra.ExactArgs(3),
 		Short: "Query denom info",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query block header for a specific height 
-already synced from another blockchain, normally, relayer-chain (with chainId=0), into current chain 
+			fmt.Sprintf(`Query block header for a specific height
+already synced from another blockchain, normally, relayer-chain (with chainId=0), into current chain
 
 Example:
 $ %s query crosschain header 0 1

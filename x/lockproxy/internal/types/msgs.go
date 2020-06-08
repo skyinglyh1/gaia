@@ -2,11 +2,14 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/cosmos/gaia/x/ccm"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"encoding/hex"
+
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // Governance message types and routes
@@ -37,7 +40,7 @@ func (msg MsgCreateLockProxy) Type() string { return TypeMsgCreateLockProxy }
 // ValidateBasic Implements Msg.
 func (msg MsgCreateLockProxy) ValidateBasic() error {
 	if msg.Creator.Empty() {
-		return sdk.ErrInvalidAddress(msg.Creator.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Creator.String())
 	}
 	return nil
 }
@@ -69,16 +72,16 @@ func (msg MsgBindProxyHash) Type() string  { return TypeMsgBindProxyHash }
 // Implements Msg.
 func (msg MsgBindProxyHash) ValidateBasic() error {
 	if msg.Operator.Empty() {
-		return sdk.ErrInvalidAddress(msg.Operator.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Operator.String())
 	}
 	if msg.ToChainId <= 0 || msg.ToChainId == ccm.CurrentChainCrossChainId {
-		return ErrInvalidChainId(DefaultCodespace, msg.ToChainId)
+		return ErrInvalidChainId(msg.ToChainId)
 	}
 	if len(msg.ToChainProxyHash) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.ToChainProxyHash))
+		return ErrEmptyTargetHash(hex.EncodeToString(msg.ToChainProxyHash))
 	}
 
 	return nil
@@ -122,22 +125,22 @@ func (msg MsgBindAssetHash) Type() string  { return TypeMsgBindAssetHash }
 // Implements Msg.
 func (msg MsgBindAssetHash) ValidateBasic() error {
 	if msg.Operator.Empty() {
-		return sdk.ErrInvalidAddress(msg.Operator.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.Operator.String())
 	}
 	if msg.SourceAssetDenom == "" {
-		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("SourceAssetDenom is empty"))
 	}
 	if msg.ToChainId <= 0 {
-		return ErrInvalidChainId(DefaultCodespace, msg.ToChainId)
+		return ErrInvalidChainId(msg.ToChainId)
 	}
 	if len(msg.ToAssetHash) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.ToAssetHash))
+		return ErrEmptyTargetHash(hex.EncodeToString(msg.ToAssetHash))
 	}
 	if msg.InitialAmt.IsNegative() {
-		return sdk.ErrInternal(fmt.Sprintf("bind asset param limit should be positive"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("bind asset param limit should be positive"))
 	}
 	return nil
 }
@@ -183,25 +186,25 @@ func (msg MsgLock) Type() string  { return TypeMsgLock }
 // Implements Msg.
 func (msg MsgLock) ValidateBasic() error {
 	if len(msg.LockProxyHash) == 0 {
-		return sdk.ErrInternal("passed in lockProxyHash is empty")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "passed in lockProxyHash is empty")
 	}
 	if msg.FromAddress.Empty() {
-		return sdk.ErrInvalidAddress(msg.FromAddress.String())
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, msg.FromAddress.String())
 	}
 	if msg.SourceAssetDenom == "" {
-		return sdk.ErrInternal(fmt.Sprintf("SourceAssetDenom is empty"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "SourceAssetDenom is empty")
 	}
 	if msg.ToChainId <= 0 {
-		return ErrInvalidChainId(DefaultCodespace, msg.ToChainId)
+		return ErrInvalidChainId(msg.ToChainId)
 	}
 	if len(msg.ToAddressBs) == 0 {
 		// Disable software upgrade proposals as they are currently equivalent
 		// to text proposals. Re-enable once a valid software upgrade proposal
 		// handler is implemented.
-		return ErrEmptyTargetHash(DefaultCodespace, hex.EncodeToString(msg.ToAddressBs))
+		return ErrEmptyTargetHash(hex.EncodeToString(msg.ToAddressBs))
 	}
 	if msg.Value.IsNegative() {
-		return sdk.ErrInternal(fmt.Sprintf("bind asset param limit should be positive"))
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("bind asset param limit should be positive"))
 	}
 	return nil
 }

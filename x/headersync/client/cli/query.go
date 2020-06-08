@@ -2,18 +2,20 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/version"
-	polytype "github.com/cosmos/gaia/x/headersync/poly-utils/core/types"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/version"
+	polytype "github.com/cosmos/gaia/x/headersync/poly-utils/core/types"
+
 	"github.com/spf13/cobra"
+
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/gaia/x/headersync/client/common"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
-	"strconv"
 )
 
 // GetQueryCmd returns the cli query commands for the minting module.
@@ -26,15 +28,6 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	ccQueryCmd.AddCommand(
-		client.GetCommands(
-			GetCmdQueryHeader(queryRoute, cdc),
-			GetCmdQueryCurrentHeight(queryRoute, cdc),
-			GetCmdQueryKeyHeights(queryRoute, cdc),
-			GetCmdQueryKeyHeight(queryRoute, cdc),
-		)...,
-	)
-
 	return ccQueryCmd
 }
 
@@ -45,8 +38,8 @@ func GetCmdQueryHeader(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		Short: "Query header of chainId of height",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query block header for a specific height 
-already synced from another blockchain, normally, relayer-chain (with chainId=0), into current chain 
+			fmt.Sprintf(`Query block header for a specific height
+already synced from another blockchain, normally, relayer-chain (with chainId=0), into current chain
 
 Example:
 $ %s query crosschain header 0 1

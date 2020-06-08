@@ -70,6 +70,10 @@ func (p CoinsParam) String() string {
 // Implements params.ParamSet
 func (p *CoinsParam) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
-		{KeyCoins, &p.Coins},
+		params.NewParamSetPair(KeyCoins, &p.Coins, validateCoins),
 	}
+}
+
+func validateCoins(i interface{}) error {
+	return nil
 }

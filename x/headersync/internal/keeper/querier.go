@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gaia/x/headersync/internal/types"
 )
 
@@ -23,7 +24,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 		case types.QueryKeyHeight:
 			return queryKeyHeight(ctx, req, k)
 		default:
-			return nil, sdk.ErrUnknownRequest(fmt.Sprintf("unknown minting query endpoint: %s", path[0]))
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, fmt.Sprintf("unknown minting query endpoint: %s", path[0]))
 		}
 	}
 }
@@ -32,15 +33,15 @@ func queryHeader(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, erro
 	var params types.QueryHeaderParams
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("failed to parse params: %s", err))
 	}
 	header, err := k.GetHeaderByHeight(ctx, params.ChainId, params.Height)
 	if err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("queryHeader, %v", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("queryHeader, %v", err))
 	}
 	bz, e := codec.MarshalJSONIndent(types.ModuleCdc, header)
 	if e != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", e.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("could not marshal result to JSON: %s", e.Error()))
 	}
 
 	return bz, nil
@@ -49,7 +50,7 @@ func queryCurrentHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byt
 	var params types.QueryCurrentHeightParams
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("failed to parse params: %s", err))
 	}
 	height, err := k.GetCurrentHeight(ctx, params.ChainId)
 	if err != nil {
@@ -58,40 +59,40 @@ func queryCurrentHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byt
 	bz, e := codec.MarshalJSONIndent(types.ModuleCdc, height)
 	fmt.Printf("internal.keeper.querier.go.bz = %v\n", bz)
 	if e != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", e.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("could not marshal result to JSON: %s", e.Error()))
 	}
 
 	return bz, nil
 }
 
-func queryKeyHeights(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryKeyHeights(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryKeyHeightsParams
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("failed to parse params: %s", err))
 	}
 	heights := k.GetKeyHeights(ctx, params.ChainId)
 	bz, e := codec.MarshalJSONIndent(types.ModuleCdc, heights)
 	if e != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", e.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("could not marshal result to JSON: %s", e.Error()))
 	}
 
 	return bz, nil
 }
 
-func queryKeyHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, sdk.Error) {
+func queryKeyHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryKeyHeightParams
 
 	if err := types.ModuleCdc.UnmarshalJSON(req.Data, &params); err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("failed to parse params: %s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("failed to parse params: %s", err))
 	}
 	height, err := k.FindKeyHeight(ctx, params.Height, params.ChainId)
 	if err != nil {
-		return nil, sdk.ErrInternal(fmt.Sprintf("queryKeyHeight, FindKeyHeight error:%s", err))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("queryKeyHeight, FindKeyHeight error:%s", err))
 	}
 	bz, e := codec.MarshalJSONIndent(types.ModuleCdc, height)
 	if e != nil {
-		return nil, sdk.ErrInternal(sdk.AppendMsgToErr("could not marshal result to JSON", e.Error()))
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, fmt.Sprintf("could not marshal result to JSON: %s", e.Error()))
 	}
 
 	return bz, nil

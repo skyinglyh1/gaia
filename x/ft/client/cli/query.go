@@ -2,17 +2,19 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/version"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/version"
+
 	"github.com/spf13/cobra"
+
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/gaia/x/ft/client/common"
 	"github.com/cosmos/gaia/x/ft/internal/types"
-	"strconv"
 )
 
 // GetQueryCmd returns the cli query commands for the minting module.
@@ -24,13 +26,6 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
-
-	ccQueryCmd.AddCommand(
-		client.GetCommands(
-			GetCmdQueryDenomInfo(queryRoute, cdc),
-			GetCmdQueryDenomInfoWithId(queryRoute, cdc),
-		)...,
-	)
 
 	return ccQueryCmd
 }
