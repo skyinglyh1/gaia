@@ -6,10 +6,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/gaia/app"
-	"github.com/cosmos/gaia/x/crosschain"
 	"github.com/davecgh/go-spew/spew"
 	rpchttp "github.com/tendermint/tendermint/rpc/client"
-	"reflect"
 	"testing"
 )
 
@@ -71,27 +69,6 @@ func Test_UnmarshalOperator(t *testing.T) {
 	fmt.Printf("acct in Hash format is = %x\n", fromAddr.Bytes())
 	fmt.Printf("priv = %v\n", hex.EncodeToString(fromPriv.Bytes()))
 
-}
-
-func Test_DenomToHash(t *testing.T) {
-	denom := "ontc"
-	fmt.Printf("denom:%s, sourceasset hash is %x\n", denom, crosschain.DenomToHash(denom).Bytes())
-}
-
-func Test_TypeOf(t *testing.T) {
-	var x crosschain.MsgProcessCrossChainTx
-	fmt.Printf("xtype is %s\n", reflect.TypeOf(x).String())
-	var x1 *crosschain.MsgProcessCrossChainTx
-	fmt.Printf("xtype is %s\n", reflect.TypeOf(x1).String())
-	//fromContractHash := make([]byte, 0)
-	var fromContractHash []byte
-	sourceAssetHash := []byte{1, 2, 3, 5}
-	copy(fromContractHash, sourceAssetHash)
-	//fromContractHash = append(fromContractHash, sourceAssetHash...)
-	var from sdk.AccAddress
-	copy(from[:], sourceAssetHash[:])
-	fmt.Printf("fromContractHash = %v\n", fromContractHash)
-	fmt.Printf("from = %v\n", from)
 }
 
 func Test_TestBytes(t *testing.T) {

@@ -77,7 +77,7 @@ func Test_lockproxy_MsgBindAssetHash(t *testing.T) {
 		{"peo", 3, oep4denInOntDev, sdk.NewInt(10000000000000)},
 	}
 	for _, msgBindAssetParam := range msgBindAssetParams {
-		msg := lockproxy.NewMsgBindAssetParam(fromAddr, msgBindAssetParam.denom, msgBindAssetParam.toChainId, msgBindAssetParam.toAssetHash, msgBindAssetParam.initialAmt)
+		msg := lockproxy.NewMsgBindAssetHash(fromAddr, msgBindAssetParam.denom, msgBindAssetParam.toChainId, msgBindAssetParam.toAssetHash, msgBindAssetParam.initialAmt)
 		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 			t.Errorf("sendMsg error:%v", err)
 		}
@@ -103,7 +103,7 @@ func Test_lockproxy_Lock(t *testing.T) {
 		{"peo", 3, toOntAddr[:], sdk.NewInt(1)},
 	}
 	for _, toChainIdAddr := range toChainIdAddrs {
-		msg := lockproxy.NewMsgLock(fromAddr, fromAddr.Bytes(), toChainIdAddr.Denom, toChainIdAddr.ToChainId, toChainIdAddr.ToAddr, &toChainIdAddr.Amount)
+		msg := lockproxy.NewMsgLock(fromAddr, fromAddr.Bytes(), toChainIdAddr.Denom, toChainIdAddr.ToChainId, toChainIdAddr.ToAddr, toChainIdAddr.Amount)
 		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 			t.Errorf("sendMsg error:%v", err)
 		}

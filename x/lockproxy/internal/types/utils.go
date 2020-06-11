@@ -22,7 +22,7 @@ func Pad32Bytes(bigint *big.Int, intLen int) ([]byte, error) {
 }
 
 func Unpad32Bytes(paddedBs []byte, intLen int) (*big.Int, error) {
-	paddedBs = ToArrayReverse(paddedBs)
+	//paddedBs = ToArrayReverse(paddedBs)
 	if len(paddedBs) != intLen {
 		return nil, fmt.Errorf("Unpad32Bytes only support 32 bytes value, but got:%s", hex.EncodeToString(paddedBs))
 	}
@@ -38,7 +38,7 @@ func Unpad32Bytes(paddedBs []byte, intLen int) (*big.Int, error) {
 		return nil, fmt.Errorf("Unpad32Bytes only support 32 bytes value, but got:%s", hex.EncodeToString(paddedBs))
 	}
 
-	return big.NewInt(0).SetBytes(paddedBs[:nonZeroPos+1]), nil
+	return big.NewInt(0).SetBytes(ToArrayReverse(paddedBs[:nonZeroPos+1])), nil
 }
 
 func ToArrayReverse(arr []byte) []byte {

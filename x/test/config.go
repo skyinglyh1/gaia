@@ -6,7 +6,7 @@ const (
 	//ip = "tcp://172.168.3.93:26657"
 	//validatorWallet = "./wallets/validator"
 	//operatorWallet  = "./wallets/operator"
-
+	restIp          = "tcp://172.168.3.95:1317"
 	ip              = "tcp://172.168.3.95:26657"
 	validatorWallet = "./wallets/172.168.3.94_node0"
 	operatorWallet  = "./wallets/operator"

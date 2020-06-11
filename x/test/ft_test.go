@@ -47,7 +47,8 @@ func Test_ft_MsgCreateAndDelegateCoinToProxy(t *testing.T) {
 		t.Errorf("ParseCoin error:%v", err)
 		return
 	}
-	msg := ft.NewMsgCreateAndDelegateCoinToProxy(creator, coins)
+	lockProxyHash, _ := hex.DecodeString("")
+	msg := ft.NewMsgCreateCoinAndDelegateToProxy(creator, coins, lockProxyHash)
 	if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 		t.Errorf("sendMsg error:%v", err)
 	}
@@ -94,7 +95,7 @@ func Test_ft_Lock(t *testing.T) {
 		{"btc", 3, toOntAddr[:], sdk.NewInt(234)},
 	}
 	for _, toChainIdAddr := range toChainIdAddrs {
-		msg := ft.NewMsgLock(fromAddr, toChainIdAddr.Denom, toChainIdAddr.ToChainId, toChainIdAddr.ToAddr, &toChainIdAddr.Amount)
+		msg := ft.NewMsgLock(fromAddr, toChainIdAddr.Denom, toChainIdAddr.ToChainId, toChainIdAddr.ToAddr, toChainIdAddr.Amount)
 		if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 			t.Errorf("sendMsg error:%v", err)
 		}

@@ -47,7 +47,7 @@ func Test_btcx_GetDenomInfo(t *testing.T) {
 }
 
 func Test_btcx_GetDenomInfoWithChainId(t *testing.T) {
-	_, body, err := SendRequest(restIp, "GET", fmt.Sprintf("/btcx/denom_info/%s/%s", "btct", "1"), nil)
+	_, body, err := SendRequest(restIp, "GET", fmt.Sprintf("/btcx/denom_cc_info/%s/%s", "btct", "1"), nil)
 	if err != nil {
 		t.Errorf("GetDenomInfo, SendRequest Error:%v", err)
 	}
@@ -56,9 +56,9 @@ func Test_btcx_GetDenomInfoWithChainId(t *testing.T) {
 	var resp rest.ResponseWithHeight
 	cdc.MustUnmarshalJSON(body, &resp)
 
-	var denomInfo btcx.DenomInfoWithId
-	cdc.MustUnmarshalJSON(resp.Result, &denomInfo)
-	fmt.Printf("denomInfoId is %s", denomInfo.String())
+	var denomCrossChainInfo btcx.DenomCrossChainInfo
+	cdc.MustUnmarshalJSON(resp.Result, &denomCrossChainInfo)
+	fmt.Printf("denomInfoId is %s", denomCrossChainInfo.String())
 }
 
 func Test_btcxC_CreateCoinThroughRest(t *testing.T) {

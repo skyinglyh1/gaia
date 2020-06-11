@@ -30,7 +30,7 @@ func Test_btcx_MsgCreateCoin(t *testing.T) {
 	fromPriv, fromAddr := setupBtcx()
 	creator := fromAddr
 
-	msg := btcx.NewMsgCreateCoin(creator, "btc", RedeemScriptStr)
+	msg := btcx.NewMsgCreateDenom(creator, "btc", RedeemScriptStr)
 	if err := sendMsg(client, fromAddr, fromPriv, appCdc, msg); err != nil {
 		t.Errorf("sendMsg error:%v", err)
 	}
