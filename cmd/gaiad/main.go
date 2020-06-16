@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"io"
 
 	"github.com/spf13/cobra"
@@ -16,12 +18,9 @@ import (
 	"github.com/cosmos/gaia/app"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/genaccounts"
-	genaccscli "github.com/cosmos/cosmos-sdk/x/genaccounts/client/cli"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 )
@@ -49,14 +48,14 @@ func main() {
 	}
 
 	rootCmd.AddCommand(genutilcli.InitCmd(ctx, cdc, app.ModuleBasics, app.DefaultNodeHome))
-	rootCmd.AddCommand(genutilcli.CollectGenTxsCmd(ctx, cdc, genaccounts.AppModuleBasic{}, app.DefaultNodeHome))
+	rootCmd.AddCommand(genutilcli.CollectGenTxsCmd(ctx, cdc, auth.GenesisAccountIterator{}, app.DefaultNodeHome))
 	rootCmd.AddCommand(genutilcli.MigrateGenesisCmd(ctx, cdc))
 	rootCmd.AddCommand(genutilcli.GenTxCmd(ctx, cdc, app.ModuleBasics, staking.AppModuleBasic{},
-		genaccounts.AppModuleBasic{}, app.DefaultNodeHome, app.DefaultCLIHome))
+		auth.GenesisAccountIterator{}, app.DefaultNodeHome, app.DefaultCLIHome))
 	rootCmd.AddCommand(genutilcli.ValidateGenesisCmd(ctx, cdc, app.ModuleBasics))
-	rootCmd.AddCommand(genaccscli.AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome))
-	rootCmd.AddCommand(client.NewCompletionCmd(rootCmd, true))
-	rootCmd.AddCommand(testnetCmd(ctx, cdc, app.ModuleBasics, genaccounts.AppModuleBasic{}))
+	rootCmd.AddCommand(AddGenesisAccountCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome))
+	rootCmd.AddCommand(flags.NewCompletionCmd(rootCmd, true))
+	rootCmd.AddCommand(testnetCmd(ctx, cdc, app.ModuleBasics, auth.GenesisAccountIterator{}))
 	rootCmd.AddCommand(replayCmd())
 
 	server.AddCommands(ctx, cdc, rootCmd, newApp, exportAppStateAndTMValidators)
@@ -73,7 +72,7 @@ func main() {
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application {
 	return app.NewGaiaApp(
-		logger, db, traceStore, true, invCheckPeriod,
+		logger, db, traceStore, true, map[int64]bool{}, invCheckPeriod,
 		baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
@@ -85,13 +84,13 @@ func exportAppStateAndTMValidators(
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		gApp := app.NewGaiaApp(logger, db, traceStore, false, uint(1))
+		gApp := app.NewGaiaApp(logger, db, traceStore, false, map[int64]bool{}, uint(1))
 		err := gApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
 		}
 		return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
-	gApp := app.NewGaiaApp(logger, db, traceStore, true, uint(1))
+	gApp := app.NewGaiaApp(logger, db, traceStore, true, map[int64]bool{}, uint(1))
 	return gApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }

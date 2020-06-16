@@ -11,7 +11,7 @@ import (
 	"github.com/spf13/cobra"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	cmn "github.com/tendermint/tendermint/libs/common"
+	tmos "github.com/tendermint/tendermint/libs/os"
 	"github.com/tendermint/tendermint/proxy"
 	tmsm "github.com/tendermint/tendermint/state"
 	tmstore "github.com/tendermint/tendermint/store"
@@ -43,8 +43,8 @@ func replayTxs(rootDir string) error {
 		fmt.Fprintln(os.Stderr, "Copying rootdir over")
 		oldRootDir := rootDir
 		rootDir = oldRootDir + "_replay"
-		if cmn.FileExists(rootDir) {
-			cmn.Exit(fmt.Sprintf("temporary copy dir %v already exists", rootDir))
+		if tmos.FileExists(rootDir) {
+			tmos.Exit(fmt.Sprintf("temporary copy dir %v already exists", rootDir))
 		}
 		if err := cpm.Copy(oldRootDir, rootDir); err != nil {
 			return err
@@ -93,12 +93,13 @@ func replayTxs(rootDir string) error {
 	// Application
 	fmt.Fprintln(os.Stderr, "Creating application")
 	myapp := app.NewGaiaApp(
-		ctx.Logger, appDB, traceStoreWriter, true, uint(1),
+		ctx.Logger, appDB, traceStoreWriter, true, map[int64]bool{}, uint(1),
 		baseapp.SetPruning(store.PruneEverything), // nothing
 	)
 
 	// Genesis
 	var genDocPath = filepath.Join(configDir, "genesis.json")
+	fmt.Printf("genDocPath is %s\n", genDocPath)
 	genDoc, err := tm.GenesisDocFromFile(genDocPath)
 	if err != nil {
 		return err

@@ -71,7 +71,7 @@ func InitializeLCD(nValidators int, initAddrs []sdk.AccAddress, minting bool, po
 	logger = log.NewFilter(logger, log.AllowError())
 
 	db := dbm.NewMemDB()
-	app := gapp.NewGaiaApp(logger, db, nil, true, 0, baseapp.SetPruning(store.PruneNothing))
+	app := gapp.NewGaiaApp(logger, db, nil, true, map[int64]bool{}, 0, baseapp.SetPruning(store.PruneNothing))
 	cdc = gapp.MakeCodec()
 
 	genDoc, valConsPubKeys, valOperAddrs, privVal, err := defaultGenesis(config, nValidators, initAddrs, minting)

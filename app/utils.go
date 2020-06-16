@@ -42,6 +42,6 @@ func NewGaiaAppUNSAFE(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLa
 	invCheckPeriod uint, baseAppOptions ...func(*baseapp.BaseApp),
 ) (gapp *GaiaApp, keyMain, keyStaking *sdk.KVStoreKey, stakingKeeper staking.Keeper) {
 
-	gapp = NewGaiaApp(logger, db, traceStore, loadLatest, invCheckPeriod, baseAppOptions...)
+	gapp = NewGaiaApp(logger, db, traceStore, loadLatest, map[int64]bool{}, invCheckPeriod, baseAppOptions...)
 	return gapp, gapp.keys[baseapp.MainStoreKey], gapp.keys[staking.StoreKey], gapp.stakingKeeper
 }
