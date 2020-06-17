@@ -34,7 +34,7 @@ func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 	cmd := &cobra.Command{
 		Use:   "add-genesis-account  [coin][,[coin]]",
 		Short: "Add genesis account to genesis.json",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			coins, err := sdk.ParseCoins(args[0])
 			if err != nil {

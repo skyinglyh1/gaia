@@ -5,8 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/vesting"
 	"github.com/cosmos/cosmos-sdk/x/evidence"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	"github.com/skyinglyh1/cosmos-poly-module/ccm"
-	"github.com/skyinglyh1/cosmos-poly-module/headersync"
+	"github.com/polynetwork/cosmos-poly-module/ccm"
+	"github.com/polynetwork/cosmos-poly-module/headersync"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
@@ -32,9 +32,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
-	"github.com/skyinglyh1/cosmos-poly-module/btcx"
-	"github.com/skyinglyh1/cosmos-poly-module/ft"
-	"github.com/skyinglyh1/cosmos-poly-module/lockproxy"
+	"github.com/polynetwork/cosmos-poly-module/btcx"
+	"github.com/polynetwork/cosmos-poly-module/ft"
+	"github.com/polynetwork/cosmos-poly-module/lockproxy"
 )
 
 const appName = "GaiaApp"
@@ -288,6 +288,7 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		auth.ModuleName, distr.ModuleName, staking.ModuleName, bank.ModuleName,
 		slashing.ModuleName, gov.ModuleName, mint.ModuleName, supply.ModuleName,
 		crisis.ModuleName, genutil.ModuleName, evidence.ModuleName,
+		ccm.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)

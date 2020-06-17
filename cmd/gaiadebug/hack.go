@@ -40,8 +40,9 @@ func runHackCmd(cmd *cobra.Command, args []string) error {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+	pruningStra := viper.GetString("pruning")
 	app, keyMain, keyStaking, stakingKeeper := gaia.NewGaiaAppUNSAFE(
-		logger, db, nil, false, 0, baseapp.SetPruning(store.NewPruningOptionsFromString(viper.GetString("pruning"))))
+		logger, db, nil, false, 0, baseapp.SetPruning(store.NewPruningOptionsFromString(pruningStra)))
 
 	// print some info
 	id := app.LastCommitID()
