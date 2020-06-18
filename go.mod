@@ -3,8 +3,8 @@ module github.com/cosmos/gaia
 go 1.12
 
 replace (
+	github.com/polynetwork/cosmos-poly-module v0.0.0-20200616094009-ee7d1ce2b07d => ./../../polynetwork/cosmos-poly-module
 	github.com/cosmos/cosmos-sdk v0.38.4 => ./../cosmos-sdk
-	github.com/tendermint/tendermint v0.33.3 => ./../../tendermint/tendermint
 )
 
 require (

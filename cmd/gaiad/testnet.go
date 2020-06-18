@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
+	"github.com/cosmos/cosmos-sdk/store"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"net"
@@ -115,7 +116,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 
 	gaiaConfig := srvconfig.DefaultConfig()
 	gaiaConfig.MinGasPrices = minGasPrices
-
+	gaiaConfig.Pruning = store.PruningStrategyNothing
 	var (
 		accs     exported.GenesisAccounts
 		genFiles []string
@@ -248,7 +249,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 
 		// TODO: Rename config file to server.toml as it's not particular to Gaia
 		// (REF: https://github.com/cosmos/cosmos-sdk/issues/4125).
-		gaiaConfigFilePath := filepath.Join(nodeDir, "config/gaiad.toml")
+		gaiaConfigFilePath := filepath.Join(nodeDir, "config/app.toml")
 		srvconfig.WriteConfigFile(gaiaConfigFilePath, gaiaConfig)
 	}
 
