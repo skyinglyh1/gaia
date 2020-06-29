@@ -240,10 +240,10 @@ func NewGaiaApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest b
 		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
 	)
 	app.HeaderSyncKeeper = headersync.NewKeeper(app.cdc, keys[headersync.StoreKey])
-	app.CcmKeeepr = ccm.NewKeeper(app.cdc, keys[ccm.StoreKey], app.subspaces[ccm.ModuleName], app.HeaderSyncKeeper, nil)
+	app.CcmKeeepr = ccm.NewKeeper(app.cdc, keys[ccm.StoreKey], app.subspaces[ccm.ModuleName], app.HeaderSyncKeeper, app.supplyKeeper)
 	app.BtcxKeeper = btcx.NewKeeper(app.cdc, keys[btcx.StoreKey], app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.CcmKeeepr)
 	app.LockProxyKeeper = lockproxy.NewKeeper(app.cdc, keys[lockproxy.StoreKey], app.accountKeeper, app.supplyKeeper, app.CcmKeeepr)
-	app.FtKeeper = ft.NewKeeper(app.cdc, keys[ft.StoreKey], app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.LockProxyKeeper, app.CcmKeeepr)
+	app.FtKeeper = ft.NewKeeper(app.cdc, keys[ft.StoreKey], app.accountKeeper, app.bankKeeper, app.supplyKeeper, app.CcmKeeepr)
 	app.CcmKeeepr.MountUnlockKeeperMap(map[string]ccm.UnlockKeeper{
 		btcx.StoreKey:      app.BtcxKeeper,
 		lockproxy.StoreKey: app.LockProxyKeeper,
