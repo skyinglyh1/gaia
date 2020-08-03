@@ -12,7 +12,9 @@ require (
 	github.com/otiai10/copy v1.0.2
 	github.com/otiai10/curr v0.0.0-20190513014714-f5a3d24e5776 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/polynetwork/cosmos-poly-module v0.0.0-20200624032945-f3e838f0d6c3
+	github.com/polynetwork/cosmos-poly-module v0.0.0-20200722084435-f917a9a3331f
+	github.com/polynetwork/poly v0.0.0-20200722075529-eea88acb37b2
+	github.com/polynetwork/poly-go-sdk v0.0.0-20200722030827-6875b6018b93
 	github.com/rakyll/statik v0.1.6 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20190704165056-9c2d0518ed81 // indirect
 	github.com/snikch/goodman v0.0.0-20171125024755-10e37e294daa

@@ -35,8 +35,8 @@ const (
 func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 	defaultNodeHome, defaultClientHome string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "add-genesis-account [[coin][,[coin]] [account_name]  [wallet_path] [chain_id]",
-		Short: "Add genesis account to genesis.json",
+		Use:   "config-genesis-file [[coin][,[coin]] [account_name]  [wallet_path] [chain_id]",
+		Short: "config genesis account and chainId to genesis.json",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			coins, err := sdk.ParseCoins(args[0])
@@ -54,7 +54,7 @@ func AddGenesisAccountCmd(ctx *server.Context, cdc *codec.Codec,
 			if err != nil {
 				return err
 			}
-			acctInfo, err := importAcctFromWalletFile(cmd, acctName, walletPath, defaultClientHome)
+			acctInfo, err := importAcctFromWalletFile(cmd, acctName, walletPath, viper.GetString(flagClientHome))
 			if err != nil {
 				return err
 			}
