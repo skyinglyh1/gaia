@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/store"
+	stypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	tmos "github.com/tendermint/tendermint/libs/os"
 	"net"
@@ -116,7 +116,7 @@ func InitTestnet(cmd *cobra.Command, config *tmconfig.Config, cdc *codec.Codec,
 
 	gaiaConfig := srvconfig.DefaultConfig()
 	gaiaConfig.MinGasPrices = minGasPrices
-	gaiaConfig.Pruning = store.PruningStrategyNothing
+	gaiaConfig.Pruning = stypes.PruningOptionNothing
 	var (
 		accs     exported.GenesisAccounts
 		genFiles []string

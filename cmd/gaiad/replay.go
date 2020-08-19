@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/store/types"
 	"io"
 	"os"
 	"path/filepath"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -94,7 +94,7 @@ func replayTxs(rootDir string) error {
 	fmt.Fprintln(os.Stderr, "Creating application")
 	myapp := app.NewGaiaApp(
 		ctx.Logger, appDB, traceStoreWriter, true, map[int64]bool{}, uint(1),
-		baseapp.SetPruning(store.PruneEverything), // nothing
+		baseapp.SetPruning(types.PruneEverything), // nothing
 	)
 
 	// Genesis
@@ -176,7 +176,7 @@ func replayTxs(rootDir string) error {
 
 		t2 := time.Now()
 
-		state, err = blockExec.ApplyBlock(state, blockmeta.BlockID, block)
+		state, _, err = blockExec.ApplyBlock(state, blockmeta.BlockID, block)
 		if err != nil {
 			return err
 		}

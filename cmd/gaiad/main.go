@@ -19,7 +19,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/store"
+	"github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -74,7 +74,7 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 	pruningStr := viper.GetString("pruning")
 	return app.NewGaiaApp(
 		logger, db, traceStore, true, map[int64]bool{}, invCheckPeriod,
-		baseapp.SetPruning(store.NewPruningOptionsFromString(pruningStr)),
+		baseapp.SetPruning(types.NewPruningOptionsFromString(pruningStr)),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(uint64(viper.GetInt(server.FlagHaltHeight))),
 	)

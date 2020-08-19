@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/coreos/go-etcd v2.0.0+incompatible // indirect
-	github.com/cosmos/cosmos-sdk v0.38.4
+	github.com/cosmos/cosmos-sdk v0.39.0
 	github.com/cosmos/go-bip39 v0.0.0-20180819234021-555e2067c45d // indirect
 	github.com/cpuguy83/go-md2man v1.0.10 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -16,15 +16,16 @@ require (
 	github.com/polynetwork/poly v0.0.0-20200722075529-eea88acb37b2
 	github.com/polynetwork/poly-go-sdk v0.0.0-20200722030827-6875b6018b93
 	github.com/rakyll/statik v0.1.6 // indirect
-	github.com/rcrowley/go-metrics v0.0.0-20190704165056-9c2d0518ed81 // indirect
 	github.com/snikch/goodman v0.0.0-20171125024755-10e37e294daa
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v1.0.0
-	github.com/spf13/viper v1.6.2
+	github.com/spf13/viper v1.6.3
 	github.com/stretchr/testify v1.6.1
 	github.com/stumble/gorocksdb v0.0.3 // indirect
 	github.com/tendermint/go-amino v0.15.1
-	github.com/tendermint/tendermint v0.33.3
+	github.com/tendermint/tendermint v0.33.6
 	github.com/tendermint/tm-db v0.5.1
 	golang.org/x/text v0.3.2 // indirect
 )
+
+replace github.com/polynetwork/cosmos-poly-module v0.0.0-20200722084435-f917a9a3331f => ../../polynetwork/cosmos-poly-module
