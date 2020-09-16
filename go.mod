@@ -12,7 +12,7 @@ require (
 	github.com/otiai10/copy v1.0.2
 	github.com/otiai10/curr v0.0.0-20190513014714-f5a3d24e5776 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/polynetwork/cosmos-poly-module v0.0.0-20200722084435-f917a9a3331f
+	github.com/polynetwork/cosmos-poly-module v0.0.0-20200827085015-12374709b707
 	github.com/polynetwork/poly v0.0.0-20200722075529-eea88acb37b2
 	github.com/polynetwork/poly-go-sdk v0.0.0-20200722030827-6875b6018b93
 	github.com/rakyll/statik v0.1.6 // indirect
@@ -27,5 +27,3 @@ require (
 	github.com/tendermint/tm-db v0.5.1
 	golang.org/x/text v0.3.2 // indirect
 )
-
-replace github.com/polynetwork/cosmos-poly-module v0.0.0-20200722084435-f917a9a3331f => ../../polynetwork/cosmos-poly-module
